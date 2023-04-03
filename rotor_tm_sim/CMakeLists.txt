@@ -1,5 +1,31 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.16.3)
 project(rotor_tm)
+
+set(CMAKE_C_COMPILER "gcc-10")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+#message("C++ standards in this project ${CMAKE_CXX_STANDARD}")
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+# include
+# ${catkin_INCLUDE_DIRS}
+)
+
+find_package(Boost EXACT 1.81.0 COMPONENTS program_options REQUIRED)
+message("Boost version: ${Boost_VERSION}")
+
+find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
+message("Eigen version: ${Eigen3_VERSION}")
+
+
+add_executable(main src/rotor_tm_sim/main.cpp)
+
+target_link_libraries(main Boost::program_options Eigen3::Eigen)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -11,13 +37,6 @@ project(rotor_tm)
 ###########
 ## Build ##
 ###########
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(
-# include
-# ${catkin_INCLUDE_DIRS}
-)
 
 
 ## Mark cpp header files for installation
