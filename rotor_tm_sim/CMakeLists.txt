@@ -11,10 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-include
-# ${catkin_INCLUDE_DIRS}
-)
+
 
 find_package(Boost EXACT 1.81.0 COMPONENTS program_options REQUIRED)
 message("Boost version: ${Boost_VERSION}")
@@ -23,7 +20,22 @@ find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
 message("Eigen version: ${Eigen3_VERSION}")
 
 
-# include_directories(${CMAKE_SOURCE_DIR}/include)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    std_msgs
+    geometry_msgs
+)
+
+catkin_package(
+  INCLUDE_DIRS include
+)
+
+include_directories(
+include
+${catkin_INCLUDE_DIRS}
+)
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 add_library(lib_quadrotor_dynamic_simulator SHARED
             include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
@@ -32,9 +44,26 @@ add_library(lib_quadrotor_dynamic_simulator SHARED
 target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
 
 
+add_library(lib_ros_simulator SHARED
+              include/rotor_tm_sim/lib_ros_simulator.hpp
+              src/rotor_tm_sim/lib_ros_simulator.cpp)
+
+target_link_libraries(lib_ros_simulator ${catkin_LIBRARIES} lib_quadrotor_dynamic_simulator)    
+
+# add_library(lib_ros_quadrotor_dynamic_simulator SHARED
+#              include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
+#              include/rotor_tm_sim/lib_ros_quadrotor_dynamic_somulator.hpp
+#              src/rotor_tm_sim/lib_quadrotor_dynamic_simulator.cpp
+#              src/rotor_tm_sim/lib_ros_quadrotor_dynamic_somulator.cpp)
+
+# target_link_libraries(lib_ros_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
+
 add_executable(main src/rotor_tm_sim/main.cpp)
 
-target_link_libraries(main lib_quadrotor_dynamic_simulator)
+# target_link_libraries(main lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES})
+
+target_link_libraries(main lib_ros_simulator ${catkin_LIBRARIES})
+
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)

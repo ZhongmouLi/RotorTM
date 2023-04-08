@@ -1,3 +1,6 @@
+#ifndef QUADROTORDYNQMIC_SIMULATOR_H
+#define QUADROTORDYNQMIC_SIMULATOR_H
+
 #include <iostream>
 #include <boost/numeric/odeint.hpp>
 #include <Eigen/Dense>
@@ -84,4 +87,4 @@ class QuadrotorDynamicSimulator
 
         void getCurrentTimeStep(double &current_time);
 };
-
+#endif
