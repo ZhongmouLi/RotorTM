@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+include
 # ${catkin_INCLUDE_DIRS}
 )
 
@@ -23,9 +23,18 @@ find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
 message("Eigen version: ${Eigen3_VERSION}")
 
 
+# include_directories(${CMAKE_SOURCE_DIR}/include)
+
+add_library(lib_quadrotor_dynamic_simulator SHARED
+            include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
+            src/rotor_tm_sim/lib_quadrotor_dynamic_simulator.cpp)
+
+target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
+
+
 add_executable(main src/rotor_tm_sim/main.cpp)
 
-target_link_libraries(main Boost::program_options Eigen3::Eigen)
+target_link_libraries(main lib_quadrotor_dynamic_simulator)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
