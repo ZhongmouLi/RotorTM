@@ -59,7 +59,7 @@ target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eig
 
 # target_link_libraries(lib_ros_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
 
-add_executable(rotorTM_CXX src/rotor_tm_sim/main.cpp)
+add_executable(rotorTM_CXX src/rotor_tm_sim/rotorTM_node.cpp)
 
 # target_link_libraries(main lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES})
 
