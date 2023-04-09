@@ -1,0 +1,6 @@
+<launch>
+
+ <node pkg="rotor_tm" type="rotorTM_CXX" name="rotorTM_in_CXX" output="screen">
+ </node>
+
+ </launch>

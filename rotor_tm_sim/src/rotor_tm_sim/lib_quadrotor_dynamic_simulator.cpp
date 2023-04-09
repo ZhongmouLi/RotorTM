@@ -19,6 +19,14 @@ Eigen::Vector3d QuadrotorDynamicSimulator::quadRotDynac(const Eigen::Vector3d &t
 
     dBodyRate = Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
+    // std::cout <<"Inertia "<<Inertia<< std::endl;
+    // std::cout <<"bodyrate "<<bodyrate<< std::endl;
+    // std::cout <<"Inertia*bodyrate "<<Inertia*bodyrate<< std::endl;
+    // std::cout <<"-bodyrate.cross(Inertia*bodyrate)"<<-bodyrate.cross(Inertia*bodyrate)<< std::endl;
+    // std::cout <<"torque"<<torque<< std::endl;
+    // std::cout <<"Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque);"<<Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque)<< std::endl;
+     
+
     return dBodyRate;
 }
 
@@ -61,73 +69,73 @@ Eigen::Matrix3d QuadrotorDynamicSimulator::quadTransMatrix(const double &phi, co
     return trans_matrix;
 } 
 
-void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
-{
-    // Eigen::Vector3d thrust(1,2,0);
-    // double mass =1;
+// void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
+// {
+//     // Eigen::Vector3d thrust(1,2,0);
+//     // double mass =1;
 
-    // Eigen::Vector3d torque(0,0,0);
-    // Eigen::Matrix3d Inertia = Eigen::Matrix3d::Identity(3,3);
-    // Inertia(0,0)=0.1;
-    // Inertia(1,1)=0.1;
-    // Inertia(2,2)=0.2;        
+//     // Eigen::Vector3d torque(0,0,0);
+//     // Eigen::Matrix3d Inertia = Eigen::Matrix3d::Identity(3,3);
+//     // Inertia(0,0)=0.1;
+//     // Inertia(1,1)=0.1;
+//     // Inertia(2,2)=0.2;        
 
-    // get sub X vector
-    // X = [post_v att_v]
-    Eigen::VectorXd post_v(6);
-    Eigen::VectorXd att_v(6);
+//     // get sub X vector
+//     // X = [post_v att_v]
+//     Eigen::VectorXd post_v(6);
+//     Eigen::VectorXd att_v(6);
 
-    // define sub dX vector
-    Eigen::VectorXd dpost_v(6);
-    Eigen::VectorXd datt_v(6);
+//     // define sub dX vector
+//     Eigen::VectorXd dpost_v(6);
+//     Eigen::VectorXd datt_v(6);
 
-    // get postion and attitude from input
-    post_v = x.head(6);
-    att_v = x.tail(6);
+//     // get postion and attitude from input
+//     post_v = x.head(6);
+//     att_v = x.tail(6);
 
-    // define bodyrate
-    // Eigen::Vector3d bodyrate;
-    // bodyrate = att_v.tail(3);
-    bodyrate_ = att_v.tail(3);
+//     // define bodyrate
+//     // Eigen::Vector3d bodyrate;
+//     // bodyrate = att_v.tail(3);
+//     bodyrate_ = att_v.tail(3);
 
-    // translation in world frame
-    // P = [x,y,z,dx, dy, dz]
-    // dP = [dx, dy, dz, ddx, ddy, ddz]
-    dpost_v(0) = post_v(3);
-    dpost_v(1) = post_v(4);
-    dpost_v(2) = post_v(5);
-    // [ddx ddy ddz] = (F-mg)/m
-    dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity);
+//     // translation in world frame
+//     // P = [x,y,z,dx, dy, dz]
+//     // dP = [dx, dy, dz, ddx, ddy, ddz]
+//     dpost_v(0) = post_v(3);
+//     dpost_v(1) = post_v(4);
+//     dpost_v(2) = post_v(5);
+//     // [ddx ddy ddz] = (F-mg)/m
+//     dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity_);
 
-    // attitude in body frame
-    // att_v = [phi, theta, psi, p, q, r]
-    // datt_v = [dphi, dtheta, dpsi, dp, dq, dr]
+//     // attitude in body frame
+//     // att_v = [phi, theta, psi, p, q, r]
+//     // datt_v = [dphi, dtheta, dpsi, dp, dq, dr]
 
-    // 
-    Eigen::Matrix3d trans_matrix;
-    trans_matrix = quadTransMatrix(att_v(0), att_v(1), att_v(2));
+//     // 
+//     Eigen::Matrix3d trans_matrix;
+//     trans_matrix = quadTransMatrix(att_v(0), att_v(1), att_v(2));
 
-    datt_v.head(3) = quadBodyrate2Eulerrate(bodyrate_, trans_matrix);
+//     datt_v.head(3) = quadBodyrate2Eulerrate(bodyrate_, trans_matrix);
 
-    // 
-    datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate_);
+//     // 
+//     datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate_);
 
 
-    // assign
-    dxdt.head(6) =  dpost_v;
-    dxdt.tail(6) =  datt_v;
+//     // assign
+//     dxdt.head(6) =  dpost_v;
+//     dxdt.tail(6) =  datt_v;
 
-    this->post_ = post_v.head(3);
-    this->vel_  = post_v.tail(3);
+//     this->post_ = post_v.head(3);
+//     this->vel_  = post_v.tail(3);
 
-    std::cout<<"post_ "<<this->post_.transpose()<< std::endl;
-}
+//     std::cout<<"post_ "<<this->post_.transpose()<< std::endl;
+// }
 
 
 // void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
 void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor_state &dxdt, const double time)
 {
-     
+    // std::cout << "state " << x.transpose()<<std::endl; 
     // get sub X vector
     // X = [post_v att_v]
     Eigen::VectorXd post_v(6);
@@ -153,8 +161,11 @@ void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor
     dpost_v(1) = post_v(4);
     dpost_v(2) = post_v(5);
     // [ddx ddy ddz] = (F-mg)/m
-    dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity);
-
+    dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity_);
+    // std::cout << "mass is " << mass_<< std::endl; 
+    // std::cout << "thrust_ is " << thrust_.transpose()<< std::endl; 
+    // std::cout << "gravity_ is " << gravity_<< std::endl; 
+    // std::cout << "dpost_v.tail(3) " << dpost_v.tail(3).transpose()<< std::endl; 
     // attitude in body frame
     // att_v = [phi, theta, psi, p, q, r]
     // datt_v = [dphi, dtheta, dpsi, dp, dq, dr]
@@ -162,12 +173,18 @@ void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor
     // 
     Eigen::Matrix3d trans_matrix;
     trans_matrix = quadTransMatrix(att_v(0), att_v(1), att_v(2));
+    // std::cout << "trans_matrix " << trans_matrix<< std::endl; 
+    // std::cout << "Euler angle " << att_v(0)<< " " <<att_v(1) << " " << att_v(2)<<std::endl; 
 
     datt_v.head(3) = quadBodyrate2Eulerrate(bodyrate, trans_matrix);
+    // std::cout << "datt_v.head(3) " << datt_v.head(3).transpose()<< std::endl; 
+    // std::cout << "bodyrate " << bodyrate.transpose()<< std::endl; 
 
     // 
-    datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate_);
+    // std::cout << " Interia "  <<m_inertia_ << std::endl;
 
+    datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate);
+    // std::cout << "datt_v.tail(3) " << datt_v.tail(3).transpose()<< std::endl; 
 
     // assign
     dxdt.head(6) =  dpost_v;
@@ -188,12 +205,16 @@ void QuadrotorDynamicSimulator::doOneStepInt()
     //   this->rhs(done_state_, dxdt, time);
     // }, done_state_, step_size_, step_size_);
 
+    // std::cout << "thurst is " << thrust_.transpose() << " torque is "  <<torque_.transpose() << std::endl;
+    
+    // std::cout << "stepsize is " << step_size_<< std::endl;
+
     this->stepper_.do_step(*this, done_state_, current_step_, step_size_);
 
     // void (*operation)(const quadrotor_state &x,  quadrotor_state &dxdt, const double time)
 
 //    std::cout << "current step " << current_step_ << " position is "  <<this->post_.transpose() << std::endl;
-//    std::cout << "current step " << current_step_ << " state is "  <<this->done_state_.transpose() << std::endl;
+    // std::cout << "current step " << current_step_ << " state is "  <<this->done_state_.transpose() << std::endl;
 
     // std::cout << "current step " << current_step_ << std::endl;
 

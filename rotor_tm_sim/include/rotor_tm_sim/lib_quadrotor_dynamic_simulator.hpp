@@ -25,7 +25,7 @@ class QuadrotorDynamicSimulator
         double mass_;
         double step_size_;
         Eigen::Matrix3d m_inertia_;
-        const double gravity = 9.8;
+        const double gravity_ = 9.8;
 
         double current_step_ = 0;
 
