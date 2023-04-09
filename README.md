@@ -9,11 +9,13 @@
 
 ## Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
-   - inputing drone mass and interia
+  - inputing drone mass and interia
+      ```bash
       <param name="drone_mass" value="1" />
       <param name="drone_Ixx" value="0.01" />
       <param name="drone_Iyy" value="0.01" />
       <param name="drone_Izz" value="0.02" />
+      ```
   - deciding topics to receive input wrench 
     - ```<remap from="reference/fm_cmd" to="/fm_cmd"/>```
     - message's type is rotor_tm_msgs::FMCommand
