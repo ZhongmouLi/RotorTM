@@ -9,17 +9,17 @@
 
 ## Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
-  - inputing drone mass and interia
-      ```bash
-      <param name="drone_mass" value="1" />
-      <param name="drone_Ixx" value="0.01" />
-      <param name="drone_Iyy" value="0.01" />
-      <param name="drone_Izz" value="0.02" />
+  - changing drone mass and interia that are defined in rotor_tm_config/config/uav_params/race.yaml as
+      ```xml
+      mass: 0.95
+      inertia: {Ixx: 0.003, Ixy: 0.0, Ixz: 0.0, Iyx: 0.0, Iyy: 0.003, Iyz: 0.0, Izx: 0.0, Izy: 0.0, Izz: 0.004}
       ```
   - deciding topics to receive input wrench 
     - ```<remap from="reference/fm_cmd" to="/fm_cmd"/>```
     - message's type is rotor_tm_msgs::FMCommand
-    - thrust force in world frame and torque in body frame
+    - Note: 
+      - the input thrust (scalar, norm of thrust force) is defined at /fm_cmd/thrust, 
+      - the input torque (3X1 vector, torque in body frame) is defined at /fm_cmd/moments.
   - deciding topics to pusblish drone state
     - ```<remap from="outputs/odom" to="/odom"/>```
     - message's type is nav_msgs::Odometry
