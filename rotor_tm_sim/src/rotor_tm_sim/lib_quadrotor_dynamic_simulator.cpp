@@ -258,9 +258,29 @@ void QuadrotorDynamicSimulator::getAttitude(Eigen::Quaterniond &mav_attitude)
     mav_attitude = attitude_;
 };
 
-void QuadrotorDynamicSimulator::inputThurstForce(const Eigen::Vector3d &mav_thrust)
+void QuadrotorDynamicSimulator::inputThurstForce(const Eigen::Vector3d &mav_thrust_force)
 {
-    thrust_ = mav_thrust;
+    thrust_ = mav_thrust_force;
+};
+
+void QuadrotorDynamicSimulator::inputThurst(const double &mav_thrust)
+{
+    //1. compute thrust force in body frame [0,0,T]
+    Eigen::Vector3d thrust_force_bf(0,0,mav_thrust);
+
+    //2. obtain rotation matrix that represents drone rotation w.r.t world frame
+    // 2.1 compute attitude from drone state's Euler angles
+    Eigen::Quaterniond attitude = Eigen::AngleAxisd(done_state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(done_state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(done_state_(6), Eigen::Vector3d::UnitX());
+    // 2.2 normalise
+    attitude.normalize();
+    // 2.3 obtain rot matrix from quaternion
+    Eigen::Matrix3d rot_matrix = attitude.toRotationMatrix();
+
+    // 3. compute thrust force in world frame
+    Eigen::Vector3d thrust_force_wf =  rot_matrix * thrust_force_bf;
+
+    inputThurstForce(thrust_force_wf);
+
 };
 
 void QuadrotorDynamicSimulator::inputTorque(const Eigen::Vector3d &mav_torque)

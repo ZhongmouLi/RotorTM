@@ -1,13 +1,19 @@
 cmake_minimum_required(VERSION 3.16.3)
+set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+enable_language(CXX)
+enable_language(C)
+
 project(rotor_tm)
 
-set(CMAKE_C_COMPILER "gcc-10")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+
+message("C complier is ${CMAKE_C_COMPILER} and ID is ${CMAKE_C_COMPILER_ID} and version is ${CMAKE_C_COMPILER_VERSION}")
+message("C++ complier is ${CMAKE_CXX_COMPILER} and ID is ${CMAKE_CXX_COMPILER_ID} and version is ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#message("C++ standards in this project ${CMAKE_CXX_STANDARD}")
+message("C++ standards in this project ${CMAKE_CXX_STANDARD}")
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -41,6 +47,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_library(lib_quadrotor_dynamic_simulator SHARED
             include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
             src/rotor_tm_sim/lib_quadrotor_dynamic_simulator.cpp)
+
+# use this options in the future that specify c++ 17 for our library
+target_compile_options(lib_quadrotor_dynamic_simulator PRIVATE -std=c++17 -Wall -Wextra)
+
 
 target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
 

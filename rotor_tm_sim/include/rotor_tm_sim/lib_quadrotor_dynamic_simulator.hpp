@@ -21,21 +21,35 @@ typedef Eigen::Matrix<double, 12, 1> quadrotor_state;
 class QuadrotorDynamicSimulator
 {
     private:
-
+        // quadrotor parameters
         double mass_;
-        double step_size_;
+        
         Eigen::Matrix3d m_inertia_;
+
         const double gravity_ = 9.8;
 
+        Eigen::Vector3d post_;  // position vector in world frame
+        Eigen::Vector3d vel_;   // vel vector in world frame
+        Eigen::Vector3d bodyrate_;  // bodyrate vector in body frame
+        Eigen::Quaterniond attitude_;   // attitude in quaternion
+
+        // dynamic inputs
+        // thrust force in world frame
+        Eigen::Vector3d thrust_;
+        // torque in body frame
+        Eigen::Vector3d torque_;
+
+        // int parameter
+        double step_size_;
         double current_step_ = 0;
 
-        Eigen::Vector3d post_;
-        Eigen::Vector3d vel_;
-        Eigen::Vector3d bodyrate_;
-        Eigen::Quaterniond attitude_;
+        // simulator seetigs for quadrotor
+        // state vecgor for a quadrotor (12X1) including position, velcity, bodyrate, euler angle
+        quadrotor_state done_state_;
 
-        Eigen::Vector3d thrust_;
-        Eigen::Vector3d torque_;
+        // solver ruge_kutta
+        runge_kutta4<quadrotor_state> stepper_;
+
 
         // rotational dynamic
         // compute d_bodyrate
@@ -53,15 +67,16 @@ class QuadrotorDynamicSimulator
         // dynamic model of quadrotor
         void rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time);
 
-        quadrotor_state done_state_;
-
-        runge_kutta4<quadrotor_state> stepper_;
-
+        // obtain quadrotor state
+        void assignDroneState(const quadrotor_state &done_state);
+        
+        // transfer deg to radian
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
+        // prevent creating instance using none par
         QuadrotorDynamicSimulator();
 
-        void assignDroneState(const quadrotor_state &done_state);
+        
 
     public:
 
@@ -72,7 +87,7 @@ class QuadrotorDynamicSimulator
         void doOneStepInt();
         void operator()(const quadrotor_state &x , quadrotor_state &dxdt, const double time); // Declare the function call operator
 
-        // get
+        // get drone status information
         void getPosition(Eigen::Vector3d &mav_position);
 
         void getVel(Eigen::Vector3d &mav_vel);
@@ -81,10 +96,15 @@ class QuadrotorDynamicSimulator
 
         void getAttitude(Eigen::Quaterniond &mav_attitude);
 
-        void inputThurstForce(const Eigen::Vector3d &mav_thrust);
-
-        void inputTorque(const Eigen::Vector3d &mav_torque);
-
         void getCurrentTimeStep(double &current_time);
+
+        // input for quadrotor simulator instance
+
+        void inputThurstForce(const Eigen::Vector3d &mav_thrust_force); // mav_thrust_force is thrust force vector in world frame
+
+        void inputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
+
+        void inputTorque(const Eigen::Vector3d &mav_torque); //mav_torque is torque vector in body frame
+
 };
 #endif

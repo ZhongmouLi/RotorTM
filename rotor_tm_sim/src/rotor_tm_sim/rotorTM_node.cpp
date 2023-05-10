@@ -8,17 +8,21 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
 
-
 // #include "rotor_tm_sim/lib_ros_simulator.hpp"
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
 
+// functions for converting data type
 Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg);
 geometry_msgs::Vector3 EigenToVector3Msg(const Eigen::Vector3d& msg);
 geometry_msgs::Point EigenToPointMsg(const Eigen::Vector3d& msg);
 geometry_msgs::Quaternion EigenQuadnToGeomQuadn(const Eigen::Quaterniond& q);
 
 
-static Eigen::Vector3d thrust;
+
+// input for quadrotor dynamic simulator
+// thrust: norm of thrust force
+static double thrust;       // static Eigen::Vector3d thrust;
+// torque : torque vector in body frame
 static Eigen::Vector3d torque;
 
 
@@ -26,9 +30,10 @@ static Eigen::Vector3d torque;
 void fmCmdCallback(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 {
     
-    thrust = vector3MsgToEigen(msg->rlink_thrust);
+    // thrust = vector3MsgToEigen(msg->rlink_thrust);
+    thrust = static_cast<double>(msg->thrust);
     torque = vector3MsgToEigen(msg->moments);
-    // ROS_INFO_STREAM("receive input wrench "<< thrust.transpose() << " "<<torque.transpose());
+    // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
 }
 
 
@@ -52,10 +57,16 @@ int main(int argc, char** argv)
     // 4. set drone para from ros para
     double mass;
     double Ixx, Iyy, Izz;
-    nh_private.param<double>("drone_mass", mass, 1);
-    nh_private.param<double>("drone_Ixx", Ixx, 0.01);
-    nh_private.param<double>("drone_Iyy", Iyy, 0.01);
-    nh_private.param<double>("drone_Izz", Izz, 0.02);
+    // using arg in lanch file
+    // nh_private.param<double>("drone_mass", mass, 1);
+    // nh_private.param<double>("drone_Ixx", Ixx, 0.01);
+    // nh_private.param<double>("drone_Iyy", Iyy, 0.01);
+    // nh_private.param<double>("drone_Izz", Izz, 0.02);
+    // using yaml file rotor_tm_config)/config/uav_params/race.yaml
+    nh_private.getParam("/mass", mass);
+    nh_private.getParam("/inertia/Ixx", Ixx);
+    nh_private.getParam("/inertia/Iyy", Iyy);
+    nh_private.getParam("/inertia/Izz", Izz);
 
     // ROS_INFO_STREAM("input mass "<< mass << "input Ixx "<< Ixx << "input Iyy "<< Iyy << "input Izz "<< Izz);
 
@@ -100,15 +111,16 @@ int main(int argc, char** argv)
 
         loop_rate.sleep();   
 
-        // step 1. input thrust force and torque to quadrotor    
-        // ROS_INFO_STREAM("input thrust "<< thrust.transpose());
+        // step 1. input thrust and torque to quadrotor    
+        // ROS_INFO_STREAM("input thrust "<< thrust);
         // ROS_INFO_STREAM("input torque "<< torque.transpose());
 
-        ptr_drone->inputThurstForce(thrust);
+        // ptr_drone->inputThurstForce(thrust);
+        ptr_drone->inputThurst(thrust);
         ptr_drone->inputTorque(torque);
 
         // step 2. do one step int with the step size being dt
-        //         the obtained drone state (position, vel, attitude, bodyrate) is save for the next int.
+        //         the obtained drone state (position, vel, attitude, bodyrate) is saved for the next int.
         ptr_drone->doOneStepInt();
 
         // setp 3. get drone position (Eigen::Vector3d), vel(Eigen::Vector3d), atttude (Eigen::Quaterniond), bodyrate (Eigen::Vector3d)
