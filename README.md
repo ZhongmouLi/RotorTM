@@ -23,11 +23,11 @@
   - deciding topics to pusblish drone state
     - ```<remap from="outputs/odom" to="/odom"/>```
     - message's type is nav_msgs::Odometry
-2. launch simulator by
+2. launch the simulator by
     ```bash
      roslaunch rotor_tm test_CXXSimulator.launch
     ```
-3. note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
+3. Note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
 
 ## Explaination of Code
 1. Class QuadrotorDynamicSimulator defines quadrotor dynamics and uses odeint for integration.
