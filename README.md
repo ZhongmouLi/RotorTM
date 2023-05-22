@@ -1,8 +1,8 @@
 # RotorTM in CXX
 
 ## Developing envir and Dependency
-1. Ubuntu 18.04
-2. ROS melodic
+1. Ubuntu 18.04/20.04
+2. ROS melodic/noetic
 3. Boost 1.81.0
 4. Eigen 3.4.0
 5. CXX 17

@@ -1,15 +1,22 @@
 #include <iostream>
-
+// headers for ros
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Point.h>
-#include <rotor_tm_msgs/FMCommand.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
+// headers for rotorTM
+#include <rotor_tm_msgs/FMCommand.h>
 
+// headers for rotor_sim class
 // #include "rotor_tm_sim/lib_ros_simulator.hpp"
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
+
+
+// headers of asio for parallel programming
+#include <boost/asio.hpp>
+
 
 // functions for converting data type
 Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg);
@@ -85,7 +92,20 @@ int main(int argc, char** argv)
 
     
     // instance quadrotor simulator with mass, initeria and int size
-    std::unique_ptr<QuadrotorDynamicSimulator> ptr_drone = std::make_unique<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+    std::shared_ptr<QuadrotorDynamicSimulator> ptr_drone = std::make_shared<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+
+    // instance payload with mass, inerita and int size
+    std::shared_ptr<QuadrotorDynamicSimulator> ptr_payload = std::make_shared<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+
+
+    // creat a thread pool from boost/asio 
+    // it assigns each quadrotor and payload to an indepdendent thread such that they are in parallel
+    // arg here in pool_rotorTM(2) means create a pool with 2 threads (one for quadrotor and one for payload)
+    // in the future, set this arg to be the no of objs of rotorTM
+    boost::asio::thread_pool pool_rotorTM(2);
+
+    auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, ptr_drone);
+    auto payload_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, ptr_payload);
 
     //6. odom_msg output message 
     nav_msgs::Odometry odom_msg;
@@ -119,9 +139,18 @@ int main(int argc, char** argv)
         ptr_drone->inputThurst(thrust);
         ptr_drone->inputTorque(torque);
 
-        // step 2. do one step int with the step size being dt
+        // step 2. do one step int for quadrotor and payload with the step size being dt
         //         the obtained drone state (position, vel, attitude, bodyrate) is saved for the next int.
-        ptr_drone->doOneStepInt();
+        
+        // submit dynamic simulator of quadrotors and payload to the thread pool
+        boost::asio::post(pool_rotorTM, quadrotor_func);
+        boost::asio::post(pool_rotorTM, payload_func);
+        
+        // ptr_drone->doOneStepInt();
+
+
+        // step 2.2 wait for all obj (quadrotors +  payload) to finish their dynamic int
+        pool_rotorTM.join();
 
         // setp 3. get drone position (Eigen::Vector3d), vel(Eigen::Vector3d), atttude (Eigen::Quaterniond), bodyrate (Eigen::Vector3d)
         ptr_drone->getPosition(mav_position);
