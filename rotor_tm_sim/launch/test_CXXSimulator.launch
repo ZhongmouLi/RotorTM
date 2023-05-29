@@ -1,7 +1,15 @@
 <launch>
 
  <!-- Load parameters from uav_params/race.yaml -->
+ <!-- get drone mass and inertia -->
  <rosparam command="load" file="$(find rotor_tm_config)/config/uav_params/race.yaml" />
+
+<!-- Load parameters from uav_params/race.yaml -->
+<!-- load mass for mointmass payload -->
+<!-- TODO: same name for mass -->
+<!-- <rosparam command="load" file="$(find rotor_tm_config)/config/load_params/pointmass_payload.yaml" /> -->
+
+<rosparam command="load" file="$(find rotor_tm_config)/config/attach_mechanism/cable/3_robots_triangular_payload_0-5m.yaml" />
 
  <node pkg="rotor_tm" type="rotorTM_CXX" name="rotorTM_in_CXX" output="screen">
     <remap from="reference/fm_cmd" to="/fm_cmd"/>  

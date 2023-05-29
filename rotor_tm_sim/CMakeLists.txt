@@ -55,6 +55,14 @@ target_compile_options(lib_quadrotor_dynamic_simulator PRIVATE -std=c++17 -Wall 
 target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
 
 
+add_library(lib_pointmass_dynamic_simulator SHARED
+            include/rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp
+            src/rotor_tm_sim/lib_pointmass_dynamic_simulator.cpp)
+
+target_compile_options(lib_pointmass_dynamic_simulator PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_pointmass_dynamic_simulator Boost::program_options Eigen3::Eigen)
+
 # add_library(lib_ros_simulator SHARED
 #               include/rotor_tm_sim/lib_ros_simulator.hpp
 #               src/rotor_tm_sim/lib_ros_simulator.cpp)
@@ -73,7 +81,7 @@ add_executable(rotorTM_CXX src/rotor_tm_sim/rotorTM_node.cpp)
 
 # target_link_libraries(main lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES})
 
-target_link_libraries(rotorTM_CXX lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES})
+target_link_libraries(rotorTM_CXX lib_quadrotor_dynamic_simulator lib_pointmass_dynamic_simulator ${catkin_LIBRARIES})
 
 
 ## Compile as C++11, supported in ROS Kinetic and newer

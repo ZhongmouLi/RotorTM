@@ -238,6 +238,13 @@ void QuadrotorDynamicSimulator::assignDroneState(const quadrotor_state &done_sta
 };  
  
 
+
+void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
+{
+    vel_ = mav_vel;
+}
+
+
 void QuadrotorDynamicSimulator::getPosition(Eigen::Vector3d &mav_position)
 {
     mav_position = post_;
@@ -258,7 +265,7 @@ void QuadrotorDynamicSimulator::getAttitude(Eigen::Quaterniond &mav_attitude)
     mav_attitude = attitude_;
 };
 
-void QuadrotorDynamicSimulator::inputThurstForce(const Eigen::Vector3d &mav_thrust_force)
+void QuadrotorDynamicSimulator::inputForce(const Eigen::Vector3d &mav_thrust_force)
 {
     thrust_ = mav_thrust_force;
 };
@@ -279,7 +286,7 @@ void QuadrotorDynamicSimulator::inputThurst(const double &mav_thrust)
     // 3. compute thrust force in world frame
     Eigen::Vector3d thrust_force_wf =  rot_matrix * thrust_force_bf;
 
-    inputThurstForce(thrust_force_wf);
+    inputForce(thrust_force_wf);
 
 };
 

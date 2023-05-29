@@ -100,11 +100,14 @@ class QuadrotorDynamicSimulator
 
         // input for quadrotor simulator instance
 
-        void inputThurstForce(const Eigen::Vector3d &mav_thrust_force); // mav_thrust_force is thrust force vector in world frame
+        void inputForce(const Eigen::Vector3d &mav_thrust_force); // mav_thrust_force is thrust force vector in world frame
 
         void inputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
 
         void inputTorque(const Eigen::Vector3d &mav_torque); //mav_torque is torque vector in body frame
+
+        // set vel from outside
+        void setVel(const Eigen::Vector3d &mav_vel);
 
 };
 #endif
