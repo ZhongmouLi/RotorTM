@@ -161,6 +161,9 @@ int main(int argc, char** argv)
     // (3) bug: callback result is received after several running of int loops
     //     TODO: for a single drone, it can be put all the loop contents into callback function
 
+
+    // initial condition
+    // hovering condition thurst = gravity of system
     while (ros::ok())
     {   
         ros::spinOnce();
@@ -197,7 +200,7 @@ int main(int argc, char** argv)
 
    
         // step 2.3 tension vector
-        // note that use -xi.dot(thrust_force) instead of -xi.transpose * thrust_force, as the second means matrix manipulation for a 1X3 vector and a 3X1 vector and it means the same for applying dot product to two vectors in Eigen
+        // note that use -xi.dot(thrust_force) instead of -xi.transpose * thrust_force, as the second means matrix manipulation for a 1X3 vector and a 3X1 vector and it is the same to apply` dot product to two vectors in Eigen
         tension = payload_mass * (-xi.dot(thrust_force) + centrif) * xi / (mass + payload_mass);
         // tension = payload_mass * (-xi.transpose() * thrust_force + centrif) * xi / (mass + payload_mass);
 
@@ -233,7 +236,8 @@ int main(int argc, char** argv)
 
         /*TO DO*/
         // 2. collision from RotorTM developed by Guanrui
-        if(cable_length-1e-03<=distance<=cable_length+1e-03)
+        // TO DO add vel check that is computed with cable_norm_vel = np.transpose(pl_pos - robot_pos) @ (pl_vel - robot_vel)/np.linalg.norm 
+        if(cable_length-1e-03<=distance<=cable_length+1e-03 )
         {// 
             // The cables are in tension, and the system dynamics doesn’t change, continue
         }
