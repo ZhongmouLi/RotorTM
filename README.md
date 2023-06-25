@@ -1,8 +1,8 @@
 # RotorTM in CXX
 
 ## Developing envir and Dependency
-1. Ubuntu 18.04
-2. ROS melodic
+1. Ubuntu 18.04/20.04
+2. ROS melodic/noetic
 3. Boost 1.81.0
 4. Eigen 3.4.0
 5. CXX 17
@@ -32,3 +32,36 @@
 ## Explaination of Code
 1. Class QuadrotorDynamicSimulator defines quadrotor dynamics and uses odeint for integration.
 2. rotorTM_node.cpp provides ROS interface and more explanation can be found in comments.
+
+
+## Modification log
+25-06-23
+1. change how to compute dEuler from bodyrate.
+   1. Delete the functions quadTransMatrix and quadBodyrate2Eulerrate that compute matrix mapping dEuler 2 bodyrate and solve linear equations.
+   2. develop the function matirxBodyrate2EulerRate that returns the matrix that maps bodyrate 2 dEuler directly.
+2. implement gTests in catkin
+3. implement tests with gootle tests.
+   1. test cases are defined in the folder gtest and test must be defined in CmakeLists.
+      - take testQuadrotorClass for example
+      - test cases are defeind in  gtest/testQuadrotorClass.cpp
+      - in CMakeLists.txt
+        - create a test with the name being singleUAVTest
+            ```cmake
+            catkin_add_gtest(singleUAVTest gtest/testQuadrotorClass.cpp)
+            ```
+        - link libraries to be used in this test
+            ```cmake
+            target_link_libraries(singleUAVTest lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+            ```
+    2. steps to run tests 
+       1. build all packages using ```catkin build```
+       2. run test
+          1. for all packages
+          ```cmake
+          catkin test
+          ```
+          2. for one package like rotor_tm 
+          ```
+          catkin test rotor_tm
+          ```
+  
