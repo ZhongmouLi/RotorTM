@@ -37,6 +37,9 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>std_srvs</build_depend>
+  <build_depend>gtest</build_depend>
+  <build_depend>libgtest-dev</build_depend>
+  
 
   <!-- Dependencies needed after this package is compiled. -->
   <exec_depend>rospy</exec_depend>

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
 enable_language(CXX)
@@ -79,22 +79,37 @@ target_link_libraries(lib_pointmass_dynamic_simulator Boost::program_options Eig
 
 add_executable(rotorTM_CXX src/rotor_tm_sim/rotorTM_node.cpp)
 
-# target_link_libraries(main lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES})
 
 target_link_libraries(rotorTM_CXX lib_quadrotor_dynamic_simulator lib_pointmass_dynamic_simulator ${catkin_LIBRARIES})
 
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 
 ###########
-## Build ##
+## Test ##
 ###########
 
+# test for quadrotor class
+catkin_add_gtest(singleUAVTest gtest/testQuadrotorClass.cpp)
+
+target_link_libraries(singleUAVTest lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+
+
+
+
+
+# add_library(lib_ros_simulator SHARED
+#               include/rotor_tm_sim/lib_ros_simulator.hpp
+#               src/rotor_tm_sim/lib_ros_simulator.cpp)
+
+# target_link_libraries(lib_ros_simulator ${catkin_LIBRARIES} lib_quadrotor_dynamic_simulator)    
+
+# add_library(lib_ros_quadrotor_dynamic_simulator SHARED
+#              include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
+#              include/rotor_tm_sim/lib_ros_quadrotor_dynamic_somulator.hpp
+#              src/rotor_tm_sim/lib_quadrotor_dynamic_simulator.cpp
+#              src/rotor_tm_sim/lib_ros_quadrotor_dynamic_somulator.cpp)
+
+# target_link_libraries(lib_ros_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)

@@ -1,11 +1,6 @@
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
 
 
-// using namespace std;
-// using namespace boost::numeric::odeint;
-
-// typedef Eigen::Matrix<double, 12, 1> quadrotor_state;
-
 
 QuadrotorDynamicSimulator::QuadrotorDynamicSimulator(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), step_size_(step_size), m_inertia_(m_inertia) 
 {
@@ -17,15 +12,7 @@ Eigen::Vector3d QuadrotorDynamicSimulator::quadRotDynac(const Eigen::Vector3d &t
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
-    dBodyRate = Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
-
-    // std::cout <<"Inertia "<<Inertia<< std::endl;
-    // std::cout <<"bodyrate "<<bodyrate<< std::endl;
-    // std::cout <<"Inertia*bodyrate "<<Inertia*bodyrate<< std::endl;
-    // std::cout <<"-bodyrate.cross(Inertia*bodyrate)"<<-bodyrate.cross(Inertia*bodyrate)<< std::endl;
-    // std::cout <<"torque"<<torque<< std::endl;
-    // std::cout <<"Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque);"<<Inertia.ldlt().solve(-bodyrate.cross(Inertia*bodyrate) + torque)<< std::endl;
-     
+    dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
     return dBodyRate;
 }
@@ -39,161 +26,70 @@ Eigen::Vector3d QuadrotorDynamicSimulator::quadTransDynac(const Eigen::Vector3d 
     return acc;
 }
 
-Eigen::Vector3d QuadrotorDynamicSimulator::quadBodyrate2Eulerrate(const Eigen::Vector3d &bodyrate, const Eigen::Matrix3d &trans_matrix)
+
+Eigen::Matrix3d QuadrotorDynamicSimulator::matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi)
 {
+    Eigen::Matrix3d m_Bodyrate2EulerRate;
 
-    Eigen::Vector3d Eulerrate = Eigen::Vector3d::Zero();
+        m_Bodyrate2EulerRate(0,0) = 1;
+        m_Bodyrate2EulerRate(0,1) = sin(phi)*tan(theta);
+        m_Bodyrate2EulerRate(0,2) = cos(phi)*tan(theta);
 
-    Eulerrate = trans_matrix.ldlt().solve(bodyrate);
+        m_Bodyrate2EulerRate(1,0) = 0;
+        m_Bodyrate2EulerRate(1,1) = cos(phi);
+        m_Bodyrate2EulerRate(1,2) = -sin(phi);
 
-    return Eulerrate;
+        m_Bodyrate2EulerRate(2,0) = 0;
+        m_Bodyrate2EulerRate(2,1) = sin(phi)/cos(theta);
+        m_Bodyrate2EulerRate(2,2) = cos(phi)/cos(theta);
 
-}
-
-Eigen::Matrix3d QuadrotorDynamicSimulator::quadTransMatrix(const double &phi, const double &theta, const double &psi)
-{
-    // ref https://aviation.stackexchange.com/questions/83993/the-relation-between-euler-angle-rate-and-body-axis-rates
-    Eigen::Matrix3d trans_matrix;
-    trans_matrix(0,0) = 1;
-    trans_matrix(0,1) = 0;
-    trans_matrix(0,2) = -sin(theta);
-
-    trans_matrix(1,0) = 0;
-    trans_matrix(1,1) = cos(theta);
-    trans_matrix(1,2) = sin(theta)*cos(theta);
-
-    trans_matrix(2,0) = 0;
-    trans_matrix(2,1) = -sin(theta);
-    trans_matrix(2,2) = cos(theta)*cos(theta);
-
-    return trans_matrix;
+    return m_Bodyrate2EulerRate;
 } 
-
-// void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
-// {
-//     // Eigen::Vector3d thrust(1,2,0);
-//     // double mass =1;
-
-//     // Eigen::Vector3d torque(0,0,0);
-//     // Eigen::Matrix3d Inertia = Eigen::Matrix3d::Identity(3,3);
-//     // Inertia(0,0)=0.1;
-//     // Inertia(1,1)=0.1;
-//     // Inertia(2,2)=0.2;        
-
-//     // get sub X vector
-//     // X = [post_v att_v]
-//     Eigen::VectorXd post_v(6);
-//     Eigen::VectorXd att_v(6);
-
-//     // define sub dX vector
-//     Eigen::VectorXd dpost_v(6);
-//     Eigen::VectorXd datt_v(6);
-
-//     // get postion and attitude from input
-//     post_v = x.head(6);
-//     att_v = x.tail(6);
-
-//     // define bodyrate
-//     // Eigen::Vector3d bodyrate;
-//     // bodyrate = att_v.tail(3);
-//     bodyrate_ = att_v.tail(3);
-
-//     // translation in world frame
-//     // P = [x,y,z,dx, dy, dz]
-//     // dP = [dx, dy, dz, ddx, ddy, ddz]
-//     dpost_v(0) = post_v(3);
-//     dpost_v(1) = post_v(4);
-//     dpost_v(2) = post_v(5);
-//     // [ddx ddy ddz] = (F-mg)/m
-//     dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity_);
-
-//     // attitude in body frame
-//     // att_v = [phi, theta, psi, p, q, r]
-//     // datt_v = [dphi, dtheta, dpsi, dp, dq, dr]
-
-//     // 
-//     Eigen::Matrix3d trans_matrix;
-//     trans_matrix = quadTransMatrix(att_v(0), att_v(1), att_v(2));
-
-//     datt_v.head(3) = quadBodyrate2Eulerrate(bodyrate_, trans_matrix);
-
-//     // 
-//     datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate_);
-
-
-//     // assign
-//     dxdt.head(6) =  dpost_v;
-//     dxdt.tail(6) =  datt_v;
-
-//     this->post_ = post_v.head(3);
-//     this->vel_  = post_v.tail(3);
-
-//     std::cout<<"post_ "<<this->post_.transpose()<< std::endl;
-// }
-
 
 // void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
 void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor_state &dxdt, const double time)
 {
+
+    static bool is_recursing = false;
+    if (is_recursing) return;  // Prevent recursion
+    is_recursing = true;
+    
+
     // std::cout << "state " << x.transpose()<<std::endl; 
     // get sub X vector
-    // X = [post_v att_v]
-    Eigen::VectorXd post_v(6);
-    Eigen::VectorXd att_v(6);
+    // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
 
-    // define sub dX vector
-    Eigen::VectorXd dpost_v(6);
-    Eigen::VectorXd datt_v(6);
+    // For instance
+    // std::cout<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
+    // std::cout<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
+    // std::cout<< "position is "<< x.head(3).transpose()<<std::endl;
+    // std::cout<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
 
-    // get postion and attitude from input
-    post_v = x.head(6);
-    att_v = x.tail(6);
 
     // define bodyrate
     Eigen::Vector3d bodyrate;
-    bodyrate = att_v.tail(3);
-    // bodyrate_ = att_v.tail(3);
+    bodyrate = x.tail(3);
 
     // translation in world frame
     // P = [x,y,z,dx, dy, dz]
     // dP = [dx, dy, dz, ddx, ddy, ddz]
-    dpost_v(0) = post_v(3);
-    dpost_v(1) = post_v(4);
-    dpost_v(2) = post_v(5);
+    dxdt.head(3) = x.segment<3>(3);
     // [ddx ddy ddz] = (F-mg)/m
-    dpost_v.tail(3) = quadTransDynac(thrust_, mass_, gravity_);
-    // std::cout << "mass is " << mass_<< std::endl; 
-    // std::cout << "thrust_ is " << thrust_.transpose()<< std::endl; 
-    // std::cout << "gravity_ is " << gravity_<< std::endl; 
-    // std::cout << "dpost_v.tail(3) " << dpost_v.tail(3).transpose()<< std::endl; 
-    // attitude in body frame
-    // att_v = [phi, theta, psi, p, q, r]
-    // datt_v = [dphi, dtheta, dpsi, dp, dq, dr]
+    dxdt.segment<3>(3) = quadTransDynac(thrust_, mass_, gravity_);
 
     // 
-    Eigen::Matrix3d trans_matrix;
-    trans_matrix = quadTransMatrix(att_v(0), att_v(1), att_v(2));
-    // std::cout << "trans_matrix " << trans_matrix<< std::endl; 
-    // std::cout << "Euler angle " << att_v(0)<< " " <<att_v(1) << " " << att_v(2)<<std::endl; 
+    Eigen::Matrix3d matrix_pdr2dEuler;
+    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7), x(8));
 
-    datt_v.head(3) = quadBodyrate2Eulerrate(bodyrate, trans_matrix);
-    // std::cout << "datt_v.head(3) " << datt_v.head(3).transpose()<< std::endl; 
-    // std::cout << "bodyrate " << bodyrate.transpose()<< std::endl; 
+    // compute dphi,   dtheta,     dpsi
+    dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
 
-    // 
-    // std::cout << " Interia "  <<m_inertia_ << std::endl;
+    // compute dp, dq ,dr
+    dxdt.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate);
 
-    datt_v.tail(3) = quadRotDynac(torque_, m_inertia_, bodyrate);
-    // std::cout << "datt_v.tail(3) " << datt_v.tail(3).transpose()<< std::endl; 
 
-    // assign
-    dxdt.head(6) =  dpost_v;
-    dxdt.tail(6) =  datt_v;
-
-    // this->post_ = post_v.head(3);
-    // this->vel_  = post_v.tail(3);
-
-    // std::cout<<"post_ "<<this->post_.transpose()<< std::endl;
+    is_recursing = false;
 }
 
 
@@ -201,42 +97,22 @@ void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor
 void QuadrotorDynamicSimulator::doOneStepInt()
 {
 
-    // this->stepper_.do_step([&](const quadrotor_state &x , quadrotor_state &dxdt, const double time) {
-    //   this->rhs(done_state_, dxdt, time);
-    // }, done_state_, step_size_, step_size_);
-
-    // std::cout << "thurst is " << thrust_.transpose() << " torque is "  <<torque_.transpose() << std::endl;
-    
-    // std::cout << "stepsize is " << step_size_<< std::endl;
-
+    // call one step integration for quadrotor dynamics
     this->stepper_.do_step(*this, done_state_, current_step_, step_size_);
 
-    // void (*operation)(const quadrotor_state &x,  quadrotor_state &dxdt, const double time)
-
-//    std::cout << "current step " << current_step_ << " position is "  <<this->post_.transpose() << std::endl;
-    // std::cout << "current step " << current_step_ << " state is "  <<this->done_state_.transpose() << std::endl;
-
-    // std::cout << "current step " << current_step_ << std::endl;
-
+    // update current step
     current_step_ = current_step_ + step_size_;
 
-    assignDroneState(done_state_);
 
 };
   
 
-void QuadrotorDynamicSimulator::assignDroneState(const quadrotor_state &done_state)
+
+void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
 {
-    // done_state = [x,y,z,dx, dy, dz, phi, theta, psi, p, q, r]
-    post_ = done_state.head<3>();
-    vel_ = done_state.segment<3>(3);
-    bodyrate_ = done_state.tail<3>();
+    done_state_.segment<3>(3) = mav_vel;
+}
 
-    attitude_ =  Eigen::AngleAxisd(done_state(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(done_state(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(done_state(6), Eigen::Vector3d::UnitX());
-    attitude_.normalize();
-
-};  
- 
 
 
 void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
@@ -247,22 +123,32 @@ void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
 
 void QuadrotorDynamicSimulator::getPosition(Eigen::Vector3d &mav_position)
 {
-    mav_position = post_;
+    mav_position = done_state_.head<3>();
 };
 
 void QuadrotorDynamicSimulator::getVel(Eigen::Vector3d &mav_vel)
 {
-    mav_vel = vel_;
+    mav_vel = done_state_.segment<3>(3);
 };
 
 void QuadrotorDynamicSimulator::getBodyrate(Eigen::Vector3d &mav_bodyrate)
 {
-    mav_bodyrate = bodyrate_;
+    mav_bodyrate = done_state_.tail<3>();
 };
 
 void QuadrotorDynamicSimulator::getAttitude(Eigen::Quaterniond &mav_attitude)
 {
-    mav_attitude = attitude_;
+
+    // compute rotation in Quaternion from quadrotor state
+    // rotation is created using ZYX rotation in its body frame
+    auto attitude =  Eigen::AngleAxisd(done_state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(done_state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(done_state_(6), Eigen::Vector3d::UnitX());
+
+    // normalise
+    attitude.normalize();
+
+    // assisn 
+    mav_attitude = attitude;
+
 };
 
 void QuadrotorDynamicSimulator::inputForce(const Eigen::Vector3d &mav_thrust_force)

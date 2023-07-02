@@ -9,8 +9,6 @@
 #include <cmath>
 #include <vector>
 
-// #include <functional>
-// namespace pl = std::placeholders;
 
 using namespace boost::numeric::odeint;
 
@@ -28,11 +26,6 @@ class QuadrotorDynamicSimulator
 
         const double gravity_ = 9.8;
 
-        Eigen::Vector3d post_;  // position vector in world frame
-        Eigen::Vector3d vel_;   // vel vector in world frame
-        Eigen::Vector3d bodyrate_;  // bodyrate vector in body frame
-        Eigen::Quaterniond attitude_;   // attitude in quaternion
-
         // dynamic inputs
         // thrust force in world frame
         Eigen::Vector3d thrust_;
@@ -43,8 +36,9 @@ class QuadrotorDynamicSimulator
         double step_size_;
         double current_step_ = 0;
 
-        // simulator seetigs for quadrotor
-        // state vecgor for a quadrotor (12X1) including position, velcity, bodyrate, euler angle
+        // simulator setings for quadrotor
+        // state vecgor for a quadrotor (12X1) including position, velcity, euler angle, bodyrate, 
+        // done_state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
         quadrotor_state done_state_;
 
         // solver ruge_kutta
@@ -52,24 +46,17 @@ class QuadrotorDynamicSimulator
 
 
         // rotational dynamic
-        // compute d_bodyrate
+        // compute dbodyrate in body frame
         Eigen::Vector3d quadRotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate);
 
         // translation dyanmic
+        // compute acceleration in world frame
         Eigen::Vector3d quadTransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity);
 
-        // bodyrate to d_Euler
-        Eigen::Vector3d quadBodyrate2Eulerrate(const Eigen::Vector3d &bodyrate, const Eigen::Matrix3d &trans_matrix);
-
-        // matrix transforming bodyrate to d_Euler
-        Eigen::Matrix3d quadTransMatrix(const double &phi, const double &theta, const double &psi);
-
-        // dynamic model of quadrotor
-        void rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time);
-
-        // obtain quadrotor state
-        void assignDroneState(const quadrotor_state &done_state);
+        // compute matrix transforming bodyrate to dEuler
+        Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi);
         
+
         // transfer deg to radian
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
@@ -83,9 +70,12 @@ class QuadrotorDynamicSimulator
         // constructor
         QuadrotorDynamicSimulator(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
 
-        // do one step integration
+        // call one step integration
         void doOneStepInt();
-        void operator()(const quadrotor_state &x , quadrotor_state &dxdt, const double time); // Declare the function call operator
+
+        // integration for one step
+        // Declare the function call operator to use odeint
+        void operator()(const quadrotor_state &x , quadrotor_state &dxdt, const double time); 
 
         // get drone status information
         void getPosition(Eigen::Vector3d &mav_position);
