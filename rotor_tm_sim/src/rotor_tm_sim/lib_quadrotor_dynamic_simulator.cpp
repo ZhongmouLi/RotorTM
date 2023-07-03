@@ -107,6 +107,11 @@ void QuadrotorDynamicSimulator::doOneStepInt()
 };
   
 
+void QuadrotorDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_post)
+{
+    done_state_.head(3) = initial_post;
+}; 
+
 
 void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
 {

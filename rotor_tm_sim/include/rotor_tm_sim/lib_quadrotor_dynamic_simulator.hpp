@@ -99,5 +99,8 @@ class QuadrotorDynamicSimulator
         // set vel from outside
         void setVel(const Eigen::Vector3d &mav_vel);
 
+        // set initial position for quadrotor
+        void setInitialPost(const Eigen::Vector3d &initial_post);        
+
 };
 #endif
