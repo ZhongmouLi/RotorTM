@@ -438,6 +438,71 @@ TEST_F(rotorTMTest, applyRandomnForceThousandSteps){
     ASSERT_FLOAT_EQ(step_current, 1000*dt);  
 }
 
+TEST_F(rotorTMTest, applyRandomnForceNonOriginThousandSteps){
+
+    // define radom force and zero torque
+    const Eigen::Vector3d force = Eigen::Vector3d::Random();
+    //const Eigen::Vector3d force(1, 1, 1);
+
+    const Eigen::Vector3d torque(0, 0, 0);
+    
+    // initial position of quadrotor
+    const Eigen::Vector3d initial_post = Eigen::Vector3d::Random();
+    ptr_drone->setInitialPost(initial_post);
+
+
+    // input force and torque
+    ptr_drone->inputForce(force);
+    ptr_drone->inputTorque(torque);
+
+    // do two steps integration
+    const double dt = 0.01;
+    for(double t=dt ; t<=1000*dt ; t+= dt)
+    {
+            ptr_drone->doOneStepInt();
+            // printf("current step is %.3f \n", t);
+    }
+    
+
+    // check position = 0.5gt^2
+    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+
+    ptr_drone->getPosition(pos);
+
+    EXPECT_FLOAT_EQ(pos[0], initial_post[0]+0.5 * (force[0]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pos[1], initial_post[1]+0.5 * (force[1]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pos[2], initial_post[2]+0.5 * (force[2]-9.8) * pow(1000*dt,2)); 
+
+    // check vel = gt
+    Eigen::Vector3d vel = Eigen::Vector3d::Random();
+    ptr_drone->getVel(vel);
+
+    EXPECT_FLOAT_EQ(vel[0], (force[0]) *1000*dt);
+    EXPECT_FLOAT_EQ(vel[1], (force[1]) *1000*dt);
+    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *1000*dt);
+
+    // check attitude = 0
+    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
+    ptr_drone->getAttitude(att);
+    ASSERT_EQ(att.x(), 0); 
+    ASSERT_EQ(att.y(), 0); 
+    ASSERT_EQ(att.z(), 0);  
+    ASSERT_EQ(att.w(), 1);  
+
+    // check bodyrate =0
+    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
+    ptr_drone->getBodyrate(bodyrate);
+    ASSERT_EQ(bodyrate[0], 0); 
+    ASSERT_EQ(bodyrate[1], 0); 
+    ASSERT_EQ(bodyrate[2], 0);  
+
+
+    //check time step = dt
+    double step_current = 0;
+    ptr_drone->getCurrentTimeStep(step_current);
+    ASSERT_FLOAT_EQ(step_current, 1000*dt);  
+}
+
 TEST_F(rotorTMTest, applyTorque4XRotation){
 
     // define force to compensite gravity and zero torque
