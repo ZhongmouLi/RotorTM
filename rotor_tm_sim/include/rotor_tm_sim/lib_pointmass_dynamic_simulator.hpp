@@ -25,8 +25,8 @@ class PointMassDynamicSimulator
         // const para
         const double gravity_ = 9.8;
 
-        Eigen::Vector3d post_;  // position vector in world frame
-        Eigen::Vector3d vel_;   // vel vector in world frame
+        // Eigen::Vector3d post_;  // position vector in world frame
+        // Eigen::Vector3d vel_;   // vel vector in world frame
 
 
         // dynamic inputs
@@ -51,8 +51,8 @@ class PointMassDynamicSimulator
         // dynamic model of point mass
         void rhs(const pointmass_state &x , pointmass_state &dxdt, const double time);
 
-        // obtain pointmass state
-        void assignPtMasState(const pointmass_state &ptmas_state);
+        // // obtain pointmass state
+        // void assignPtMasState(const pointmass_state &ptmas_state);
         
         // transfer deg to radian
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
@@ -86,5 +86,8 @@ class PointMassDynamicSimulator
 
         // interface to set vel 
         void setVel(const Eigen::Vector3d &ptmas_vel);
+
+        // set initial position at the beginging of simulation 
+        void setInitPost(const Eigen::Vector3d &initial_position);        
 };
 #endif

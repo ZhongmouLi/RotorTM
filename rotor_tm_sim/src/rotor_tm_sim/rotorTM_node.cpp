@@ -234,6 +234,16 @@ int main(int argc, char** argv)
             // compute distance between quadrotor and payload
         double distance = (mav_position - payload_position).norm();
 
+        //  ## state integration
+        //             if self.cable_is_slack:
+        //                 print("Cable is slack")
+        //                 #print(x)
+        //                 sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmassslackToTaut)
+        //             else:
+        //                 #print("Cable is taut")
+        //                 #print(x)
+        //                 sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmasstautToSlack)
+                        
         /*TO DO*/
         // 2. collision from RotorTM developed by Guanrui
         // TO DO add vel check that is computed with cable_norm_vel = np.transpose(pl_pos - robot_pos) @ (pl_vel - robot_vel)/np.linalg.norm 

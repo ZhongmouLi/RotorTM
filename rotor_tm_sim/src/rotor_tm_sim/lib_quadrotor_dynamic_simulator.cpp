@@ -114,13 +114,6 @@ void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
 }
 
 
-
-void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
-{
-    vel_ = mav_vel;
-}
-
-
 void QuadrotorDynamicSimulator::getPosition(Eigen::Vector3d &mav_position)
 {
     mav_position = done_state_.head<3>();
