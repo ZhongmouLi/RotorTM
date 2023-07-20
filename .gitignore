@@ -41,3 +41,5 @@ __pycache__
 # Launch files
 ./rotor_tm_sim/launch/editable_launch.launch
 .vscode/
+
+.vscode/

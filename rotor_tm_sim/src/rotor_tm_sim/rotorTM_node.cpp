@@ -1,15 +1,25 @@
 #include <iostream>
-
+// headers for ros
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Point.h>
-#include <rotor_tm_msgs/FMCommand.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
+// headers for rotorTM
+#include <rotor_tm_msgs/FMCommand.h>
 
+#include <vector>
+
+// headers for rotor_sim class
 // #include "rotor_tm_sim/lib_ros_simulator.hpp"
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
+
+#include "rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp"
+
+// headers of asio for parallel programming
+#include <boost/asio.hpp>
+
 
 // functions for converting data type
 Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg);
@@ -68,6 +78,20 @@ int main(int argc, char** argv)
     nh_private.getParam("/inertia/Iyy", Iyy);
     nh_private.getParam("/inertia/Izz", Izz);
 
+    /*TO DO*/
+    // 1. set payload param
+    double payload_mass;
+    // nh_private.getParam("/inertia/Izz", Izz);
+    payload_mass = 0.07;
+    // 2. set cable length
+    std::vector<double> cable_length_list;
+    double cable_length;
+    // cable_length = 1.0;
+    nh.getParam("/cable_length", cable_length_list);
+
+    cable_length = cable_length_list.at(0);
+    ROS_INFO_STREAM("cable length is " << cable_length);
+
     // ROS_INFO_STREAM("input mass "<< mass << "input Ixx "<< Ixx << "input Iyy "<< Iyy << "input Izz "<< Izz);
 
     Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
@@ -85,7 +109,20 @@ int main(int argc, char** argv)
 
     
     // instance quadrotor simulator with mass, initeria and int size
-    std::unique_ptr<QuadrotorDynamicSimulator> ptr_drone = std::make_unique<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+    std::shared_ptr<QuadrotorDynamicSimulator> ptr_drone = std::make_shared<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+
+    // instance payload with mass
+    std::shared_ptr<PointMassDynamicSimulator> ptr_payload = std::make_shared<PointMassDynamicSimulator>(payload_mass, dt);
+
+
+    // creat a thread pool from boost/asio 
+    // it assigns each quadrotor and payload to an indepdendent thread such that they are in parallel
+    // arg here in pool_rotorTM(2) means create a pool with 2 threads (one for quadrotor and one for payload)
+    // in the future, set this arg to be the no of objs of rotorTM
+    boost::asio::thread_pool pool_rotorTM(2);
+
+    auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, ptr_drone);
+    auto payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, ptr_payload);
 
     //6. odom_msg output message 
     nav_msgs::Odometry odom_msg;
@@ -99,44 +136,148 @@ int main(int argc, char** argv)
     Eigen::Vector3d mav_bodyrate;
     Eigen::Quaterniond mav_attitude;
 
+    // vars to get payload states
+    Eigen::Vector3d payload_position;
+    Eigen::Vector3d payload_vel;
+    Eigen::Vector3d payload_bodyrate;
+    Eigen::Quaterniond payload_attitude;    
+
+    // vars to get cable states
+    // xi is a unit vector from the robot’s center of mass to the payload.
+    Eigen::Vector3d xi;
+    Eigen::Vector3d xi_dot; // derivative of xi
+    Eigen::Vector3d xi_omega; 
+
+    // tension force
+    Eigen::Vector3d tension;
+    // quadrotor thrust force in world frame
+    Eigen::Vector3d thrust_force;
+    // centrifugal force
+    double centrif;
+
     // 8. quadrotor dynamic simulation
     // (1) quadrotor's initial state (position, vel, attitude, bodyrate)  is set as 0s
     // (2) simulation step is defined in ptr_drone
     // (3) bug: callback result is received after several running of int loops
     //     TODO: for a single drone, it can be put all the loop contents into callback function
 
+
+    // initial condition
+    // hovering condition thurst = gravity of system
     while (ros::ok())
     {   
         ros::spinOnce();
 
         loop_rate.sleep();   
 
-        // step 1. input thrust and torque to quadrotor    
-        // ROS_INFO_STREAM("input thrust "<< thrust);
-        // ROS_INFO_STREAM("input torque "<< torque.transpose());
+        // step 1 obtain xi, xi_dot and xi_omega
 
-        // ptr_drone->inputThurstForce(thrust);
-        ptr_drone->inputThurst(thrust);
-        ptr_drone->inputTorque(torque);
-
-        // step 2. do one step int with the step size being dt
-        //         the obtained drone state (position, vel, attitude, bodyrate) is saved for the next int.
-        ptr_drone->doOneStepInt();
-
-        // setp 3. get drone position (Eigen::Vector3d), vel(Eigen::Vector3d), atttude (Eigen::Quaterniond), bodyrate (Eigen::Vector3d)
+        // step 1.1. get positions and vels of quadrotors and payload's position from quadrotor and pointmass
+        // note each state consists of pos(Eigen::Vector3d), vel(Eigen::Vector3d), atttude (Eigen::Quaterniond), bodyrate (Eigen::Vector3d)
         ptr_drone->getPosition(mav_position);
-        // ROS_INFO_STREAM("drone position is" << mav_position.transpose());
+        ptr_payload->getPosition(payload_position);
 
         ptr_drone->getVel(mav_vel); 
-        // ROS_INFO_STREAM("drone vel is" << mav_vel.transpose());
+        ptr_payload->getVel(payload_vel);
 
-        ptr_drone->getAttitude(mav_attitude);  
-        // ROS_INFO_STREAM("drone attitude is" << mav_attitude.coeffs());
+        // step 1.2 compute xi and xi_dot
+        xi = (payload_position - mav_position)/cable_length;
+        xi_dot = (payload_vel - mav_vel)/cable_length;
 
-        ptr_drone->getBodyrate(mav_bodyrate);
-        //  ROS_INFO_STREAM("drone body rate is" << mav_bodyrate.transpose());
+        // step 1.3 compute xi_omega
+        xi_omega = xi.cross(xi_dot);
 
-        // setp 4. assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
+
+        // step 2 compute thrust force expressed in world frame, centrifugal force and tension vector
+
+        // step 2.1 thrust force
+        ptr_drone->getAttitude(mav_attitude); 
+        thrust_force = thrust * (mav_attitude.toRotationMatrix()*Eigen::Vector3d::UnitZ());
+
+        // step 2.2 centrifugal force
+        // note transpose is not necessary for Eigen vector
+        centrif = xi_omega.dot(xi_omega) * payload_mass * cable_length;
+
+   
+        // step 2.3 tension vector
+        // note that use -xi.dot(thrust_force) instead of -xi.transpose * thrust_force, as the second means matrix manipulation for a 1X3 vector and a 3X1 vector and it is the same to apply` dot product to two vectors in Eigen
+        tension = payload_mass * (-xi.dot(thrust_force) + centrif) * xi / (mass + payload_mass);
+        // tension = payload_mass * (-xi.transpose() * thrust_force + centrif) * xi / (mass + payload_mass);
+
+
+        // step 3. dynamic simu for quadrotor + pointmass using parallel programming
+
+        // step 3.1 input force and torque for quadrotor and pointmass
+        // Note that quadrotor attitude dynamics is decoupled from  payload position and attitude dynamics,  
+        // payload is a pointmass object so its attitude dynamics is not considered.
+
+        // quadrotor
+        ptr_drone->inputForce(thrust_force+tension);
+        ptr_drone->inputTorque(torque);
+        // point mass
+        ptr_payload->inputForce(-tension);
+
+        // step 3.2 submit dynamic simulator of quadrotors and payload to the thread pool
+        //          it does one step int for quadrotor and payload with the step size being dt and orginal way to call one step int: ptr_drone->doOneStepInt()
+        //          for each instance, the obtained state (position, vel, attitude, bodyrate) is saved for the next int.
+        //         parallel programming is implemented using a thread pool; quadrotor_func (binded with ptr_drone->doOneStepInt()) and payload_func (binded with ptr_payload->doOneStepInt()) is submitted into this pool
+        boost::asio::post(pool_rotorTM, quadrotor_func);
+        boost::asio::post(pool_rotorTM, payload_func);
+        
+        
+        // step 3.3 wait for all obj (quadrotors +  payload) to finish their dynamic int
+        pool_rotorTM.join();
+
+
+        // setp 4. Dynamic modification on robot and payload's vel caused by collision
+        // 1. determine tension of cable
+            // compute distance between quadrotor and payload
+        double distance = (mav_position - payload_position).norm();
+
+        //  ## state integration
+        //             if self.cable_is_slack:
+        //                 print("Cable is slack")
+        //                 #print(x)
+        //                 sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmassslackToTaut)
+        //             else:
+        //                 #print("Cable is taut")
+        //                 #print(x)
+        //                 sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmasstautToSlack)
+                        
+        /*TO DO*/
+        // 2. collision from RotorTM developed by Guanrui
+        // TO DO add vel check that is computed with cable_norm_vel = np.transpose(pl_pos - robot_pos) @ (pl_vel - robot_vel)/np.linalg.norm 
+        if(cable_length-1e-03<=distance<=cable_length+1e-03 )
+        {// 
+            // The cables are in tension, and the system dynamics doesn’t change, continue
+        }
+        else
+        {
+           // The cables are in tension, and the system dynamics doesn’t change, continue
+           // payload_vel, robot_vel = collision(robot_vel, payload_vel)     
+            Eigen::Vector3d cable_dir = (mav_position - payload_position)/distance;
+
+            double cable_dir_projmat = cable_dir.dot(cable_dir);
+
+            Eigen::Vector3d payload_vel_pre = cable_dir_projmat * payload_vel;
+
+            Eigen::Vector3d mav_vel_pre = cable_dir_projmat * mav_vel;
+
+            Eigen::Vector3d v = (payload_mass * payload_vel_pre + mass * mav_vel)/ (payload_mass + mass);
+
+            // compute new vels
+            payload_vel = v + payload_vel - payload_vel_pre;
+            mav_vel = v + mav_vel - mav_vel_pre;
+
+            // update vels of quadrotor and payload
+            ptr_drone->setVel(mav_vel);
+            ptr_payload->setVel(payload_vel);
+
+        }
+
+
+        // setp 5. Publish dynamic simulation results to topics
+        // setp 5.1 assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
         odom_msg.header.stamp = ros::Time::now();
 
         odom_msg.pose.pose.position = EigenToPointMsg(mav_position);
