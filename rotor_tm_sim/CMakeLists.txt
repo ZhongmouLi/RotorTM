@@ -108,7 +108,7 @@ target_link_libraries(singleUAVTest lib_quadrotor_dynamic_simulator ${catkin_LIB
 # test for quadrotor + point mass
 catkin_add_gtest(singleUAVPointmassTest gtest/testQuadrotorPoinmass.cpp)
 
-target_link_libraries(singleUAVPointmassTest lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(singleUAVPointmassTest lib_quadrotor_pointmass lib_pointmass_dynamic_simulator ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)

@@ -88,6 +88,6 @@ class PointMassDynamicSimulator
         void setVel(const Eigen::Vector3d &ptmas_vel);
 
         // set initial position at the beginging of simulation 
-        void setInitPost(const Eigen::Vector3d &initial_position);        
+        void setInitialPost(const Eigen::Vector3d &initial_position);        
 };
 #endif

@@ -62,7 +62,7 @@ void PointMassDynamicSimulator::doOneStepInt()
 
 };
   
-void PointMassDynamicSimulator::setInitPost(const Eigen::Vector3d &initial_position)
+void PointMassDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_position)
 {
 
     ptmas_state_.head<3>() = initial_position;

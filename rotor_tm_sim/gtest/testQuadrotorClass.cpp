@@ -6,11 +6,11 @@
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
 
 
-class rotorTMTest : public ::testing::Test
+class rotorTMDroneTest : public ::testing::Test
 {
 public:
 
-rotorTMTest(){
+rotorTMDroneTest(){
     Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
 
     double mass =1;
@@ -20,7 +20,7 @@ rotorTMTest(){
     ptr_drone = std::make_shared<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
 }
 
-~rotorTMTest(){
+~rotorTMDroneTest(){
 }
 
 protected:
@@ -28,17 +28,17 @@ protected:
 };
 
 
-TEST_F(rotorTMTest, checkGTest){
+TEST_F(rotorTMDroneTest, checkGTest){
     // test if gTest is well integrated
     ASSERT_TRUE(true);
 }
 
-TEST_F(rotorTMTest, checkInstanceClass){
+TEST_F(rotorTMDroneTest, checkInstanceClass){
     // test if instance is created
     ASSERT_TRUE(ptr_drone!=nullptr);
 }
 
-TEST_F(rotorTMTest, calHoverEqulibirum){
+TEST_F(rotorTMDroneTest, calHoverEqulibirum){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);
@@ -92,7 +92,7 @@ TEST_F(rotorTMTest, calHoverEqulibirum){
 }
 
 
-TEST_F(rotorTMTest, applyForce4Zdirection){
+TEST_F(rotorTMDroneTest, applyForce4Zdirection){
 
     // define force in Z direction and zero torque
     const Eigen::Vector3d force(0, 0, 15);
@@ -145,7 +145,7 @@ TEST_F(rotorTMTest, applyForce4Zdirection){
     ASSERT_EQ(step_current, 0.01);  
 }
 
-TEST_F(rotorTMTest, applyRandomForceOneStep){
+TEST_F(rotorTMDroneTest, applyRandomForceOneStep){
 
     // define radom force and zero torque
     const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -198,7 +198,7 @@ TEST_F(rotorTMTest, applyRandomForceOneStep){
     ASSERT_EQ(step_current, 0.01);  
 }
 
-TEST_F(rotorTMTest, applyIdentityForceTwoSteps){
+TEST_F(rotorTMDroneTest, applyIdentityForceTwoSteps){
 
     // define radom force and zero torque
     // const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -258,7 +258,7 @@ TEST_F(rotorTMTest, applyIdentityForceTwoSteps){
     ASSERT_EQ(step_current, 0.02);  
 }
 
-TEST_F(rotorTMTest, applyRandomnForceTwoSteps){
+TEST_F(rotorTMDroneTest, applyRandomnForceTwoSteps){
 
     // define radom force and zero torque
     const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -318,7 +318,7 @@ TEST_F(rotorTMTest, applyRandomnForceTwoSteps){
     ASSERT_EQ(step_current, 0.02);  
 }
 
-TEST_F(rotorTMTest, applyRandomnForceTenSteps){
+TEST_F(rotorTMDroneTest, applyRandomnForceTenSteps){
 
     // define radom force and zero torque
     const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -378,7 +378,7 @@ TEST_F(rotorTMTest, applyRandomnForceTenSteps){
     ASSERT_FLOAT_EQ(step_current, 10*dt);  
 }
 
-TEST_F(rotorTMTest, applyRandomnForceThousandSteps){
+TEST_F(rotorTMDroneTest, applyRandomnForceThousandSteps){
 
     // define radom force and zero torque
     const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -438,7 +438,7 @@ TEST_F(rotorTMTest, applyRandomnForceThousandSteps){
     ASSERT_FLOAT_EQ(step_current, 1000*dt);  
 }
 
-TEST_F(rotorTMTest, applyRandomnForceNonOriginThousandSteps){
+TEST_F(rotorTMDroneTest, applyRandomnForceNonOriginThousandSteps){
 
     // define radom force and zero torque
     const Eigen::Vector3d force = Eigen::Vector3d::Random();
@@ -503,7 +503,7 @@ TEST_F(rotorTMTest, applyRandomnForceNonOriginThousandSteps){
     ASSERT_FLOAT_EQ(step_current, 1000*dt);  
 }
 
-TEST_F(rotorTMTest, applyTorque4XRotation){
+TEST_F(rotorTMDroneTest, applyTorque4XRotation){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);
@@ -558,7 +558,7 @@ TEST_F(rotorTMTest, applyTorque4XRotation){
     ASSERT_EQ(step_current, 0.01);  
 }
 
-TEST_F(rotorTMTest, applyTorque4YRotation){
+TEST_F(rotorTMDroneTest, applyTorque4YRotation){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);
@@ -613,7 +613,7 @@ TEST_F(rotorTMTest, applyTorque4YRotation){
     ASSERT_EQ(step_current, 0.01);  
 }
 
-TEST_F(rotorTMTest, applyTorque4ZRotation){
+TEST_F(rotorTMDroneTest, applyTorque4ZRotation){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);
@@ -670,7 +670,7 @@ TEST_F(rotorTMTest, applyTorque4ZRotation){
 
 
 
-TEST_F(rotorTMTest, applyTorque4XYZRotationTenSteps){
+TEST_F(rotorTMDroneTest, applyTorque4XYZRotationTenSteps){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);
@@ -731,7 +731,7 @@ TEST_F(rotorTMTest, applyTorque4XYZRotationTenSteps){
     ASSERT_FLOAT_EQ(step_current, 10*dt);  
 }
 
-TEST_F(rotorTMTest, applyTorque4XYZRotationThreeHundSteps){
+TEST_F(rotorTMDroneTest, applyTorque4XYZRotationThreeHundSteps){
 
     // define force to compensite gravity and zero torque
     const Eigen::Vector3d force(0, 0, 9.8);

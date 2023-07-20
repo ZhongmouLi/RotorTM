@@ -110,6 +110,7 @@ void QuadrotorDynamicSimulator::doOneStepInt()
 void QuadrotorDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_post)
 {
     done_state_.head(3) = initial_post;
+    //std::cout<< "input drone initial post" << initial_post<<std::endl;
 }; 
 
 
@@ -122,6 +123,7 @@ void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
 void QuadrotorDynamicSimulator::getPosition(Eigen::Vector3d &mav_position)
 {
     mav_position = done_state_.head<3>();
+    // std::cout<< "drone state post" << done_state_.head<3>()<<std::endl;
 };
 
 void QuadrotorDynamicSimulator::getVel(Eigen::Vector3d &mav_vel)

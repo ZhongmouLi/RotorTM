@@ -5,11 +5,11 @@
 #include <cstdlib>
 #include "rotor_tm_sim/lib_quadrotor_pointmass.hpp"
 
-class rotorTMTest4QuadPm : public ::testing::Test
+class rotorTMQuadPmTest : public ::testing::Test
 {
 public:
 
-rotorTMTest4QuadPm(){
+rotorTMQuadPmTest(){
     Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
 
     double UAV_mass =1;
@@ -18,10 +18,13 @@ rotorTMTest4QuadPm(){
 
     double dt = 0.01;
 
-    ptr_rotorTM = std::make_shared<rotorTMQuadrotorPointMass>(UAV_mass, m_inertia, payload_mass, dt);
+    double cable_length = 1;
+
+    ptr_rotorTM = std::make_shared<rotorTMQuadrotorPointMass>(UAV_mass, m_inertia, payload_mass, cable_length, dt);
+
 }
 
-~rotorTMTest4QuadPm(){
+~rotorTMQuadPmTest(){
 }
 
 protected:
@@ -29,15 +32,33 @@ protected:
 };
 
 
-TEST_F(rotorTMTest4QuadPm, checkGTest){
+TEST_F(rotorTMQuadPmTest, checkGTest){
     // test if gTest is well integrated
     ASSERT_TRUE(true);
 }
 
-TEST_F(rotorTMTest4QuadPm, checkInstanceClass){
+TEST_F(rotorTMQuadPmTest, checkInstanceClass){
     // test if instance is created
     ASSERT_TRUE(ptr_rotorTM!=nullptr);
 }
+
+TEST_F(rotorTMQuadPmTest, checkInitPosition){
+    // var to get drone init post
+    Eigen::Vector3d drone_init_post = Eigen::Vector3d::Random();
+
+    // payload init post
+    const Eigen::Vector3d payload_init_post = Eigen::Vector3d::Random();
+
+    ptr_rotorTM->setInitPost(payload_init_post);
+
+    ptr_rotorTM->quadrotor->getPosition(drone_init_post);
+
+
+    ASSERT_EQ(payload_init_post[0], drone_init_post[0]);
+    ASSERT_EQ(payload_init_post[1], drone_init_post[1]);
+    ASSERT_EQ(payload_init_post[2]+ 1, drone_init_post[2] );
+}
+
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

@@ -2,7 +2,7 @@
 
 
 
-rotorTMQuadrotorPointMass::rotorTMQuadrotorPointMass(const double &UAV_mass, const Eigen::Matrix3d &m_inertia, const double &pd_mass, const double &step_size): mav_mass_(UAV_mass), payload_mass_(pd_mass)
+rotorTMQuadrotorPointMass::rotorTMQuadrotorPointMass(const double &UAV_mass, const Eigen::Matrix3d &m_inertia, const double &pd_mass, const double &cable_length, const double &step_size): mav_mass_(UAV_mass), payload_mass_(pd_mass), cable_length_(cable_length), step_size_(step_size)
 {
     quadrotor = std::make_shared<QuadrotorDynamicSimulator>(UAV_mass, m_inertia, step_size);
 
@@ -71,6 +71,23 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> rotorTMQuadrotorPointMass::updateVel
     // pm_payload->setVel(payload_vel);
 
 };
+
+
+void rotorTMQuadrotorPointMass::setInitPost(const Eigen::Vector3d &payload_init_position)
+{
+    // std::cout<< "payload int post" <<  payload_init_position.transpose()<< std::endl;
+    pm_payload->setInitialPost(payload_init_position);
+
+    Eigen::Vector3d mav_initial_post = payload_init_position + cable_length_ * Eigen::Vector3d::UnitZ();
+
+    // std::cout<< "cable vector" <<  cable_length_ * Eigen::Vector3d::UnitZ().transpose()<< std::endl;
+
+
+    //std::cout<< "mav int post from payload" <<  mav_initial_post.transpose()<< std::endl;
+
+    quadrotor->setInitialPost(mav_initial_post);
+
+}; 
 
 
 bool rotorTMQuadrotorPointMass::isSlack(const Eigen::Vector3d &mav_position, const Eigen::Vector3d &payload_position)
@@ -190,6 +207,8 @@ void rotorTMQuadrotorPointMass::doOneStepint()
     pm_payload->doOneStepInt();
     quadrotor->doOneStepInt();
 
+    // update current step
+    current_step_ = current_step_ + step_size_;
 
     // step 4 compute cable's status and update cable_is_slack_
     cable_is_slack_ = isSlack(mav_position, payload_position);
