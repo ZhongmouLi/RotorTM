@@ -93,6 +93,11 @@ add_executable(rotorTM_CXX src/rotor_tm_sim/rotorTM_node.cpp)
 target_link_libraries(rotorTM_CXX lib_quadrotor_dynamic_simulator lib_pointmass_dynamic_simulator ${catkin_LIBRARIES})
 
 
+add_executable(rotorTM_CXX_DronePointMass src/rotor_tm_sim/rotorTM_node_drone_pointmass.cpp)
+
+
+target_link_libraries(rotorTM_CXX_DronePointMass lib_quadrotor_pointmass lib_pointmass_dynamic_simulator ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+
 
 ###########
 ## Test ##
