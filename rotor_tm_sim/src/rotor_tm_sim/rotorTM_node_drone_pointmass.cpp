@@ -31,9 +31,9 @@ geometry_msgs::Quaternion EigenQuadnToGeomQuadn(const Eigen::Quaterniond& q);
 
 // input for quadrotor dynamic simulator
 // thrust: norm of thrust force
-static double thrust;       // static Eigen::Vector3d thrust;
+static double thrust = (0.07 + 0.95)* 9.8;       // static Eigen::Vector3d thrust;
 // torque : torque vector in body frame
-static Eigen::Vector3d torque;
+static Eigen::Vector3d torque(0,0,0);
 
 
 // callback function to take input wrench
@@ -61,8 +61,9 @@ int main(int argc, char** argv)
     ros::Rate loop_rate(ROS_FREQ);
 
     // 3. define Subscriber to receve input wrench and Publisher to send odom
-    ros::Subscriber fm_command_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("reference/fm_cmd", 1, fmCmdCallback);
-    ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("outputs/odom", 1);
+    ros::Subscriber fm_command_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_1/dragonfly1/fm_cmd", 1, fmCmdCallback);
+    ros::Publisher drone_odom_pub = nh.advertise<nav_msgs::Odometry>("/dragonfly1/odom", 1);
+    ros::Publisher payload_odom_pub = nh.advertise<nav_msgs::Odometry>("/payload/odom", 1);
 
     // 4. set drone para from ros para
     double drone_mass;
@@ -120,14 +121,17 @@ int main(int argc, char** argv)
     // vars to get payload states
     Eigen::Vector3d payload_position;
     Eigen::Vector3d payload_vel;
-    Eigen::Vector3d payload_bodyrate;
-    Eigen::Quaterniond payload_attitude;    
+    Eigen::Vector3d payload_bodyrate(0,0,0);
+    Eigen::Quaterniond payload_attitude(1,0,0,0);    
 
    
-    nav_msgs::Odometry odom_msg;
-    odom_msg.header.frame_id = "odom";
-    odom_msg.child_frame_id = "base_link";
+    nav_msgs::Odometry drone_odom_msg;
+    drone_odom_msg.header.frame_id = "odom";
+    drone_odom_msg.child_frame_id = "base_link";
 
+    nav_msgs::Odometry payload_odom_msg;
+    payload_odom_msg.header.frame_id = "odom";
+    payload_odom_msg.child_frame_id = "base_link";
 
 
     // initial condition
@@ -150,21 +154,40 @@ int main(int argc, char** argv)
 
 
         // step 2 call integration
-
         ptr_rotorTM->doOneStepint();
 
+        // step 3 obtain odom infor from robot
+        // drone
+        ptr_rotorTM->quadrotor->getPosition(mav_position);
+        ptr_rotorTM->quadrotor->getVel(mav_vel);
+        ptr_rotorTM->quadrotor->getAttitude(mav_attitude);
+        ptr_rotorTM->quadrotor->getBodyrate(mav_bodyrate);       
 
+        // payload
+        ptr_rotorTM->pm_payload->getPosition(payload_position); 
+        ptr_rotorTM->pm_payload->getVel(payload_vel); 
+        
+       
         // setp 5. Publish simulation results to topics
         // setp 5.1 assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
-        odom_msg.header.stamp = ros::Time::now();
+        drone_odom_msg.header.stamp = ros::Time::now();
 
-        odom_msg.pose.pose.position = EigenToPointMsg(mav_position);
-        odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(mav_attitude);
-        odom_msg.twist.twist.linear = EigenToVector3Msg(mav_vel);
-        odom_msg.twist.twist.angular = EigenToVector3Msg(mav_bodyrate);
+        drone_odom_msg.pose.pose.position = EigenToPointMsg(mav_position);
+        drone_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(mav_attitude);
+        drone_odom_msg.twist.twist.linear = EigenToVector3Msg(mav_vel);
+        drone_odom_msg.twist.twist.angular = EigenToVector3Msg(mav_bodyrate);
 
-        // setp 5.publish odom_msg
-        odom_pub.publish(odom_msg);     
+        // payload
+        payload_odom_msg.header.stamp = ros::Time::now();
+
+        payload_odom_msg.pose.pose.position = EigenToPointMsg(payload_position);
+        payload_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(payload_attitude);
+        payload_odom_msg.twist.twist.linear = EigenToVector3Msg(payload_vel);
+        payload_odom_msg.twist.twist.angular = EigenToVector3Msg(payload_bodyrate);
+
+        // setp 5.publish odom_msgs of drone and payload
+        drone_odom_pub.publish(drone_odom_msg);    
+        payload_odom_pub.publish(payload_odom_msg);  
     }
     
 

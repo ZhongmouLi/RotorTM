@@ -8,7 +8,7 @@
     <arg name="payload_control_gain_path"   default = "$(find rotor_tm_config)/config/control_params/pointmass_cable_gains.yaml"/>
     <arg name="uav_control_gain_path"       default = "$(find rotor_tm_config)/config/control_params/"/>
     <arg name="number_of_robots"            default = "1"/>
-
+    
 
 
     <!-- Start simulation and trajectory nodes-->
@@ -17,21 +17,32 @@
       <node pkg="rotor_tm" type="runsim.py" name="sim" output="screen" args="$(arg payload_params_path) $(arg uav_params_path) $(arg mechanism_params_path) $(arg payload_control_gain_path) $(arg uav_control_gain_path)">
     </node>
    -->
-   
+ <!-- Load parameters from uav_params/race.yaml -->
+ <!-- get drone mass and inertia -->
+ <rosparam command="load" file="$(find rotor_tm_config)/config/uav_params/race.yaml" />
+
+<!-- Load parameters from uav_params/race.yaml -->
+<!-- load mass for mointmass payload -->
+<!-- TODO: same name for mass -->
+<!-- <rosparam command="load" file="$(find rotor_tm_config)/config/load_params/pointmass_payload.yaml" /> -->
+
+<rosparam command="load" file="$(find rotor_tm_config)/config/attach_mechanism/cable/3_robots_triangular_payload_0-5m.yaml" />
+
+
    <node pkg="rotor_tm" type="rotorTM_CXX_DronePointMass" name="rotorTM_CXX_DronePointMass" output="screen">
-    <remap from="reference/fm_cmd" to="/fm_cmd"/>  
-    <remap from="outputs/odom" to="/odom"/>
+    <!--  <remap from="reference/fm_cmd" to="/fm_cmd"/>  -->
+    <!-- <remap from="outputs/odom" to="/odom"/> -->
     <!-- <param name="drone_mass" value="1" />
     <param name="drone_Ixx" value="0.01" />
     <param name="drone_Iyy" value="0.01" />
     <param name="drone_Izz" value="0.02" /> -->
    </node>
 
-    <!--
+
     <node pkg="rotor_tm_traj" type="traj_node.py" name="traj" output="screen">
     </node>
-    -->
 
+    
     <!-- recursively launch controller -->
     <arg name="nr" default="$(eval number_of_robots + 1)"/>
     <include file="$(find rotor_tm)/launch/controller_launcher.launch" if="$(eval arg('nr') - 1 > 0)">
@@ -43,8 +54,10 @@
         <arg name="number_of_robots"            value = "$(arg number_of_robots)"/>
         <arg name="nr"                          value = "$(eval arg('nr') - 1)"/>
     </include>
-
+    
+     
     <include file="$(find rotor_tm)/launch/rviz.launch">
     </include>
+   
 
  </launch>
