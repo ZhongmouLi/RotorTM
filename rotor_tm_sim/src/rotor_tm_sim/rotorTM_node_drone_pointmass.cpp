@@ -31,7 +31,7 @@ geometry_msgs::Quaternion EigenQuadnToGeomQuadn(const Eigen::Quaterniond& q);
 
 // input for quadrotor dynamic simulator
 // thrust: norm of thrust force
-static double thrust = (0.07 + 0.95)* 9.8;       // static Eigen::Vector3d thrust;
+static double thrust = (0.07 + 0.25)* 9.8;       // static Eigen::Vector3d thrust;
 // torque : torque vector in body frame
 static Eigen::Vector3d torque(0,0,0);
 
@@ -74,7 +74,9 @@ int main(int argc, char** argv)
     // nh_private.param<double>("drone_Iyy", Iyy, 0.01);
     // nh_private.param<double>("drone_Izz", Izz, 0.02);
     // using yaml file rotor_tm_config)/config/uav_params/race.yaml
-    nh_private.getParam("/mass", drone_mass);
+
+    drone_mass = 0.25;
+    // nh_private.getParam("/mass", drone_mass);
     nh_private.getParam("/inertia/Ixx", Ixx);
     nh_private.getParam("/inertia/Iyy", Iyy);
     nh_private.getParam("/inertia/Izz", Izz);
@@ -151,7 +153,7 @@ int main(int argc, char** argv)
         ptr_rotorTM->inputMAVThrust(thrust);
 
         ptr_rotorTM->inputMAVTorque(torque);
-
+        ROS_INFO_STREAM("input thrust is "<< thrust);
 
         // step 2 call integration
         ptr_rotorTM->doOneStepint();
@@ -188,6 +190,8 @@ int main(int argc, char** argv)
         // setp 5.publish odom_msgs of drone and payload
         drone_odom_pub.publish(drone_odom_msg);    
         payload_odom_pub.publish(payload_odom_msg);  
+
+        ROS_INFO_STREAM("payload position "<< payload_position.transpose());
     }
     
 
