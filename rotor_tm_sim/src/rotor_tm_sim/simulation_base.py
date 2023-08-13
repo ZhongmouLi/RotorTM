@@ -1368,7 +1368,7 @@ class simulation_base():
 
       # Solving for Quadrotor Angular Acceleration
       pqrdot   = self.uav_params[0].invI @ (M - np.cross(qd_omega, self.uav_params[0].I @ qd_omega, axisa=0, axisb=0).T.reshape(3, 1))
-
+      print(self.uav_params[0].I)
       # Assemble sdot
       sdot = np.zeros((26,1), dtype=float)
       sdot[0:3] = plqd["vel"].reshape(3, 1)

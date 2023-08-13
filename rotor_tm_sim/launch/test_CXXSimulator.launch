@@ -2,7 +2,7 @@
 
  <!-- Load parameters from uav_params/race.yaml -->
  <!-- get drone mass and inertia -->
- <rosparam command="load" file="$(find rotor_tm_config)/config/uav_params/race.yaml" />
+ <rosparam command="load" file="$(find rotor_tm_config)/config/uav_params/snapdragonfly.yaml" />
 
 <!-- Load parameters from uav_params/race.yaml -->
 <!-- load mass for mointmass payload -->

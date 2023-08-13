@@ -185,9 +185,14 @@ void rotorTMQuadrotorPointMass::doOneStepint()
         quadrotor->setVel(vels_collision.first);
         pm_payload->setVel(vels_collision.second);
 
+
         std::cout<<"drone vel changes from "<< mav_vel.transpose() <<" to " << vels_collision.first.transpose() << std::endl;
 
         std::cout<<"payload vel changes from "<< payload_vel.transpose() <<" to " << vels_collision.second.transpose() << std::endl;
+
+        // update vels in ros loop
+        mav_vel = vels_collision.first;
+        payload_vel = vels_collision.second;        
     }
 
     // step 3 decide inputs for mav and point mass based on cable's status
@@ -208,7 +213,7 @@ void rotorTMQuadrotorPointMass::doOneStepint()
             // they are coupled on translations that is represented by the interaction force, i.e. tension force
             // note mav's attitude is independent
 
-            std::cout<<"It is taut "<< std::endl;
+            // std::cout<<"It is taut "<< std::endl;
 
             tension_force_ = computeTensionForce(mav_position, payload_position, mav_vel, payload_vel);
 

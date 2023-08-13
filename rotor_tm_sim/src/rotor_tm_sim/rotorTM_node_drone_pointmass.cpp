@@ -43,6 +43,8 @@ void fmCmdCallback(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // thrust = vector3MsgToEigen(msg->rlink_thrust);
     thrust = static_cast<double>(msg->thrust);
     torque = vector3MsgToEigen(msg->moments);
+    // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
+    // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
 }
 
@@ -80,6 +82,7 @@ int main(int argc, char** argv)
     nh_private.getParam("/inertia/Ixx", Ixx);
     nh_private.getParam("/inertia/Iyy", Iyy);
     nh_private.getParam("/inertia/Izz", Izz);
+    ROS_INFO_STREAM("Ixx is " << Ixx << " Iyy is " << Iyy << " Izz is " << Izz );
 
     /*TO DO*/
     // 1. set payload param
@@ -198,7 +201,7 @@ int main(int argc, char** argv)
 }
 
 Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg) {
-    return Eigen::Vector3d(msg.x, msg.y, msg.z);
+    return Eigen::Vector3d(static_cast<double>(msg.x), static_cast<double>(msg.y), static_cast<double>(msg.z));
 }
 
 geometry_msgs::Vector3 EigenToVector3Msg(const Eigen::Vector3d& eigen_vector)
