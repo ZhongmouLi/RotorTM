@@ -12,6 +12,7 @@ from rotor_tm_utils.vee import vee
 import time
 
 def ptmassslackToTaut(t, x):
+    print("--------------------------ptmassslackToTaut \n")
     # DESCRIPTION:
     # event function for point mass scenario dynammics 
     # if event is reached by ivp solver, it will switch from slack to taut, takes in t (time) and state (x)
@@ -36,6 +37,7 @@ def ptmassslackToTaut(t, x):
     return value
 
 def ptmasstautToSlack(t, x):
+    # print("ptmasstautToSlack --------------------------\n")
     # DESCRIPTION:
     # event function for point mass scenario dynammics 
     # if event is reached by ivp solver, it will switch from taut to slack, takes in t (time) and state (x)
@@ -306,14 +308,18 @@ class simulation_base():
             
             # Second Scenario: Point Mass
                 if self.nquad == 1:
-                    
+                    print("this case")
                     ## first check for inelastic collision
                     pl_pos = x[0:3]
                     pl_vel = x[3:6]
                     robot_pos = x[13:16]
                     robot_vel = x[16:19]
                     cable_norm_vel = np.transpose(pl_pos - robot_pos) @ (pl_vel - robot_vel)/np.linalg.norm(pl_pos - robot_pos)
+                    print("cable norm vel is", cable_norm_vel, "\n",sep="---")
                     ## if collision, compute new velocities and assign to state
+
+                    # fuck1, fuck2 = self.ptmass_inelastic_cable_collision(x[0:6], x[13:19], self.pl_params.mass, self.uav_params[0].mass)
+                    
                     if cable_norm_vel > 1e-3 and not self.cable_is_slack:
                         print("Colliding")
                         v1, v2 = self.ptmass_inelastic_cable_collision(x[0:6], x[13:19], self.pl_params.mass, self.uav_params[0].mass)
@@ -334,7 +340,7 @@ class simulation_base():
                         #print(x)
                         sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmassslackToTaut)
                     else:
-                        #print("Cable is taut")
+                        print("Cable is taut")
                         #print(x)
                         sol = scipy.integrate.solve_ivp(self.hybrid_ptmass_pl_transportationEOM, t_span, x, method= 'RK45', t_eval=t_span, events=ptmasstautToSlack)
                     
@@ -1343,6 +1349,9 @@ class simulation_base():
       # Obtain tension vector
       quad_force_vector = F * wRb @ e3
       quad_centrifugal_f = mQ * l * (xi_omega.T @ xi_omega)
+    #   print("quad mass is", mQ, "cable length is ", l, "\n")
+      print("xi_omega is", xi_omega, "\n")
+      print("quad_centrifugal_f is", quad_centrifugal_f, "\n")
       tension_vector = mL * (-xi.T.reshape(1,3) @ quad_force_vector + quad_centrifugal_f) * xi.reshape(3,1) / total_mass
       # Solving for Load Acceleration
       accL = - tension_vector / mL - g
@@ -1398,7 +1407,11 @@ class simulation_base():
 
       cable_direction = (obj2_pos - obj1_pos) / np.linalg.norm(obj2_pos - obj1_pos)
       cable_direction = cable_direction.reshape((3, 1))
+      print("cable_direction is ", cable_direction)
       cable_direction_projmat = cable_direction @ cable_direction.T
+
+      print("------------------------------cable_direction_projmat\n", cable_direction_projmat)
+
       v1_proj = cable_direction_projmat @ obj1_vel
       v2_proj = cable_direction_projmat @ obj2_vel
       
