@@ -49,7 +49,8 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> rotorTMQuadrotorPointMass::updateVel
     // 2. comput cable direction
     Eigen::Vector3d cable_dir = (mav_position - payload_position)/distance;
 
-    double cable_dir_projmat = cable_dir.dot(cable_dir);
+    // double cable_dir_projmat = cable_dir.dot(cable_dir);
+    Eigen::Matrix3d cable_dir_projmat = cable_dir * cable_dir.transpose();
 
     // prejection of mav and payload's vel
     Eigen::Vector3d payload_vel_pre = cable_dir_projmat * payload_vel;
@@ -57,7 +58,7 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> rotorTMQuadrotorPointMass::updateVel
     Eigen::Vector3d mav_vel_pre = cable_dir_projmat * mav_vel;
 
     // 3. comput new vels
-    Eigen::Vector3d v = (payload_mass_ * payload_vel_pre + mav_mass_ * mav_vel)/ (payload_mass_ + mav_mass_);
+    Eigen::Vector3d v = (payload_mass_ * payload_vel_pre + mav_mass_ * mav_vel_pre)/ (payload_mass_ + mav_mass_);
 
     // compute new vels after collision
     // payload_vel = v + payload_vel - payload_vel_pre;
@@ -69,6 +70,8 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> rotorTMQuadrotorPointMass::updateVel
     // update vels of quadrotor and payload
     // quadrotor->setVel(mav_vel);
     // pm_payload->setVel(payload_vel);
+
+    return vels_collision;
 
 };
 
@@ -132,12 +135,14 @@ Eigen::Vector3d rotorTMQuadrotorPointMass::computeTensionForce(const Eigen::Vect
 
         // step 2.2 centrifugal force
         // note transpose is not necessary for Eigen vector
-        double centrif = xi_omega.dot(xi_omega) * payload_mass_ * cable_length_;
-
+        double centrif = xi_omega.dot(xi_omega) * mav_mass_ * cable_length_;
+        // std::cout << "quadrotor mass is " << mav_mass_ << " cable length is " << cable_length_<< std::endl;
    
         // step 2.3 tension vector
         // note that use -xi.dot(thrust_force) instead of -xi.transpose * thrust_force, as the second means matrix manipulation for a 1X3 vector and a 3X1 vector and it is the same to apply` dot product to two vectors in Eigen
         Eigen::Vector3d tension_force = payload_mass_ * (-xi.dot(mav_thrust_force_) + centrif) * xi / (mav_mass_ + payload_mass_);
+       
+        // std::cout << "-xi.dot(mav_thrust_force_) + centrif is " << -xi.dot(mav_thrust_force_) + centrif << std::endl;
 
         return tension_force;
     
@@ -168,11 +173,26 @@ void rotorTMQuadrotorPointMass::doOneStepint()
     double distance = (mav_position - payload_position).norm();
     double cable_norm_vel = (payload_position-mav_position).dot(payload_vel-mav_vel)/distance;
 
+    // std::cout<<"cable_norm_vel is "<< cable_norm_vel << std::endl;
+
     if(cable_norm_vel>1e-3 && !cable_is_slack_)
     {
+        std::cout<<"colission happens"<<std::endl;
+        std::cout<<"cable_norm_vel is "<< cable_norm_vel << "cable_is_slack_ is " << cable_is_slack_ << std::endl;
+
         std::pair<Eigen::Vector3d, Eigen::Vector3d> vels_collision = updateVel4CableCollision(mav_position, payload_position, mav_vel, payload_vel);
+
         quadrotor->setVel(vels_collision.first);
         pm_payload->setVel(vels_collision.second);
+
+
+        std::cout<<"drone vel changes from "<< mav_vel.transpose() <<" to " << vels_collision.first.transpose() << std::endl;
+
+        std::cout<<"payload vel changes from "<< payload_vel.transpose() <<" to " << vels_collision.second.transpose() << std::endl;
+
+        // update vels in ros loop
+        mav_vel = vels_collision.first;
+        payload_vel = vels_collision.second;        
     }
 
     // step 3 decide inputs for mav and point mass based on cable's status
@@ -181,6 +201,7 @@ void rotorTMQuadrotorPointMass::doOneStepint()
             // step 2.1 cable is slack
             // mav and payload are two independent systems
             // payload suffer only gravity
+            std::cout<<"ERRORRRRRRR slack "<< std::endl;
             pm_payload->inputForce(Eigen::Vector3d::Zero());
 
             quadrotor->inputForce(mav_thrust_force_);
@@ -191,6 +212,8 @@ void rotorTMQuadrotorPointMass::doOneStepint()
             // mav and payload is a whole system
             // they are coupled on translations that is represented by the interaction force, i.e. tension force
             // note mav's attitude is independent
+
+            // std::cout<<"It is taut "<< std::endl;
 
             tension_force_ = computeTensionForce(mav_position, payload_position, mav_vel, payload_vel);
 
