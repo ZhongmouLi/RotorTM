@@ -56,8 +56,16 @@
     </include>
     
      
-    <include file="$(find rotor_tm)/launch/rviz.launch">
+    <include file="$(find rotor_tm)/launch/rviz_test.launch">
     </include>
    
 
+   <arg name = "bags_directory" value = "/home"/>
+
+  <!--<node pkg="rosbag" type="record" name="rosbag_record"
+       args="record -o $(arg bags_directory) /controller_1/dragonfly1/fm_cmd /payload/odom /controller_1/dragonfly1/fm_cmd" /> -->
+
+
+  <node pkg="rosbag" type="record" name="rosbag_record_cam"
+           args=" /controller_1/dragonfly1/fm_cmd /payload/odom /dragonfly1/odom -o $(find rotor_tm)/bag/test"/>
  </launch>

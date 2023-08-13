@@ -70,6 +70,8 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> rotorTMQuadrotorPointMass::updateVel
     // quadrotor->setVel(mav_vel);
     // pm_payload->setVel(payload_vel);
 
+    return vels_collision;
+
 };
 
 

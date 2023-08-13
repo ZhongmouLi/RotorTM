@@ -153,7 +153,7 @@ int main(int argc, char** argv)
         ptr_rotorTM->inputMAVThrust(thrust);
 
         ptr_rotorTM->inputMAVTorque(torque);
-        ROS_INFO_STREAM("input thrust is "<< thrust);
+        // ROS_INFO_STREAM("input thrust is "<< thrust);
 
         // step 2 call integration
         ptr_rotorTM->doOneStepint();
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
         drone_odom_pub.publish(drone_odom_msg);    
         payload_odom_pub.publish(payload_odom_msg);  
 
-        ROS_INFO_STREAM("payload position "<< payload_position.transpose());
+        // ROS_INFO_STREAM("payload position "<< payload_position.transpose());
     }
     
 
