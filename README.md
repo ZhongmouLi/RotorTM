@@ -7,6 +7,17 @@
 4. Eigen 3.4.0
 5. CXX 17
 
+
+## Steps to run the simulator of a quadrotor + a pointmass payload
+1. roslaunch the simulator
+      ```shell
+      roslaunch rotor_tm test_DronePointMass.launch 
+      ```
+2. call trajectory generator
+      ```shell
+      rosservice call rosservice call /traj_generator/Circle "radius: 1.0 T: 10.0 duration: 10.0" 
+      ```         
+
 ## Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
   - changing drone mass and interia that are defined in rotor_tm_config/config/uav_params/race.yaml as

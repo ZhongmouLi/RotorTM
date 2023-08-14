@@ -4,6 +4,9 @@
 #include <iostream>
 #include <memory>
 #include <Eigen/Dense>
+#include <thread>
+
+// #include <boost/asio.hpp> // for bost pool
 
 #include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
 
@@ -71,6 +74,11 @@ class rotorTMQuadrotorPointMass
 
         // prevent creating null instance
         rotorTMQuadrotorPointMass();
+
+        // boost::asio::thread_pool pool_rotorTM;
+
+        // std::function<void()>  quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
+        // std::function<void()>  payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);
 
     public:
 

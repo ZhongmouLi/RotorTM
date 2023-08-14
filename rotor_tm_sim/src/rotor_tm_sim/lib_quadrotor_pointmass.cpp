@@ -7,6 +7,8 @@ rotorTMQuadrotorPointMass::rotorTMQuadrotorPointMass(const double &UAV_mass, con
     quadrotor = std::make_shared<QuadrotorDynamicSimulator>(UAV_mass, m_inertia, step_size);
 
     pm_payload = std::make_shared<PointMassDynamicSimulator>(pd_mass, step_size);
+
+    // boost::asio::thread_pool pool_rotorTM(2);
 };
 
 
@@ -226,9 +228,32 @@ void rotorTMQuadrotorPointMass::doOneStepint()
     quadrotor->inputTorque(mav_torque_);
 
 
-    // step 3 call one step integration
-    pm_payload->doOneStepInt();
-    quadrotor->doOneStepInt();
+    // step 3 call one step integration in parallel
+    // pm_payload->doOneStepInt();
+    // quadrotor->doOneStepInt();
+    // 1 using functor 
+    std::thread th_quadrotor(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor.get());
+    std::thread th_payload(&PointMassDynamicSimulator::doOneStepInt, pm_payload.get());
+    
+    // 2 using bind for threads
+    // auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
+    // auto payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);  
+
+    // std::thread th_quadrotor(quadrotor_func);
+    // std::thread th_payload(payload_func);      
+
+    th_payload.join();
+    th_quadrotor.join();
+
+    // 3 using poom
+    // boost::asio::thread_pool pool_rotorTM(2);
+    // auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
+    // auto payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);
+
+    // boost::asio::post(pool_rotorTM, quadrotor_func);
+    // boost::asio::post(pool_rotorTM, payload_func);
+        
+    // pool_rotorTM.join();
 
     // update current step
     current_step_ = current_step_ + step_size_;
