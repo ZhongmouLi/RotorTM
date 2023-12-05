@@ -9,6 +9,10 @@
 
 ## 2 Tested simulation cases
 ### 2.1 case of a quadrotor + a pointmass payload
+#### code explanation
+This case mainly involves two libs: lib_quadrotor (lib_quadrotor.cpp/hpp) and lib_pointmass (lib_pointmass.cpp/hpp). Then, a ros node defined in rotorTM_node_drone_pointmass.cpp is used to begin the simulator in ROS.
+
+#### how to run
 Steps to run the simulator of a quadrotor + a pointmass payload
 1. roslaunch the simulator
       ```shell
@@ -42,37 +46,49 @@ Steps to run single quadrotor dynamic simulator
     ```
 3. Note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
 
-## TODO & WokingOn
-1. add cooperative case that is a payload + several quadrotors
-2. modify launch and config files
-3. add rviz visualization
+### 2.3 case of several quadrotors + a payload (Ongoing)
+This case mainly involves more libs and each lib represent a class of object. Once finished, the whole rotorTM will adjust to the base classes here.
 
-## Modification log
-1. change how to compute dEuler from bodyrate.
-   1. Delete the functions quadTransMatrix and quadBodyrate2Eulerrate that compute matrix mapping dEuler 2 bodyrate and solve linear equations.
-   2. develop the function matirxBodyrate2EulerRate that returns the matrix that maps bodyrate 2 dEuler directly.
-2. implement gTests in catkin
-3. implement tests with gootle tests.
-   1. test cases are defined in the folder gtest and test must be defined in CmakeLists.
-      - take testQuadrotorClass for example
-      - test cases are defeind in  gtest/testQuadrotorClass.cpp
-      - in CMakeLists.txt
-        - create a test with the name being singleUAVTest
-            ```cmake
+It will include
+- lib_cable
+- lib_rigidbody
+- lib_pointmass
+- lib_uavcable
+- lib_payload
+- lib_quadrotor_pointmass
+- lib_cooperative_uavs_payload
+
+## TODO & WokingOn
+1. a UML Class Diagram to show the relationship among all classes.
+2. add "the cooperative case" that is a payload + several quadrotors
+3. modify launch and config files to allow users better set parameters for simulation
+4. add rviz visualization
+
+## Use gTests
+Implement tests with gootle tests.
+
+1. programme tests.
+  test cases are defined in the folder gtest and test must be defined in CmakeLists.
+    - take testQuadrotorClass for example
+    - test cases are defeind in  gtest/testQuadrotorClass.cpp
+    - in CMakeLists.txt
+    - create a test with the name being singleUAVTest
+        ```cmake
             catkin_add_gtest(singleUAVTest gtest/testQuadrotorClass.cpp)
-            ```
-        - link libraries to be used in this test
-            ```cmake
+        ```
+    - link libraries to be used in this test
+        ```cmake
             target_link_libraries(singleUAVTest lib_quadrotor_dynamic_simulator ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
-            ```
-    2. steps to run tests 
-       1. build all packages using ```catkin build```
-       2. run test
-          1. for all packages
+        ```
+2. run tests in catkin
+Steps to run tests 
+    - build all packages using ```catkin build```
+    - run test
+      1. for all packages
           ```cmake
           catkin test
           ```
-          2. for one package like rotor_tm 
+      2. for one package like rotor_tm 
           ```
           catkin test rotor_tm
           ```
