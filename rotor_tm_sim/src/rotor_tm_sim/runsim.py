@@ -18,6 +18,8 @@ if __name__ == '__main__':
   pl_params, quad_params = read_params_funcs.system_setup(payload_params_path,uav_params_path,mechanism_params_path,payload_control_gain_path, uav_control_gain_path)
   
   rotortm_simulation_base = simulation_base.simulation_base(pl_params,quad_params)
+
+  # pl_params is captured from payload_params_path
     
   
    

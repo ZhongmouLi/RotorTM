@@ -4,9 +4,9 @@
 
 rotorTMQuadrotorPointMass::rotorTMQuadrotorPointMass(const double &UAV_mass, const Eigen::Matrix3d &m_inertia, const double &pd_mass, const double &cable_length, const double &step_size): mav_mass_(UAV_mass), payload_mass_(pd_mass), cable_length_(cable_length), step_size_(step_size)
 {
-    quadrotor = std::make_shared<QuadrotorDynamicSimulator>(UAV_mass, m_inertia, step_size);
+    quadrotor = std::make_shared<Quadrotor>(UAV_mass, m_inertia, step_size);
 
-    pm_payload = std::make_shared<PointMassDynamicSimulator>(pd_mass, step_size);
+    pm_payload = std::make_shared<PointMass>(pd_mass, step_size);
 
     // boost::asio::thread_pool pool_rotorTM(2);
 };
@@ -229,36 +229,39 @@ void rotorTMQuadrotorPointMass::doOneStepint()
 
 
     // step 3 call one step integration in parallel
+    // 0. no parallel programming for comparing performances in tests
     // pm_payload->doOneStepInt();
     // quadrotor->doOneStepInt();
+
     // 1 using functor 
-    std::thread th_quadrotor(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor.get());
-    std::thread th_payload(&PointMassDynamicSimulator::doOneStepInt, pm_payload.get());
+    std::thread th_quadrotor(&Quadrotor::doOneStepInt, quadrotor.get());
+    std::thread th_payload(&PointMass::doOneStepInt, pm_payload.get());
     
     // 2 using bind for threads
     // auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
-    // auto payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);  
+    // auto payload_func = std::bind(&PointMass::doOneStepInt, pm_payload);  
 
     // std::thread th_quadrotor(quadrotor_func);
     // std::thread th_payload(payload_func);      
 
+    // join threads for methods 1 and 2
     th_payload.join();
     th_quadrotor.join();
 
     // 3 using poom
     // boost::asio::thread_pool pool_rotorTM(2);
     // auto quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
-    // auto payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);
+    // auto payload_func = std::bind(&PointMass::doOneStepInt, pm_payload);
 
     // boost::asio::post(pool_rotorTM, quadrotor_func);
     // boost::asio::post(pool_rotorTM, payload_func);
         
     // pool_rotorTM.join();
 
-    // update current step
+    // 4. update current step
     current_step_ = current_step_ + step_size_;
 
-    // step 4 compute cable's status and update cable_is_slack_
+    // 5. compute cable's status and update cable_is_slack_
     cable_is_slack_ = isSlack(mav_position, payload_position);
 
     // self.cable_is_slack = self.isslack(x[0:3], x[13:16], self.pl_params.cable_length)    

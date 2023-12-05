@@ -1,5 +1,4 @@
 <launch>
-<!-- edit below this line -->
 
     <!--1 dragonfly with pointmass payload using cable mechanisms (0.5 m)-->
     <arg name="uav_params_path"             default = "$(find rotor_tm_config)/config/uav_params/"/>
@@ -11,25 +10,18 @@
     
 
 
-    <!-- Start simulation and trajectory nodes-->
-    <!-- replace here-->
-    <!--
-      <node pkg="rotor_tm" type="runsim.py" name="sim" output="screen" args="$(arg payload_params_path) $(arg uav_params_path) $(arg mechanism_params_path) $(arg payload_control_gain_path) $(arg uav_control_gain_path)">
-    </node>
-   -->
+<!-- Start simulation and trajectory nodes-->
+
  <!-- Load parameters from uav_params/snapdragonfly.yaml -->
  <!-- get drone mass and inertia -->
  <rosparam command="load" file="$(find rotor_tm_config)/config/uav_params/snapdragonfly.yaml" />
 
-<!-- Load parameters from uav_params/race.yaml -->
-<!-- load mass for mointmass payload -->
-<!-- TODO: same name for mass -->
-<!-- <rosparam command="load" file="$(find rotor_tm_config)/config/load_params/pointmass_payload.yaml" /> -->
-
+<!-- TODO: check the 3_robots_triangular_payload_0-5m. yaml file-->
+<!-- Load parameters from uav_params/3_robots_triangular_payload_0-5m.yaml -->
 <rosparam command="load" file="$(find rotor_tm_config)/config/attach_mechanism/cable/3_robots_triangular_payload_0-5m.yaml" />
 
-
-   <node pkg="rotor_tm" type="rotorTM_CXX_DronePointMass" name="rotorTM_CXX_DronePointMass" output="screen">
+<!-- run quadrotor + point mass simulator -->
+<node pkg="rotor_tm" type="rotorTM_CXX_DronePointMass" name="rotorTM_CXX_DronePointMass" output="screen">
     <!--  <remap from="reference/fm_cmd" to="/fm_cmd"/>  -->
     <!-- <remap from="outputs/odom" to="/odom"/> -->
     <!-- <param name="drone_mass" value="1" />
@@ -38,12 +30,12 @@
     <param name="drone_Izz" value="0.02" /> -->
    </node>
 
-
-    <node pkg="rotor_tm_traj" type="traj_node.py" name="traj" output="screen">
+<!-- run trajectory generator -->
+<node pkg="rotor_tm_traj" type="traj_node.py" name="traj" output="screen">
     </node>
 
     
-    <!-- recursively launch controller -->
+<!-- recursively launch controller -->
     <arg name="nr" default="$(eval number_of_robots + 1)"/>
     <include file="$(find rotor_tm)/launch/controller_launcher.launch" if="$(eval arg('nr') - 1 > 0)">
         <arg name="uav_params_path"             value = "$(arg uav_params_path)"/>
@@ -55,17 +47,15 @@
         <arg name="nr"                          value = "$(eval arg('nr') - 1)"/>
     </include>
     
-     
-    <include file="$(find rotor_tm)/launch/rviz_test.launch">
-    </include>
+<!-- Run rviz for visulisation -->
+<!-- <include file="$(find rotor_tm)/launch/rviz_test.launch"></include> -->
    
 
-   <arg name = "bags_directory" value = "/home"/>
-
-  <!--<node pkg="rosbag" type="record" name="rosbag_record"
-       args="record -o $(arg bags_directory) /controller_1/dragonfly1/fm_cmd /payload/odom /controller_1/dragonfly1/fm_cmd" /> -->
+   <!-- <arg name = "bags_directory" value = "/home"/>
 
 
   <node pkg="rosbag" type="record" name="rosbag_record_cam"
-           args=" /controller_1/dragonfly1/fm_cmd /payload/odom /dragonfly1/odom -o $(find rotor_tm)/bag/test"/>
+           args=" /controller_1/dragonfly1/fm_cmd /payload/odom /dragonfly1/odom -o $(find rotor_tm)/bag/test"/> -->
+
+
  </launch>

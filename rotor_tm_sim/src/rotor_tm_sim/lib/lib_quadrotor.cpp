@@ -1,14 +1,14 @@
-#include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
+#include "rotor_tm_sim/lib_quadrotor.hpp"
 
 
 
-QuadrotorDynamicSimulator::QuadrotorDynamicSimulator(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), step_size_(step_size), m_inertia_(m_inertia) 
+Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), step_size_(step_size), m_inertia_(m_inertia) 
 {
     done_state_.setZero();
 };
 
 
-Eigen::Vector3d QuadrotorDynamicSimulator::quadRotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
+Eigen::Vector3d Quadrotor::quadRotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
@@ -17,7 +17,7 @@ Eigen::Vector3d QuadrotorDynamicSimulator::quadRotDynac(const Eigen::Vector3d &t
     return dBodyRate;
 }
 
-Eigen::Vector3d QuadrotorDynamicSimulator::quadTransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity)
+Eigen::Vector3d Quadrotor::quadTransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity)
 {   
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
@@ -27,7 +27,7 @@ Eigen::Vector3d QuadrotorDynamicSimulator::quadTransDynac(const Eigen::Vector3d 
 }
 
 
-Eigen::Matrix3d QuadrotorDynamicSimulator::matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi)
+Eigen::Matrix3d Quadrotor::matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi)
 {
     Eigen::Matrix3d m_Bodyrate2EulerRate;
 
@@ -46,8 +46,8 @@ Eigen::Matrix3d QuadrotorDynamicSimulator::matirxBodyrate2EulerRate(const double
     return m_Bodyrate2EulerRate;
 } 
 
-// void QuadrotorDynamicSimulator::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
-void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor_state &dxdt, const double time)
+// void Quadrotor::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
+void Quadrotor::operator() (const quadrotor_state &x , quadrotor_state &dxdt, const double time)
 {
 
     static bool is_recursing = false;
@@ -94,7 +94,7 @@ void QuadrotorDynamicSimulator::operator() (const quadrotor_state &x , quadrotor
 
 
 
-void QuadrotorDynamicSimulator::doOneStepInt()
+void Quadrotor::doOneStepInt()
 {
 
     // call one step integration for quadrotor dynamics
@@ -107,36 +107,36 @@ void QuadrotorDynamicSimulator::doOneStepInt()
 };
   
 
-void QuadrotorDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_post)
+void Quadrotor::setInitialPost(const Eigen::Vector3d &initial_post)
 {
     done_state_.head(3) = initial_post;
     //std::cout<< "input drone initial post" << initial_post<<std::endl;
 }; 
 
 
-void QuadrotorDynamicSimulator::setVel(const Eigen::Vector3d &mav_vel)
+void Quadrotor::setVel(const Eigen::Vector3d &mav_vel)
 {
     done_state_.segment<3>(3) = mav_vel;
 }
 
 
-void QuadrotorDynamicSimulator::getPosition(Eigen::Vector3d &mav_position)
+void Quadrotor::getPosition(Eigen::Vector3d &mav_position)
 {
     mav_position = done_state_.head<3>();
     // std::cout<< "drone state post" << done_state_.head<3>()<<std::endl;
 };
 
-void QuadrotorDynamicSimulator::getVel(Eigen::Vector3d &mav_vel)
+void Quadrotor::getVel(Eigen::Vector3d &mav_vel)
 {
     mav_vel = done_state_.segment<3>(3);
 };
 
-void QuadrotorDynamicSimulator::getBodyrate(Eigen::Vector3d &mav_bodyrate)
+void Quadrotor::getBodyrate(Eigen::Vector3d &mav_bodyrate)
 {
     mav_bodyrate = done_state_.tail<3>();
 };
 
-void QuadrotorDynamicSimulator::getAttitude(Eigen::Quaterniond &mav_attitude)
+void Quadrotor::getAttitude(Eigen::Quaterniond &mav_attitude)
 {
 
     // compute rotation in Quaternion from quadrotor state
@@ -151,12 +151,12 @@ void QuadrotorDynamicSimulator::getAttitude(Eigen::Quaterniond &mav_attitude)
 
 };
 
-void QuadrotorDynamicSimulator::inputForce(const Eigen::Vector3d &mav_thrust_force)
+void Quadrotor::inputForce(const Eigen::Vector3d &mav_thrust_force)
 {
     thrust_ = mav_thrust_force;
 };
 
-void QuadrotorDynamicSimulator::inputThurst(const double &mav_thrust)
+void Quadrotor::inputThurst(const double &mav_thrust)
 {
     //1. compute thrust force in body frame [0,0,T]
     Eigen::Vector3d thrust_force_bf(0,0,mav_thrust);
@@ -176,12 +176,12 @@ void QuadrotorDynamicSimulator::inputThurst(const double &mav_thrust)
 
 };
 
-void QuadrotorDynamicSimulator::inputTorque(const Eigen::Vector3d &mav_torque)
+void Quadrotor::inputTorque(const Eigen::Vector3d &mav_torque)
 {
     torque_ = mav_torque;
 };
 
-void QuadrotorDynamicSimulator::getCurrentTimeStep(double &current_time)
+void Quadrotor::getCurrentTimeStep(double &current_time)
 {
     current_time = current_step_;
 };

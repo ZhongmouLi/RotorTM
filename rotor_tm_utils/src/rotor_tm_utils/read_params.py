@@ -240,7 +240,7 @@ class read_params:
       ## Attach Position on the payload
       rho_vec_list = []
       for i in range(0,params.num_of_robots):
-          rho_vec_list.append(np.array([params.rho[i]['x'],params.rho[i]['y'],params.rho[i]['z']]))
+          rho_vec_list  .append(np.array([params.rho[i]['x'],params.rho[i]['y'],params.rho[i]['z']]))
 
       params.rho_vec_list = np.array(rho_vec_list).T
       return params
