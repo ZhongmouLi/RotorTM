@@ -1,5 +1,5 @@
-#ifndef QUADROTORPOINTMASS_SIMULATOR_H
-#define QUADROTORPOINTMASS_SIMULATOR_H
+#ifndef QUADROTORCOOPERATIVE_SIMULATOR_H
+#define QUADROTORCOOPERATIVE_SIMULATOR_H
 
 #include <iostream>
 #include <memory>
@@ -12,54 +12,50 @@
 
 #include "rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp"
 
-class rotorTMQuadrotorPointMass
+#include "rotor_tm_sim/lib_payload.hpp"
+
+class RotorTMQuadrotorCooperative
 {
     public:
 
         // quadrotor object
-        std::shared_ptr<QuadrotorDynamicSimulator> quadrotor;   
+        // std::shared_ptr<QuadrotorDynamicSimulator> quadrotor; 
+        std::vector<std::shared_ptr<QuadrotorDynamicSimulator>> v_mav_;
 
-        // point mass object
-        std::shared_ptr<PointMassDynamicSimulator> pm_payload;    
+        // payload
+        std::shared_ptr<Payload> payload_;    
+
+        // cables
+        std::vector<std::shared_ptr<Cable>> v_cable_;
 
     private:
 
-        // // quadrotor object
-        // std::shared_ptr<QuadrotorDynamicSimulator> quadrotor;   
-
-        // // point mass object
-        // std::shared_ptr<PointMassDynamicSimulator> pm_payload;   
-
-        // var to check if cable is slack or not
-        bool cable_is_slack_ = false;
-
-        // mass of drone
-        double mav_mass_;
-
-        // mass of payload, i.e. point mass
-        double payload_mass_;
-
-        // cable length
-        double cable_length_;
 
         // drone thrust force, 3X1 vector in world frame 
-        Eigen::Vector3d mav_thrust_force_;
+        std::vector<Eigen::Vector3d> v_mav_thrust_force_;
 
         // drone torque, 3X1 vector in body frame 
-        Eigen::Vector3d mav_torque_;
+        std::vector<Eigen::Vector3d>  v_mav_torque_;
 
         // tension force of cable, 3X1 vector in world frame 
-        Eigen::Vector3d tension_force_;
+        std::vector<Eigen::Vector3d> v_tension_force_;
+
+        // group of quadrotors whose cables are in taut
+        std::vector<std::shared_ptr<QuadrotorDynamicSimulator>> v_mav_taut;
+        
+        // group of quadrotors whose cables are in slack
+        std::vector<std::shared_ptr<QuadrotorDynamicSimulator>> v_mav_slack;
 
         // check if cable is slack or not
         // input: drone post and payload post: 3X1 vector in world frame
         // output: bool var
         bool isSlack(const Eigen::Vector3d &mav_position, const Eigen::Vector3d &payload_position);
-        
-        // compute tension force
+
+        // check cables' status and group the corresponding drones into v_mav_taut and v_mav_slack
         // input:drone post,  payload post, drone vel, payload vel: each is 3X1 vector in world frame
-        // output: tension force 3X1 vector in world frame
-        Eigen::Vector3d computeTensionForce(const Eigen::Vector3d &mav_position, const Eigen::Vector3d &payload_position, const Eigen::Vector3d &mav_vel, const Eigen::Vector3d &payload_vel);
+        // output: update v_mav_taut and v_mav_slack
+        void checkCableStatus()
+
 
         // compute vels of mav and payload after collision
         // input: drone post,  payload post, drone vel, payload vel: each is 3X1 vector in world frame
@@ -73,7 +69,7 @@ class rotorTMQuadrotorPointMass
         double current_step_ = 0;
 
         // prevent creating null instance
-        rotorTMQuadrotorPointMass();
+        rotorTMQuadrotorCooperative();
 
         // boost::asio::thread_pool pool_rotorTM;
 
@@ -83,7 +79,7 @@ class rotorTMQuadrotorPointMass
     public:
 
         // constructor
-        rotorTMQuadrotorPointMass(const double &MAV_mass, const Eigen::Matrix3d &m_inertia, const double &pd_mass, const double &cable_length, const double &step_size);
+        rotorTMQuadrotorCooperative(const double &MAV_mass, const Eigen::Matrix3d &m_inertia, const double &pd_mass, const double &cable_length, const double &step_size);
 
         // input uav thrust (scale)  and torque (3X1 vector in body frame)
         void inputMAVThrust(const double &mav_thrust);

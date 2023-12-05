@@ -19,7 +19,7 @@ message("C++ standards in this project ${CMAKE_CXX_STANDARD}")
 ## Your package locations should be listed before other locations
 
 
-find_package(Boost EXACT 1.81.0 COMPONENTS program_options REQUIRED)
+find_package(Boost EXACT 1.71.0 COMPONENTS program_options REQUIRED)
 message("Boost version: ${Boost_VERSION}")
 
 find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
@@ -44,9 +44,10 @@ ${catkin_INCLUDE_DIRS}
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# lib for quadrotor
 add_library(lib_quadrotor_dynamic_simulator SHARED
             include/rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp
-            src/rotor_tm_sim/lib_quadrotor_dynamic_simulator.cpp)
+            src/rotor_tm_sim/lib/lib_quadrotor_dynamic_simulator.cpp)
 
 # use this options in the future that specify c++ 17 for our library
 target_compile_options(lib_quadrotor_dynamic_simulator PRIVATE -std=c++17 -Wall -Wextra)
@@ -54,20 +55,39 @@ target_compile_options(lib_quadrotor_dynamic_simulator PRIVATE -std=c++17 -Wall 
 
 target_link_libraries(lib_quadrotor_dynamic_simulator Boost::program_options Eigen3::Eigen)
 
-
+# lib for pointmass object
 add_library(lib_pointmass_dynamic_simulator SHARED
             include/rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp
-            src/rotor_tm_sim/lib_pointmass_dynamic_simulator.cpp)
+            src/rotor_tm_sim/lib/lib_pointmass_dynamic_simulator.cpp)
 
 target_compile_options(lib_pointmass_dynamic_simulator PRIVATE -std=c++17 -Wall -Wextra)
 
 target_link_libraries(lib_pointmass_dynamic_simulator Boost::program_options Eigen3::Eigen)
 
+# lib for single rigid body
+add_library(lib_rigidbody SHARED
+            include/rotor_tm_sim/lib_rigidbody.hpp
+            src/rotor_tm_sim/lib/lib_rigidbody.cpp)
+
+target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
+
+# lib for payload 
+add_library(lib_payload SHARED
+            include/rotor_tm_sim/lib_payload.hpp
+            src/rotor_tm_sim/lib/lib_payload.cpp)
+
+target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_payload Boost::program_options Eigen3::Eigen lib_rigidbody)
+
+
 
 # lib of single quadrotor + point mass payload
 add_library(lib_quadrotor_pointmass SHARED
             include/rotor_tm_sim/lib_quadrotor_pointmass.hpp
-            src/rotor_tm_sim/lib_quadrotor_pointmass.cpp)
+            src/rotor_tm_sim/lib/lib_quadrotor_pointmass.cpp)
 
 target_compile_options(lib_quadrotor_pointmass PRIVATE -std=c++17 -Wall -Wextra)
 
@@ -119,7 +139,9 @@ target_link_libraries(singleUAVPointmassTest lib_quadrotor_pointmass lib_pointma
 # install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 
+catkin_add_gtest(payloadTest gtest/testPayloadClass.cpp)
 
+target_link_libraries(payloadTest lib_payload  lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen)
 
 
 # add_library(lib_ros_simulator SHARED
