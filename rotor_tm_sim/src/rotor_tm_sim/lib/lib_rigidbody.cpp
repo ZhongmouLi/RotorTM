@@ -185,3 +185,15 @@ void RigidBody::getCurrentTimeStep(double &current_time)
 {
     current_time = current_step_;
 };
+
+
+Eigen::Matrix3d RigidBody::TransVector3d2SkewSymMatrix(Eigen::Vector3d vector)
+{
+    Eigen::Matrix3d m_skewsym;
+
+    m_skewsym << 0, -vector(2), vector(1),
+        vector(2), 0, -vector(0),
+        -vector(1), vector(0), 0;
+
+    return m_skewsym;
+};

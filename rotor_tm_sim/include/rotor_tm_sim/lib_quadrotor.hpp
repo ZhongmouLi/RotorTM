@@ -102,5 +102,11 @@ class Quadrotor
         // set initial position for quadrotor
         void setInitialPost(const Eigen::Vector3d &initial_post);        
 
+        // transfer a vector to tis skew sym matrix
+        Eigen::Matrix3d TransVector3d2SkewSymMatrix(Eigen::Vector3d vector); 
+
+        inline void GetMass(double &mass) const {mass= mass_;};
+
+        inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};        
 };
 #endif

@@ -93,18 +93,49 @@ add_library(lib_payload SHARED
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload Boost::program_options Eigen3::Eigen lib_rigidbody)
+target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen)
 
 
 
-# lib of single quadrotor + point mass payload
+# lib for single quadrotor + point mass payload
 add_library(lib_quadrotor_pointmass SHARED
             include/rotor_tm_sim/lib_quadrotor_pointmass.hpp
             src/rotor_tm_sim/lib/lib_quadrotor_pointmass.cpp)
 
 target_compile_options(lib_quadrotor_pointmass PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_quadrotor_pointmass lib_pointmass lib_quadrotor Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_quadrotor_pointmass lib_pointmass lib_quadrotor lib_quadrotor Boost::program_options Eigen3::Eigen)
+
+
+# lib for cable
+add_library(lib_cable SHARED
+            include/rotor_tm_sim/lib_cable.hpp
+            src/rotor_tm_sim/lib/lib_cable.cpp)
+
+target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_cable Eigen3::Eigen)
+
+# lib for uav + cable
+add_library(lib_uav_cable SHARED
+            include/rotor_tm_sim/lib_uav_cable.hpp
+            src/rotor_tm_sim/lib/lib_uav_cable.cpp)
+
+target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_uav_cable lib_cable Eigen3::Eigen)
+
+
+# lib for cooperative case
+add_library(lib_cooperative SHARED
+            include/rotor_tm_sim/lib_cooperative.hpp
+            src/rotor_tm_sim/lib/lib_cooperative.cpp)
+
+target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_cooperative lib_cable Eigen3::Eigen)
+
+
 
 
 # 4 ros node
