@@ -86,18 +86,15 @@ class RigidBody
 
         void getCurrentTimeStep(double &current_time);
 
-        // input for quadrotor simulator instance
-
+        // input for a rigid body
         void inputForce(const Eigen::Vector3d &force); // force is a force vector in world frame
-
-        // void inputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
 
         void inputTorque(const Eigen::Vector3d &torque); //torque is a torque vector in body frame
 
         // set initial position for quadrotor
         void setInitialPost(const Eigen::Vector3d &initial_post);        
 
-
+        // set vel in the world frame
         void setVel(const Eigen::Vector3d &object_vel);
 
 };

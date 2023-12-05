@@ -16,7 +16,7 @@ using namespace boost::numeric::odeint;
 typedef Eigen::Matrix<double, 12, 1> quadrotor_state;
 
 
-class QuadrotorDynamicSimulator
+class Quadrotor:
 {
     private:
         // quadrotor parameters
@@ -61,14 +61,14 @@ class QuadrotorDynamicSimulator
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
         // prevent creating instance using none par
-        QuadrotorDynamicSimulator();
+        Quadrotor();
 
         
 
     public:
 
         // constructor
-        QuadrotorDynamicSimulator(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
+        Quadrotor(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
 
         // call one step integration
         void doOneStepInt();

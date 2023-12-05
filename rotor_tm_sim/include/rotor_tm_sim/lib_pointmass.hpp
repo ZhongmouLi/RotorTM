@@ -16,7 +16,7 @@ using namespace boost::numeric::odeint;
 
 typedef Eigen::Matrix<double, 6, 1> pointmass_state;
 
-class PointMassDynamicSimulator
+class PointMass
 {
     private:
         // point mass parameters
@@ -58,14 +58,14 @@ class PointMassDynamicSimulator
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
         // prevent creating instance using none par
-        PointMassDynamicSimulator();
+        PointMass();
 
         
 
     public:
 
         // constructor
-        PointMassDynamicSimulator(const double &mass, const double &step_size);
+        PointMass(const double &mass, const double &step_size);
 
         // do one step integration
         void doOneStepInt();

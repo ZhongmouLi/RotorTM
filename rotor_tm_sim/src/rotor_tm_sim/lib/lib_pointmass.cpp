@@ -1,7 +1,7 @@
-#include "rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp"
+#include "rotor_tm_sim/lib_pointmass.hpp"
 
 
-PointMassDynamicSimulator::PointMassDynamicSimulator(const double &mass, const double &step_size): mass_(mass), step_size_(step_size)
+PointMass::PointMass(const double &mass, const double &step_size): mass_(mass), step_size_(step_size)
 {
     ptmas_state_.setZero();
 };
@@ -9,7 +9,7 @@ PointMassDynamicSimulator::PointMassDynamicSimulator(const double &mass, const d
 
 
 //
-void PointMassDynamicSimulator::operator() (const pointmass_state &x , pointmass_state &dxdt, const double time)
+void PointMass::operator() (const pointmass_state &x , pointmass_state &dxdt, const double time)
 {
     // define post_v to obtain input state X
     // X = [post_v] = [position vel] 6X1
@@ -49,7 +49,7 @@ void PointMassDynamicSimulator::operator() (const pointmass_state &x , pointmass
 
 
 // interface for calling dynamic simulation for point mass
-void PointMassDynamicSimulator::doOneStepInt()
+void PointMass::doOneStepInt()
 {
 
     this->stepper_.do_step(*this, ptmas_state_, current_step_, step_size_);
@@ -62,7 +62,7 @@ void PointMassDynamicSimulator::doOneStepInt()
 
 };
   
-void PointMassDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_position)
+void PointMass::setInitialPost(const Eigen::Vector3d &initial_position)
 {
 
     ptmas_state_.head<3>() = initial_position;
@@ -70,7 +70,7 @@ void PointMassDynamicSimulator::setInitialPost(const Eigen::Vector3d &initial_po
 
 
 
-Eigen::Vector3d PointMassDynamicSimulator::ptmasTransDynac(const Eigen::Vector3d &force, const double &mass, const double &gravity)
+Eigen::Vector3d PointMass::ptmasTransDynac(const Eigen::Vector3d &force, const double &mass, const double &gravity)
 {   
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
@@ -80,7 +80,7 @@ Eigen::Vector3d PointMassDynamicSimulator::ptmasTransDynac(const Eigen::Vector3d
 }
 
 
-// void PointMassDynamicSimulator::assignPtMasState(const pointmass_state &ptmas_state)
+// void PointMass::assignPtMasState(const pointmass_state &ptmas_state)
 // {
 //     // done_state = [x,y,z,dx, dy, dz]
 //     post_ = ptmas_state.head<3>();
@@ -88,30 +88,30 @@ Eigen::Vector3d PointMassDynamicSimulator::ptmasTransDynac(const Eigen::Vector3d
 // };  
  
 
-void PointMassDynamicSimulator::setVel(const Eigen::Vector3d &ptmas_vel)
+void PointMass::setVel(const Eigen::Vector3d &ptmas_vel)
 {
     ptmas_state_.tail<3>() = ptmas_vel;
 }
 
 
-void PointMassDynamicSimulator::getPosition(Eigen::Vector3d &ptmas_position)
+void PointMass::getPosition(Eigen::Vector3d &ptmas_position)
 {
     ptmas_position = ptmas_state_.head<3>();
 };
 
-void PointMassDynamicSimulator::getVel(Eigen::Vector3d &ptmas_vel)
+void PointMass::getVel(Eigen::Vector3d &ptmas_vel)
 {
     ptmas_vel = ptmas_state_.tail<3>();
 };
 
 
-void PointMassDynamicSimulator::inputForce(const Eigen::Vector3d &force)
+void PointMass::inputForce(const Eigen::Vector3d &force)
 {
     force_ = force;
 };
 
 
-void PointMassDynamicSimulator::getCurrentTimeStep(double &current_time)
+void PointMass::getCurrentTimeStep(double &current_time)
 {
     current_time = current_step_;
 };

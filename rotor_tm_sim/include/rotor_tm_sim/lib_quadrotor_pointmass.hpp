@@ -8,19 +8,19 @@
 
 // #include <boost/asio.hpp> // for bost pool
 
-#include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
+#include "rotor_tm_sim/lib_quadrotor.hpp"
 
-#include "rotor_tm_sim/lib_pointmass_dynamic_simulator.hpp"
+#include "rotor_tm_sim/lib_pointmass.hpp"
 
 class rotorTMQuadrotorPointMass
 {
     public:
 
         // quadrotor object
-        std::shared_ptr<QuadrotorDynamicSimulator> quadrotor;   
+        std::shared_ptr<Quadrotor> quadrotor;   
 
         // point mass object
-        std::shared_ptr<PointMassDynamicSimulator> pm_payload;    
+        std::shared_ptr<PointMass> pm_payload;    
 
     private:
 
@@ -28,7 +28,7 @@ class rotorTMQuadrotorPointMass
         // std::shared_ptr<QuadrotorDynamicSimulator> quadrotor;   
 
         // // point mass object
-        // std::shared_ptr<PointMassDynamicSimulator> pm_payload;   
+        // std::shared_ptr<PointMass> pm_payload;   
 
         // var to check if cable is slack or not
         bool cable_is_slack_ = false;
@@ -78,7 +78,7 @@ class rotorTMQuadrotorPointMass
         // boost::asio::thread_pool pool_rotorTM;
 
         // std::function<void()>  quadrotor_func = std::bind(&QuadrotorDynamicSimulator::doOneStepInt, quadrotor);
-        // std::function<void()>  payload_func = std::bind(&PointMassDynamicSimulator::doOneStepInt, pm_payload);
+        // std::function<void()>  payload_func = std::bind(&PointMass::doOneStepInt, pm_payload);
 
     public:
 

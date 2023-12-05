@@ -3,7 +3,7 @@
 #include <memory>
 #include <cmath>
 #include <cstdlib>
-#include "rotor_tm_sim/lib_quadrotor_dynamic_simulator.hpp"
+#include "rotor_tm_sim/lib_quadrotor.hpp"
 
 
 class rotorTMDroneTest : public ::testing::Test
@@ -17,14 +17,14 @@ rotorTMDroneTest(){
 
     double dt = 0.01;
 
-    ptr_drone = std::make_shared<QuadrotorDynamicSimulator>(mass, m_inertia, dt);
+    ptr_drone = std::make_shared<Quadrotor>(mass, m_inertia, dt);
 }
 
 ~rotorTMDroneTest(){
 }
 
 protected:
-    std::shared_ptr<QuadrotorDynamicSimulator> ptr_drone;
+    std::shared_ptr<Quadrotor> ptr_drone;
 };
 
 
