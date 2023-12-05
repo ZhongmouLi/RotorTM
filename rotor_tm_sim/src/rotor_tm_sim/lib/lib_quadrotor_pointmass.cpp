@@ -229,8 +229,10 @@ void rotorTMQuadrotorPointMass::doOneStepint()
 
 
     // step 3 call one step integration in parallel
+    // 0. no parallel programming for comparing performances in tests
     // pm_payload->doOneStepInt();
     // quadrotor->doOneStepInt();
+
     // 1 using functor 
     std::thread th_quadrotor(&Quadrotor::doOneStepInt, quadrotor.get());
     std::thread th_payload(&PointMass::doOneStepInt, pm_payload.get());
@@ -242,6 +244,7 @@ void rotorTMQuadrotorPointMass::doOneStepint()
     // std::thread th_quadrotor(quadrotor_func);
     // std::thread th_payload(payload_func);      
 
+    // join threads for methods 1 and 2
     th_payload.join();
     th_quadrotor.join();
 
@@ -255,10 +258,10 @@ void rotorTMQuadrotorPointMass::doOneStepint()
         
     // pool_rotorTM.join();
 
-    // update current step
+    // 4. update current step
     current_step_ = current_step_ + step_size_;
 
-    // step 4 compute cable's status and update cable_is_slack_
+    // 5. compute cable's status and update cable_is_slack_
     cable_is_slack_ = isSlack(mav_position, payload_position);
 
     // self.cable_is_slack = self.isslack(x[0:3], x[13:16], self.pl_params.cable_length)    

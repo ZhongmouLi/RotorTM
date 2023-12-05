@@ -10,9 +10,6 @@
 using namespace boost::numeric::odeint;
 
 
-typedef Eigen::Matrix<double, 12, 1> object_state;
-
-
 class Cable
 {
     private:

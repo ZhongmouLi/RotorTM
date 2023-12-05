@@ -1,14 +1,15 @@
 # RotorTM in CXX
 
-## Developing envir and Dependency
+## 1 Developing envir and Dependency
 1. Ubuntu 18.04/20.04
 2. ROS melodic/noetic
 3. Boost 1.81.0
 4. Eigen 3.4.0
 5. CXX 17
 
-
-## Steps to run the simulator of a quadrotor + a pointmass payload
+## 2 Tested simulation cases
+### 2.1 case of a quadrotor + a pointmass payload
+Steps to run the simulator of a quadrotor + a pointmass payload
 1. roslaunch the simulator
       ```shell
       roslaunch rotor_tm test_DronePointMass.launch 
@@ -18,7 +19,8 @@
       rosservice call rosservice call /traj_generator/Circle "radius: 1.0 T: 10.0 duration: 10.0" 
       ```         
 
-## Steps to run single quadrotor dynamic simulator
+### 2.2 case of a quadrotor
+Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
   - changing drone mass and interia that are defined in rotor_tm_config/config/uav_params/race.yaml as
       ```xml
@@ -40,13 +42,12 @@
     ```
 3. Note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
 
-## Explaination of Code
-1. Class QuadrotorDynamicSimulator defines quadrotor dynamics and uses odeint for integration.
-2. rotorTM_node.cpp provides ROS interface and more explanation can be found in comments.
-
+## TODO & WokingOn
+1. add cooperative case that is a payload + several quadrotors
+2. modify launch and config files
+3. add rviz visualization
 
 ## Modification log
-25-06-23
 1. change how to compute dEuler from bodyrate.
    1. Delete the functions quadTransMatrix and quadBodyrate2Eulerrate that compute matrix mapping dEuler 2 bodyrate and solve linear equations.
    2. develop the function matirxBodyrate2EulerRate that returns the matrix that maps bodyrate 2 dEuler directly.

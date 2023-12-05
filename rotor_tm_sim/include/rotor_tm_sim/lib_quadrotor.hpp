@@ -16,7 +16,7 @@ using namespace boost::numeric::odeint;
 typedef Eigen::Matrix<double, 12, 1> quadrotor_state;
 
 
-class Quadrotor:
+class Quadrotor
 {
     private:
         // quadrotor parameters
