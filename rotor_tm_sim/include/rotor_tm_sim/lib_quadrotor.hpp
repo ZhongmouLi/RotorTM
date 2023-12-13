@@ -107,6 +107,8 @@ class Quadrotor
 
         inline void GetMass(double &mass) const {mass= mass_;};
 
-        inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};        
+        inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};    
+
+        inline void GetThrustForce(Eigen::Vector3d &mav_thrsut_force) const {mav_thrsut_force = thrust_};      
 };
 #endif

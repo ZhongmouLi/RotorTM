@@ -41,3 +41,25 @@ void Cable::CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vect
 }
 
 
+void Cable::ComputeCableTensionForce(const double &mav_mass, const Eigen::Vector3d &mav_thrust_force, const Eigen::Vector3d &xi, const Eigen::Vector3d &attach_point_acc)
+{
+
+    if (taut_ == false)
+    {
+       std::cout<<"ERROR: the cable is slack and there is no tension"<<std::endl;
+
+       return;
+    }
+    
+
+    // 1. compute tension
+    double tension =0;
+
+    // Eigen::Vector3d body_rate_square = (body_rate_.array() * body_rate_.array()).matrix();
+
+    tension = mav_mass * length_ *  body_rate_.squaredNorm() - xi * (mav_thrust_force - mav_mass * attach_point_acc)
+
+    // 2. comupute tension force
+    tension_force_ = tension * xi;
+
+}

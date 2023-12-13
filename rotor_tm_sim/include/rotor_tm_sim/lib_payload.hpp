@@ -17,16 +17,23 @@ class Payload: public RigidBody{
         // it is fixed during initilisation
        std::vector<Eigen::Vector3d> v_attach_point_posts_body_frame_; 
 
-       // vectir of attach point positions in world frame
+       // vector of attach point positions in world frame
        // a vector of 3d vectors and each of them represent an attach point's post
        std::vector<Eigen::Vector3d> v_attach_point_posts_;
 
-
-       // vectir of attach point vels     
+       // vector of attach point vels     
        std::vector<Eigen::Vector3d> v_attach_point_vels_; 
 
+        // vector of attach point accs     
+       std::vector<Eigen::Vector3d> v_attach_point_accs_; 
+
+        // ComputeMatrixJi is a function for updating vels after collision
         // compute matrix Ji in Eq46
         Eigen::MatrixXd ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
+
+        // ComputeVectorbi is a function for updating vels after collision    
+        // compute vector bi in Eq46
+        Eigen::VectorXd ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
 
         Payload();
 
@@ -38,7 +45,10 @@ class Payload: public RigidBody{
 
     // void CalVel4AttachPoint();      
 
+    // UpdateMotion4AttachPoint computes acc of attach points
     void UpdateMotion4AttachPoint();
+
+    void ComputeAttachPointAccs();
 
     void getAttachPointPost(std::vector<Eigen::Vector3d> &v_attach_point_post) const;
 

@@ -40,6 +40,10 @@ class RigidBody
         // done_state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
         object_state done_state_;
 
+        Eigen::Vector3d object_acc_;
+        Eigen::Vector3d object_bodyrate_acc;
+
+
         // solver ruge_kutta
         runge_kutta4<object_state> stepper_;
 
@@ -103,5 +107,7 @@ class RigidBody
         inline void GetMass(double &mass) const {mass= mass_;};
 
         inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
+
+        inline void GetAcc(Eigen::Matrix3d &object_acc) const { object_acc = object_acc_;};
 };
 #endif

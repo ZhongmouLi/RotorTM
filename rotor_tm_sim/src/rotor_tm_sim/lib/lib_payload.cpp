@@ -7,6 +7,8 @@ Payload::Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, con
     v_attach_point_posts_.reserve(v_attach_point_posts_body_frame_.size());
 
     v_attach_point_vels_.reserve(v_attach_point_posts_body_frame_.size());
+
+    v_attach_point_accs_.reserve(v_attach_point_posts_body_frame_.size());
 }
 
 
@@ -121,11 +123,6 @@ void Payload::UpdateMotion4AttachPoint()
             // v_attach_point_vels_.push_back(attach_point_vel_world_frame);
             // 
              });
-
-
-
-
-    
 }
 
 void Payload::getAttachPointPost(std::vector<Eigen::Vector3d> &v_attach_point_post) const
@@ -210,7 +207,7 @@ void Payload::UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_d
         // where UAV are connect to attach point through cable    
         std::shared_ptr<UAVCable> ptr_UAVCable = v_drone_cable_ptr[i];
 
-        Eigen::Vector3d attach_point = v_attach_point_posts_body_frame_[i];
+        Eigen::Vector3d attach_point_body_frame = v_attach_point_posts_body_frame_[i];
 
         Eigen::Vector3d attachpoint_post = v_attach_point_posts_[i];
         Eigen::Vector3d attachpoint_vel  = v_attach_point_vels_[i];
@@ -222,23 +219,31 @@ void Payload::UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_d
 
         if (flag_cable_taut == true) // the cable is taut 
         {
-            // 1) compute cable direction xi
-            Eigen::Vector3d xi;
+            // 1) compute cable direction, drone position, and drone vel
+            Eigen::Vector3d cable_direction;
             Eigen::Vector3d drone_post;
+            Eigen::Vector3d drone_vel;
+
+            ptr_UAVCable->cable_.ComputeCableDirection(attachpoint_post, drone_post);
+            ptr_UAVCable->cable_.GetCableDirection(cable_direction);
 
             ptr_UAVCable->drone_.getPosition(drone_post);
-            ptr_UAVCable->cable_.ComputeCableDirection(attachpoint_post, drone_post);
-            ptr_UAVCable->cable_.GetCableDirection(xi);
+            ptr_UAVCable->drone_.getVel(drone_vel);
+
 
             // 2) obtain drone mass
             double drone_mass;
             ptr_UAVCable->drone_.GetMass(drone_mass);
 
             // 3) compute Ji for drones whose cables are taut
-            Eigen::MatrixXd Ji = ComputeMatrixJi(xi, payload_attitude, attach_point);
+            Eigen::MatrixXd Ji = ComputeMatrixJi(cable_direction, payload_attitude, attach_point_body_frame);
 
             // 4) accumlate Ji * mi to J that is shown in Eq 45 
             J = J + Ji * drone_mass;
+
+            // 5) compute bi for drones whose cables are taut
+            Eigen::VectorXd bi = ComputeVectorbi(drone_mass, drone_vel, cable_direction, payload_attitude, attach_point_body_frame);
+            b = b + bi;
         }
     }
 
@@ -361,4 +366,70 @@ Eigen::MatrixXd Payload::ComputeMatrixJi(const Eigen::Vector3d &cable_direction,
 
 
     return Ji;
+}
+
+Eigen::VectorXd Payload::ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
+{
+    Eigen::VectorXd bi = Eigen::MatrixXd::Identity(6,1);
+
+    Eigen::Vector3d bi_up = Eigen::MatrixXd::Identity(3,1);
+    Eigen::Vector3d bi_down = Eigen::MatrixXd::Identity(3,1);
+
+    // compute first three elements in bi in eq 42
+    bi_up = drone_mass * cable_direction *cable_direction.transpose()*drone_vel;
+
+    Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
+    Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
+
+    // compute last three elements in bi in eq 42
+    bi_down = drone_mass * hat_pho * payload_R.transpose() * cable_direction *cable_direction.transpose()*drone_vel;
+
+    bi.head<3>() = bi_up;
+    bi.tail<3>() = bi_down;
+
+}
+
+Payload::ComputeAttachPointAccs()
+{
+      attach_centrifugal_accel = np.matmul(pl_omg_asym, np.matmul(pl_omg_asym, self.rho_vec_list))
+      self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + \
+                          np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + \
+                          np.matmul(pl_rot, attach_centrifugal_accel).T
+
+                     
+    // 1. obtain number of attach points
+    size_t number_attach_point = v_attach_point_accs_.size();
+
+
+    // 2. 
+
+    // obtain payload acc
+    Eigen::Vector3d payload_acc;
+    getAcc(payload_acc)
+    
+    // compute skew sym matrix of payload body rate
+    Eigen::Vector3d payload_bodyrate;
+
+    getBodyrate(payload_bodyrate);
+
+    Eigen::Matrix3d m_payload_bodyrate_skewsym = TransVector3d2SkewSymMatrix(payload_bodyrate);
+
+    // 
+
+    // iterate for each drone, cable, attach point
+    for (size_t i = 0; i < number_attach_point; ++i) {
+
+        // 3.1 obtain current attach point
+        Eigen::Vector3d attach_point_body_frame = v_attach_point_posts_body_frame_[i];
+
+        Eigen::Vector3d attach_point_post = v_attach_point_posts_[i];
+        Eigen::Vector3d attachpoint_vel  = v_attach_point_vels_[i];
+
+        // 3.2 compute centri acc of attach point
+        Eigen::Vector3d attach_point_centri_acc =  m_payload_bodyrate_skewsym * (m_payload_bodyrate_skewsym * attach_point_body_frame);
+
+        // 3.3 compute acc of attach point
+
+
+    }
 }

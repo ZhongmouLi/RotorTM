@@ -41,7 +41,7 @@ void UAVCable::UpdateVelCollidedUAVVel(const Eigen::Quaterniond &payload_attitud
     Eigen::Matrix3d attach_point_post_asym = drone_.TransVector3d2SkewSymMatrix(attach_point_body_frame);
 
     // python code collided_robot_vel_proj = xi * sum(xi * (collided_pl_vel + pl_rot @ utilslib.vec2asym(collided_pl_omg) @ rho_vec_list), 0)
-    drone_vel_collision_along_perpendicular_cable = xi.dot(xi) * (payload_vel_collided - payload_R * attach_point_post_asym * payload_bodyrate_collided);
+    drone_vel_collision_along_perpendicular_cable = xi * xi.transpose() * (payload_vel_collided - payload_R * attach_point_post_asym * payload_bodyrate_collided);
 
     // compute final drone vel = drone_vel_proj_perpendicular_cable (not influnced by collision) + drone_vel_collision_along_perpendicular_cable (updated by sollision)
     Eigen::Vector3d drone_vel_collided;
@@ -69,4 +69,75 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable(const Eigen::Vector3d dro
 
     return drone_vel_projection_perpendicular_cable;
 
+}
+
+
+
+void UAVCable::ComputeControlInputs4MAV()
+{
+    // 1 obtain cable's taut status
+    bool cable_taut_status;
+
+    cable_.GetCableTautStatus(cable_taut_status);
+
+
+    // 2. call dynamic simulation based on status of cable' taut
+    // define mav_net_input_force as the net input force for drone apart from gravity
+    Eigen::Vector3d mav_net_input_force;
+
+    if (cable_taut_status == true)
+        {
+            // cable is taut and there is a tension force
+            Eigen::Vectir3d tension_force;
+
+            // compute tension force
+            double mav_mass;
+            drone_.GetMass(mav_mass);
+
+            // to thrust force in world frame
+            // note this = 0^R_i T_i where T_i is from control input
+            Eigen::Quaterniond mav_attitude;
+
+            drone_.getAttitude(mav_attitude);
+
+            Eigen::Matrix3d mav_rot_matrix = mav_attitude.toRotationMatrix();
+            
+            Eigen::Vector3d mav_thrust_force =  mav_rot_matrix * (Eigen::Vector3d::UnitZ() * mav_thrust_);
+
+            Eigen::Vector3d cable_direction;
+            
+            cable_.GetCableDirection(cable_direction);
+
+            cable_.ComputeCableTensionForce(mav_mass, mav_thrust_force, cable_direction, attach_point_acc);
+
+            Eigen::Vector3d cable_tension_force;
+            cable_.GetCableTensionForce(cable_tension_force);
+
+            // compute net input force of drone
+            // net input force = thrust force - cable tension force
+            mav_net_input_force = mav_thrust_force - cable_tension_force;
+
+            // input net input for to drone
+            drone_.inputForce(mav_net_input_force)
+
+        }
+    else
+        {
+          // cable is slack and there is no tension
+          // mav only suffers from gravity and thrust force  
+          drone_.inputThurst(mav_thrust_)
+        }
+
+        // mav rotation is independent
+        drone_.inputTorque(mav_torque)
+
+}
+
+
+void UAVCable::InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque)
+{
+
+    mav_thrust_ = mav_thrust;
+
+    mav_torque_ = mav_torque;
 }

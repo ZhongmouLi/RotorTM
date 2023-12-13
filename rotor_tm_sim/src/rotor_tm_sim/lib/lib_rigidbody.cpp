@@ -14,6 +14,9 @@ Eigen::Vector3d RigidBody::rotDynac(const Eigen::Vector3d &torque, const Eigen::
 
     dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
+    // save acc
+    object_bodyrate_acc = dBodyRate;
+
     return dBodyRate;
 }
 
@@ -22,6 +25,9 @@ Eigen::Vector3d RigidBody::transDynac(const Eigen::Vector3d &Thurst, const doubl
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
     acc = (Thurst-mass*gravity*Eigen::Vector3d::UnitZ())/mass;
+
+    // save acc
+    object_acc_ = acc;
 
     return acc;
 }
