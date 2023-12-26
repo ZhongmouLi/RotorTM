@@ -2,7 +2,7 @@
 
 
 
-Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), step_size_(step_size), m_inertia_(m_inertia) 
+Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), m_inertia_(m_inertia), step_size_(step_size) 
 {
     done_state_.setZero();
 };

@@ -2,9 +2,9 @@
 
 
 
-RigidBody::RigidBody(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), step_size_(step_size), m_inertia_(m_inertia) 
+RigidBody::RigidBody(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), m_inertia_(m_inertia),step_size_(step_size) 
 {
-    done_state_.setZero();
+    state_.setZero();
 };
 
 
@@ -33,7 +33,7 @@ Eigen::Vector3d RigidBody::transDynac(const Eigen::Vector3d &Thurst, const doubl
 }
 
 
-Eigen::Matrix3d RigidBody::matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi)
+Eigen::Matrix3d RigidBody::matirxBodyrate2EulerRate(const double &phi, const double &theta)
 {
     Eigen::Matrix3d m_Bodyrate2EulerRate;
 
@@ -86,7 +86,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // 
     Eigen::Matrix3d matrix_pdr2dEuler;
-    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7), x(8));
+    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
 
     // compute dphi,   dtheta,     dpsi
     dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
@@ -104,7 +104,7 @@ void RigidBody::doOneStepInt()
 {
 
     // call one step integration for quadrotor dynamics
-    this->stepper_.do_step(*this, done_state_, current_step_, step_size_);
+    this->stepper_.do_step(*this, state_, current_step_, step_size_);
 
     // update current step
     current_step_ = current_step_ + step_size_;
@@ -115,38 +115,38 @@ void RigidBody::doOneStepInt()
 
 void RigidBody::setInitialPost(const Eigen::Vector3d &initial_post)
 {
-    done_state_.head(3) = initial_post;
+    state_.head(3) = initial_post;
     //std::cout<< "input drone initial post" << initial_post<<std::endl;
 }; 
 
 
-void RigidBody::setVel(const Eigen::Vector3d &object_vel)
+void RigidBody::SetVel(const Eigen::Vector3d &object_vel)
 {
-    done_state_.segment<3>(3) = object_vel;
+    state_.segment<3>(3) = object_vel;
 }
 
 
 // update objec' bodyrate with input
-void SetBodyrate(const Eigen::Vector3d &object_bodyrate)
+void RigidBody::SetBodyrate(const Eigen::Vector3d &object_bodyrate)
 {
 
-    done_state_.tail(3) = object_bodyrate;
+    state_.tail(3) = object_bodyrate;
 }
 
 void RigidBody::getPosition(Eigen::Vector3d &object_position)
 {
-    object_position = done_state_.head<3>();
-    // std::cout<< "drone state post" << done_state_.head<3>()<<std::endl;
+    object_position = state_.head<3>();
+    // std::cout<< "drone state post" << state_.head<3>()<<std::endl;
 };
 
 void RigidBody::getVel(Eigen::Vector3d &object_vel)
 {
-    object_vel = done_state_.segment<3>(3);
+    object_vel = state_.segment<3>(3);
 };
 
 void RigidBody::getBodyrate(Eigen::Vector3d &object_bodyrate)
 {
-    object_bodyrate = done_state_.tail<3>();
+    object_bodyrate = state_.tail<3>();
 };
 
 void RigidBody::getAttitude(Eigen::Quaterniond &object_attitude)
@@ -154,7 +154,7 @@ void RigidBody::getAttitude(Eigen::Quaterniond &object_attitude)
 
     // compute rotation in Quaternion from quadrotor state
     // rotation is created using ZYX rotation in its body frame
-    auto attitude =  Eigen::AngleAxisd(done_state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(done_state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(done_state_(6), Eigen::Vector3d::UnitX());
+    auto attitude =  Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
 
     // normalise
     attitude.normalize();
@@ -176,7 +176,7 @@ void RigidBody::inputForce(const Eigen::Vector3d &force)
 
 //     //2. obtain rotation matrix that represents drone rotation w.r.t world frame
 //     // 2.1 compute attitude from drone state's Euler angles
-//     Eigen::Quaterniond attitude = Eigen::AngleAxisd(done_state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(done_state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(done_state_(6), Eigen::Vector3d::UnitX());
+//     Eigen::Quaterniond attitude = Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
 //     // 2.2 normalise
 //     attitude.normalize();
 //     // 2.3 obtain rot matrix from quaternion

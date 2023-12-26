@@ -23,6 +23,9 @@ class RigidBody
         
         Eigen::Matrix3d m_inertia_;
 
+        // int parameter
+        double step_size_;
+
         const double gravity_ = 9.8;
 
         // dynamic inputs
@@ -31,14 +34,13 @@ class RigidBody
         // torque in body frame
         Eigen::Vector3d torque_;
 
-        // int parameter
-        double step_size_;
+
         double current_step_ = 0;
 
         // simulator setings for an object in 3D
         // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-        // done_state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-        object_state done_state_;
+        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+        object_state state_;
 
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
         Eigen::Vector3d object_acc_;
@@ -57,7 +59,7 @@ class RigidBody
         Eigen::Vector3d transDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity);
 
         // compute matrix transforming bodyrate to dEuler
-        Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta, const double &psi);
+        Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
         
 
         // transfer deg to radian
@@ -100,7 +102,7 @@ class RigidBody
         void setInitialPost(const Eigen::Vector3d &initial_post);        
 
         // set vel in the world frame
-        void setVel(const Eigen::Vector3d &object_vel);
+        void SetVel(const Eigen::Vector3d &object_vel);
 
         // set bodyrate in the body frame
         void SetBodyrate(const Eigen::Vector3d &object_bodyrate);
@@ -112,9 +114,14 @@ class RigidBody
 
         inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
 
-        inline void GetAcc(Eigen::Matrix3d &object_acc) const { object_acc = object_acc_;};
+        inline void GetAcc(Eigen::Vector3d &object_acc) const { object_acc = object_acc_;};
 
-        inline void GetBodyRateAcc(Eigen::Matrix3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
+        inline void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
 
+        double step_size(){return step_size_;};
+
+        object_state state(){return state_;};
+
+        runge_kutta4<object_state> stepper(){return stepper_;};
 };
 #endif

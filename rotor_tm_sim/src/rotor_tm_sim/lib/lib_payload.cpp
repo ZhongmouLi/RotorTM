@@ -8,7 +8,7 @@ Payload::Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, con
 
     v_attach_points_vels_.reserve(v_attach_points_posts_body_frame_.size());
 
-    v_attach_point_accs_.reserve(v_attach_points_posts_body_frame_.size());
+    v_attach_points_accs_.reserve(v_attach_points_posts_body_frame_.size());
 }
 
 
@@ -126,24 +126,24 @@ void Payload::ComputeAttachPointsPostVel()
 }
 
 
-void Payload::GetOneAttachPointPost(size_t i, Eigen::Vector3d attach_point_post) const
+void Payload::GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_point_post) const
 {
 
-    std::try 
+    try 
     {
-        if (i <= attach_point_post.size()-1) 
+        if (i <= (v_attach_points_posts_.size()-1) ) 
         {
         attach_point_post = v_attach_points_posts_[i];
         } 
         else {
-        std::throw (i);
+        throw i;
         }
     }
     
-    std::catch (size_t myNum) 
+    catch (size_t myNum) 
     {
     std::cout << "index is beyong the size of vector attach_point_post";
-    cout << "index is: " << myNum;  
+    std::cout << "index is: " << myNum;  
     }
 
 }
@@ -151,24 +151,24 @@ void Payload::GetOneAttachPointPost(size_t i, Eigen::Vector3d attach_point_post)
 
 
 
-void Payload::GetAttachPointVel(size_t i, Eigen::Vector3d attach_point_vel) const
+void Payload::GetAttachPointVel(const size_t &i, Eigen::Vector3d &attach_point_vel) const
 {
 
-    std::try 
+    try 
     {
-        if (i <= v_attach_points_vels_.size()-1) 
+        if (i <= (v_attach_points_vels_.size()-1) ) 
         {
         attach_point_vel = v_attach_points_vels_[i];
         } 
         else {
-        std::throw (i);
+        throw (i);
         }
     }
     
-    std::catch (size_t myNum) 
+    catch (size_t myNum) 
     {
     std::cout << "index is beyong the size of vector attach_point_vel";
-    cout << "index is: " << myNum;  
+    std::cout << "index is: " << myNum;  
     }
 
 }
@@ -220,7 +220,7 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
     Eigen::Quaterniond payload_attitude;
     getAttitude(payload_attitude);
 
-    Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
+    // Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
     Eigen::Vector3d payload_vel;
     getVel(payload_vel);
@@ -263,7 +263,7 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
         Eigen::Vector3d attachpoint_vel  = v_attach_points_vels_[i];
 
         // (1) check if the cable of UAVCable is taut
-        bool flag_cable_taut;
+        bool flag_cable_taut = false;
         UAVCable.CheckCollision(attachpoint_post, attachpoint_vel);
 
 
@@ -297,7 +297,7 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
         }
 
         // payload_vel_bodyrate_collised =[vel; bodyrate]
-        Eigen::VectorX payload_vel_bodyrate_collised{0,0,0,0,0,0};
+        Eigen::VectorXd payload_vel_bodyrate_collised = Eigen::MatrixXd::Zero(6, 1);
 
         // solve J [vel; bodyrate] = b in Eq.42
         payload_vel_bodyrate_collised = J.householderQr().solve(b);
@@ -552,29 +552,30 @@ Eigen::VectorXd Payload::ComputeVectorbi(const double &drone_mass, const Eigen::
     bi.head<3>() = bi_up;
     bi.tail<3>() = bi_down;
 
+    return bi;
+
 }
 
-Payload::ComputeAttachPointAccs()
+void Payload::ComputeAttachPointAccs()
 {
-      attach_centrifugal_accel = np.matmul(pl_omg_asym, np.matmul(pl_omg_asym, self.rho_vec_list))
-      self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + \
-                          np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + \
-                          np.matmul(pl_rot, attach_centrifugal_accel).T
+
+    //   attach_centrifugal_accel = np.matmul(pl_omg_asym, np.matmul(pl_omg_asym, self.rho_vec_list))
+    //   self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
 
                      
     // 1. obtain number of attach points
-    size_t number_attach_point = v_attach_point_accs_.size();
+    size_t number_attach_point = v_attach_points_posts_body_frame_.size();
 
 
     // 2. 
 
     // obtain payload acc
     Eigen::Vector3d payload_acc;
-    GetAcc(payload_acc)
+    GetAcc(payload_acc);
 
     // obtain payload bodyrate acc
     Eigen::Vector3d payload_bodyrate_acc;
-    GetBodyRateAcc(payload_bodyrate_acc)    
+    GetBodyRateAcc(payload_bodyrate_acc);    
     Eigen::Matrix3d m_skewsym_payload_bodyrate_acc = TransVector3d2SkewSymMatrix(payload_bodyrate_acc);
     
     // compute skew sym matrix of payload body rate
@@ -603,7 +604,13 @@ Payload::ComputeAttachPointAccs()
         Eigen::Vector3d attach_point_centri_acc =  m_payload_bodyrate_skewsym * (m_payload_bodyrate_skewsym * attach_point_body_frame);
 
         // 3.3 compute acc of attach point
-        Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)).transpose() + (m_payload_rotation * attach_point_centri_acc).transpose();
+        //  self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
+
+        Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)) + (m_payload_rotation * attach_point_centri_acc);
+
+        // Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)).transpose();
+        
+        v_attach_points_accs_[i] = attach_point_acc;
 
     }
 }
@@ -611,12 +618,12 @@ Payload::ComputeAttachPointAccs()
 
 void Payload::InputMassMatrix(const Eigen::Matrix3d &m_mass_matrix)
 {
-    m_mass_matrix_ = mass_matrix;
+    m_mass_matrix_ = m_mass_matrix;
 }
 
 void Payload::InputDronesNetForces(const Eigen::Vector3d &drones_net_force, const Eigen::Matrix3d &m_D)
 {
-    drones_net_forces_ = drones_net_force;
+    drones_net_force_ = drones_net_force;
 
     m_D_ = m_D;
     
@@ -640,7 +647,7 @@ Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &drones_net_
     Eigen::Vector3d payload_acc(0,0,0);
     
 
-    payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_bodyrate_acc) - gravity_;
+    payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_bodyrate_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
     return payload_acc;
 }
@@ -663,7 +670,7 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
     // such that 
     Eigen::Vector3d torque_effective(0,0,0);
 
-    Eigen::Matrix3d payload_interia:
+    Eigen::Matrix3d payload_interia;
     GetInertia(payload_interia);
 
     Eigen::Matrix3d inv_m_mass_matrix = m_mass_matrix.inverse();
@@ -709,7 +716,7 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     // obtain bodyrate acc [ dp,     dq,     dr]
     Eigen::Vector3d payload_bodyrate_acc;
-    payload_bodyrate_acc = dx.tail(3);       
+    payload_bodyrate_acc = dxdt.tail(3);       
 
     // 1. translation in world frame
     // P = [x,y,z,dx, dy, dz]
@@ -721,7 +728,7 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     // 2. rotation in body frame
     Eigen::Matrix3d matrix_pdr2dEuler;
-    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7), x(8));
+    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
 
     // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
     dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
@@ -734,15 +741,36 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 
 
-void Payload::doOneStepInt()
+// void Payload::doOneStepInt()
+// {
+
+//     this->stepper().do_step(*this, state(), current_step_, step_size());
+
+//     // acculate simulation steps
+//     current_step_ = current_step_ + step_size();
+
+//     // // assign states to position and velocity
+//     // assignPtMasState(ptmas_state_);
+
+// }
+
+
+Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)
 {
+    Eigen::Matrix3d m_Bodyrate2EulerRate;
 
-    this->stepper_.do_step(*this, object_state, current_step_, step_size_);
+        m_Bodyrate2EulerRate(0,0) = 1;
+        m_Bodyrate2EulerRate(0,1) = sin(phi)*tan(theta);
+        m_Bodyrate2EulerRate(0,2) = cos(phi)*tan(theta);
 
-    // acculate simulation steps
-    current_step_ = current_step_ + step_size_;
+        m_Bodyrate2EulerRate(1,0) = 0;
+        m_Bodyrate2EulerRate(1,1) = cos(phi);
+        m_Bodyrate2EulerRate(1,2) = -sin(phi);
 
-    // // assign states to position and velocity
-    // assignPtMasState(ptmas_state_);
+        m_Bodyrate2EulerRate(2,0) = 0;
+        m_Bodyrate2EulerRate(2,1) = sin(phi)/cos(theta);
+        m_Bodyrate2EulerRate(2,2) = cos(phi)/cos(theta);
 
-};
+    return m_Bodyrate2EulerRate;
+} 
+

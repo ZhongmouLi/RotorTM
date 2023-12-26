@@ -84,37 +84,39 @@ target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 target_link_libraries(lib_cable Eigen3::Eigen)
 
 
-# ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
-# # (1) payload 
-# add_library(lib_payload SHARED
-#             include/rotor_tm_sim/lib_payload.hpp
-#             src/rotor_tm_sim/lib/lib_payload.cpp)
+## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
+## (1) quadrotor
+add_library(lib_quadrotor SHARED
+            include/rotor_tm_sim/lib_quadrotor.hpp
+            src/rotor_tm_sim/lib/lib_quadrotor.cpp)
 
-#             # use this options in the future that specify c++ 17 for  library
-# target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
-
-# # link libs needed for building lib_payload
-# target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen)
-
-# ## (2) quadrotor
-# add_library(lib_quadrotor SHARED
-#             include/rotor_tm_sim/lib_quadrotor.hpp
-#             src/rotor_tm_sim/lib/lib_quadrotor.cpp)
-
-# # use this options in the future that specify c++ 17 for  library
-# target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
+# use this options in the future that specify c++ 17 for  library
+target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_quadrotor
-# target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
 
-# # (3) mav + cable
-# add_library(lib_uav_cable SHARED
-#             include/rotor_tm_sim/lib_uav_cable.hpp
-#             src/rotor_tm_sim/lib/lib_uav_cable.cpp)
+# (3) mav + cable
+add_library(lib_uav_cable SHARED
+            include/rotor_tm_sim/lib_uav_cable.hpp
+            src/rotor_tm_sim/lib/lib_uav_cable.cpp)
 
-# target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-# target_link_libraries(lib_uav_cable lib_cable lib_quadrotor Eigen3::Eigen)
+target_link_libraries(lib_uav_cable lib_cable lib_quadrotor Eigen3::Eigen)
+
+# (3) payload 
+add_library(lib_payload SHARED
+            include/rotor_tm_sim/lib_payload.hpp
+            src/rotor_tm_sim/lib/lib_payload.cpp)
+
+            # use this options in the future that specify c++ 17 for  library
+target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
+
+# link libs needed for building lib_payload
+target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
+
+
 
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
