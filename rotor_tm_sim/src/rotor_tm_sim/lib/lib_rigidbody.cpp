@@ -15,7 +15,7 @@ Eigen::Vector3d RigidBody::rotDynac(const Eigen::Vector3d &torque, const Eigen::
     dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
     // save acc
-    object_bodyrate_acc = dBodyRate;
+    object_bodyrate_acc_ = dBodyRate;
 
     return dBodyRate;
 }
@@ -125,6 +125,13 @@ void RigidBody::setVel(const Eigen::Vector3d &object_vel)
     done_state_.segment<3>(3) = object_vel;
 }
 
+
+// update objec' bodyrate with input
+void SetBodyrate(const Eigen::Vector3d &object_bodyrate)
+{
+
+    done_state_.tail(3) = object_bodyrate;
+}
 
 void RigidBody::getPosition(Eigen::Vector3d &object_position)
 {

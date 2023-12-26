@@ -64,10 +64,12 @@ class Cable
         inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
 
         // obtain cable taut status
-        inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_};
+        inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_;};
 
         // obtain cable tension force
-        inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_};
+        inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
+
+        inline void GetCableLength(double &cable_length){cable_length = length_;};
 };
 
 

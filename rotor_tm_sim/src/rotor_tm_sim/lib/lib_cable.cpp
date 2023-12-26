@@ -52,11 +52,16 @@ void Cable::ComputeCableTensionForce(const double &mav_mass, const Eigen::Vector
     }
     
 
+    // python code to compute tension
+    tension = self.uav_params[uav_idx].mass*cable_len*np.sum(cbl_omg**2) - \
+                        np.matmul(xi, qd_u - self.uav_params[uav_idx].mass * self.attach_accel[uav_idx,:])
+    tension_vector[:,uav_idx] = tension * xi
+
+
     // 1. compute tension
     double tension =0;
 
     // Eigen::Vector3d body_rate_square = (body_rate_.array() * body_rate_.array()).matrix();
-
     tension = mav_mass * length_ *  body_rate_.squaredNorm() - xi * (mav_thrust_force - mav_mass * attach_point_acc)
 
     // 2. comupute tension force

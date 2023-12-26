@@ -40,8 +40,9 @@ class RigidBody
         // done_state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
         object_state done_state_;
 
+        // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
         Eigen::Vector3d object_acc_;
-        Eigen::Vector3d object_bodyrate_acc;
+        Eigen::Vector3d object_bodyrate_acc_;
 
 
         // solver ruge_kutta
@@ -101,6 +102,9 @@ class RigidBody
         // set vel in the world frame
         void setVel(const Eigen::Vector3d &object_vel);
 
+        // set bodyrate in the body frame
+        void SetBodyrate(const Eigen::Vector3d &object_bodyrate);
+
         // transfer a vector to tis skew sym matrix
         Eigen::Matrix3d TransVector3d2SkewSymMatrix(Eigen::Vector3d vector); 
 
@@ -109,5 +113,8 @@ class RigidBody
         inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
 
         inline void GetAcc(Eigen::Matrix3d &object_acc) const { object_acc = object_acc_;};
+
+        inline void GetBodyRateAcc(Eigen::Matrix3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
+
 };
 #endif
