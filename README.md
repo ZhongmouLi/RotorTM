@@ -7,8 +7,75 @@
 4. Eigen 3.4.0
 5. CXX 17
 
-## 2 Tested simulation cases
-### 2.1 case of a quadrotor + a pointmass payload
+## TODO & WokingOn
+[X] a UML Class Diagram to show the relationship among all classes
+
+[X] add "the cooperative case" that is a payload + several quadrotors
+
+[ ] use gtests to test all libs
+
+[ ] add ros wrappers for libs
+
+[ ] modify launch and config files to allow users better set parameters for simulation
+
+[ ] add rviz visualization
+
+
+## 2 Code structure and libs
+Here explains the structure for the C++ simulator of RotorTM.
+
+### 2.1 structure
+There are three base classes:
+- RigidBody
+- Cable
+- PointMass
+
+two intermidate (or ?) classes:
+- Quadrotor inherited from RigidBody
+- MAVCable that composes one Quadrotor and one Cable
+
+and two more simulation-case classes:
+- Cooperative that contains n * MAVCable and 1 payload
+- UAVPointMass that contains 1 MAVCable and 1 PointMass
+
+
+```mermaid
+classDiagram
+    RigidBody <|-- Quadrotor
+    RigidBody <|-- Payload
+
+    UAVCable *-- Cable
+    UAVCable *-- Quadrotor
+    UAVPointMass *-- "1" UAVCable
+    UAVPointMass *-- "1" PointMass
+    Cooperative *-- "1" Payload
+    Cooperative o-- "*" UAVCable
+
+    class Quadrotor{
+        
+    }
+    class Cable{
+        
+    }
+    class Payload{
+ 
+    }
+```
+
+They are defined as 
+- lib_cable
+- lib_rigidbody
+- lib_pointmass
+- lib_uavcable
+- lib_payload
+- lib_quadrotor_pointmass
+- lib_cooperative_uavs_payload
+
+
+
+
+## Simulater supported cases
+### 3.1 case of a quadrotor + a pointmass payload
 #### code explanation
 This case mainly involves two libs: lib_quadrotor (lib_quadrotor.cpp/hpp) and lib_pointmass (lib_pointmass.cpp/hpp). Then, a ros node defined in rotorTM_node_drone_pointmass.cpp is used to begin the simulator in ROS.
 
@@ -23,7 +90,7 @@ Steps to run the simulator of a quadrotor + a pointmass payload
       rosservice call rosservice call /traj_generator/Circle "radius: 1.0 T: 10.0 duration: 10.0" 
       ```         
 
-### 2.2 case of a quadrotor
+### 3.2 case of a quadrotor
 Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
   - changing drone mass and interia that are defined in rotor_tm_config/config/uav_params/race.yaml as
@@ -46,23 +113,10 @@ Steps to run single quadrotor dynamic simulator
     ```
 3. Note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
 
-### 2.3 case of several quadrotors + a payload (Ongoing)
+### 3.3 case of several quadrotors + a payload (Ongoing)
 This case mainly involves more libs and each lib represent a class of object. Once finished, the whole rotorTM will adjust to the base classes here.
 
-It will include
-- lib_cable
-- lib_rigidbody
-- lib_pointmass
-- lib_uavcable
-- lib_payload
-- lib_quadrotor_pointmass
-- lib_cooperative_uavs_payload
 
-## TODO & WokingOn
-1. a UML Class Diagram to show the relationship among all classes.
-2. add "the cooperative case" that is a payload + several quadrotors
-3. modify launch and config files to allow users better set parameters for simulation
-4. add rviz visualization
 
 ## Use gTests
 Implement tests with gootle tests.
