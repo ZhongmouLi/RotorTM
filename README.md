@@ -30,7 +30,7 @@ There are three base classes:
 - Cable
 - PointMass
 
-two intermidate (or ?) classes:
+two intermediate (or ?) classes:
 - Quadrotor inherited from RigidBody
 - MAVCable that composes one Quadrotor and one Cable
 
