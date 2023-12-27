@@ -22,11 +22,11 @@ Payload::Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, con
 
 
 //     // obtain post, vel and attitude of payload
-//     this->getPosition(payload_post);
+//     this->GetPosition(payload_post);
 
-//     this->getVel(payload_vel);
+//     this->GetVel(payload_vel);
 
-//     this->getAttitude(payload_attitude);
+//     this->GetAttitude(payload_attitude);
 
 
 
@@ -47,9 +47,9 @@ void Payload::ComputeAttachPointsPostVel()
 
     Eigen::Quaterniond payload_attitude;
     // std::cout<<"fuck 1 "<<std::endl;
-    getPosition(payload_position);
+    GetPosition(payload_position);
 
-    getAttitude(payload_attitude);
+    GetAttitude(payload_attitude);
 
     Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
@@ -98,8 +98,8 @@ void Payload::ComputeAttachPointsPostVel()
     Eigen::Vector3d payload_vel(0,0,0);    
     Eigen::Vector3d payload_bodyrate(0,0,0);  
 
-    getBodyrate(payload_bodyrate);
-    getVel(payload_vel);
+    GetBodyrate(payload_bodyrate);
+    GetVel(payload_vel);
 
     std::for_each(v_attach_points_posts_body_frame_.begin(),
              v_attach_points_posts_body_frame_.end(),
@@ -218,15 +218,15 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
     GetInertia(payload_inertia);    
 
     Eigen::Quaterniond payload_attitude;
-    getAttitude(payload_attitude);
+    GetAttitude(payload_attitude);
 
     // Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
     Eigen::Vector3d payload_vel;
-    getVel(payload_vel);
+    GetVel(payload_vel);
 
     Eigen::Vector3d payload_bodyrate;
-    getBodyrate(payload_bodyrate);
+    GetBodyrate(payload_bodyrate);
 
     // 2.2 initialisation of J
     // . J[1:3, 1:3] = mL * I3
@@ -277,8 +277,8 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
             UAVCable.cable_.ComputeCableDirection(attachpoint_post, drone_post);
             UAVCable.cable_.GetCableDirection(cable_direction);
 
-            UAVCable.drone_.getPosition(drone_post);
-            UAVCable.drone_.getVel(drone_vel);
+            UAVCable.drone_.GetPosition(drone_post);
+            UAVCable.drone_.GetVel(drone_vel);
 
 
             // 2) obtain drone mass
@@ -325,15 +325,15 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
 //     GetInertia(payload_inertia);    
 
 //     Eigen::Quaterniond payload_attitude;
-//     getAttitude(payload_attitude);
+//     GetAttitude(payload_attitude);
 
 //     Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
 //     Eigen::Vector3d payload_vel;
-//     getVel(payload_vel);
+//     GetVel(payload_vel);
 
 //     Eigen::Vector3d payload_bodyrate;
-//     getBodyrate(payload_bodyrate);
+//     GetBodyrate(payload_bodyrate);
 
 //     // 2.2 initialisation of J
 //     // . J[1:3, 1:3] = mL * I3
@@ -384,8 +384,8 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable)
 //             ptr_UAVCable->cable_.ComputeCableDirection(attachpoint_post, drone_post);
 //             ptr_UAVCable->cable_.GetCableDirection(cable_direction);
 
-//             ptr_UAVCable->drone_.getPosition(drone_post);
-//             ptr_UAVCable->drone_.getVel(drone_vel);
+//             ptr_UAVCable->drone_.GetPosition(drone_post);
+//             ptr_UAVCable->drone_.GetVel(drone_vel);
 
 
 //             // 2) obtain drone mass
@@ -580,13 +580,13 @@ void Payload::ComputeAttachPointAccs()
     
     // compute skew sym matrix of payload body rate
     Eigen::Vector3d payload_bodyrate;
-    getBodyrate(payload_bodyrate);
+    GetBodyrate(payload_bodyrate);
 
     Eigen::Matrix3d m_payload_bodyrate_skewsym = TransVector3d2SkewSymMatrix(payload_bodyrate);
 
     // obtain payload attitude
     Eigen::Quaterniond payload_attitude;
-    getAttitude(payload_attitude);
+    GetAttitude(payload_attitude);
 
     Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
@@ -741,23 +741,23 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 
 
-void Payload::doOneStepInt()
-{
+// void Payload::doOneStepInt()
+// {
 
-    auto state = RigidBody::state();
+//     auto state = RigidBody::state();
 
-    auto step_size = RigidBody::step_size();
+//     auto step_size = RigidBody::step_size();
 
 
-    this->stepper_.do_step(*this, state_, current_step_, RigidBody::step_size());
+//     this->stepper_.do_step(*this, state_, current_step_, RigidBody::step_size());
 
-    // acculate simulation steps
-    current_step_ = current_step_ +  RigidBody::step_size();
+//     // acculate simulation steps
+//     current_step_ = current_step_ +  RigidBody::step_size();
 
-    // // assign states to position and velocity
-    // assignPtMasState(ptmas_state_);
+//     // // assign states to position and velocity
+//     // assignPtMasState(ptmas_state_);
 
-}
+// }
 
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)

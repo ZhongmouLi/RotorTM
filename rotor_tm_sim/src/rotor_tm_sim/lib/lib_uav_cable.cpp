@@ -8,8 +8,8 @@ void UAVCable::CheckCollision(const Eigen::Vector3d &attachpoint_post, const Eig
     Eigen::Vector3d drone_vel;
     Eigen::Vector3d drone_post;
 
-    drone_.getVel(drone_vel);
-    drone_.getPosition(drone_post);
+    drone_.GetVel(drone_vel);
+    drone_.GetPosition(drone_post);
 
     cable_.ComputeCableDirection(attachpoint_post, drone_post);
 
@@ -37,7 +37,7 @@ void UAVCable::UpdateVelCollidedUAVVel(const Eigen::Quaterniond &payload_attitud
 
     // 3. obtain drone vel
     Eigen::Vector3d drone_vel;
-    drone_.getVel(drone_vel);
+    drone_.GetVel(drone_vel);
 
     // 4. obtain cable direction 
     Eigen::Vector3d xi;
@@ -64,7 +64,7 @@ void UAVCable::UpdateVelCollidedUAVVel(const Eigen::Quaterniond &payload_attitud
     drone_vel_collided = drone_vel_proj_perpendicular_cable + drone_vel_collision_along_perpendicular_cable;
 
     // set drone's vel
-    drone_.setVel(drone_vel_collided);
+    drone_.SetVel(drone_vel_collided);
 }
 
 
@@ -192,7 +192,7 @@ void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
             // note this = 0^R_i T_i where T_i is from control input
             Eigen::Quaterniond mav_attitude;
 
-            drone_.getAttitude(mav_attitude);
+            drone_.GetAttitude(mav_attitude);
 
             Eigen::Matrix3d mav_rot_matrix = mav_attitude.toRotationMatrix();
             
@@ -212,19 +212,19 @@ void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
             // net input force = thrust force - cable tension force
             mav_net_input_force = mav_thrust_force - cable_tension_force;
 
-            // input net input for to drone
-            drone_.inputForce(mav_net_input_force);
+            // input net input force for to drone
+            drone_.InputForce(mav_net_input_force);
 
         }
     else
         {
           // cable is slack and there is no tension
           // mav only suffers from gravity and thrust force  
-          drone_.inputThurst(mav_thrust_);
+          drone_.InputThurst(mav_thrust_);
         }
 
         // mav rotation is independent
-        drone_.inputTorque(mav_torque_);
+        drone_.InputTorque(mav_torque_);
 
 }
 

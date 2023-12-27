@@ -4,11 +4,16 @@
 
 RigidBody::RigidBody(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), m_inertia_(m_inertia),step_size_(step_size) 
 {
-    state_.setZero();
+    SetStatesZeros();
 };
 
 
-Eigen::Vector3d RigidBody::rotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
+void RigidBody::SetStatesZeros()
+{
+    state_.setZero();
+};
+
+Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
@@ -20,7 +25,7 @@ Eigen::Vector3d RigidBody::rotDynac(const Eigen::Vector3d &torque, const Eigen::
     return dBodyRate;
 }
 
-Eigen::Vector3d RigidBody::transDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity)
+Eigen::Vector3d RigidBody::TransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity)
 {   
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
@@ -53,67 +58,67 @@ Eigen::Matrix3d RigidBody::matirxBodyrate2EulerRate(const double &phi, const dou
 } 
 
 // // void RigidBody::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
-// void RigidBody::operator() (const object_state &x , object_state &dxdt, const double time)
-// {
+void RigidBody::operator() (const object_state &x , object_state &dxdt, const double time)
+{
 
-//     static bool is_recursing = false;
-//     if (is_recursing) return;  // Prevent recursion
-//     is_recursing = true;
+    static bool is_recursing = false;
+    if (is_recursing) return;  // Prevent recursion
+    is_recursing = true;
     
 
-//     // std::cout << "state " << x.transpose()<<std::endl; 
-//     // get sub X vector
-//     // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-//     // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
+    // std::cout << "state " << x.transpose()<<std::endl; 
+    // get sub X vector
+    // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
 
-//     // For instance
-//     // std::cout<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
-//     // std::cout<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
-//     // std::cout<< "position is "<< x.head(3).transpose()<<std::endl;
-//     // std::cout<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
-
-
-//     // define bodyrate
-//     Eigen::Vector3d bodyrate;
-//     bodyrate = x.tail(3);
-
-//     // translation in world frame
-//     // P = [x,y,z,dx, dy, dz]
-//     // dP = [dx, dy, dz, ddx, ddy, ddz]
-//     dxdt.head(3) = x.segment<3>(3);
-//     // [ddx ddy ddz] = (F-mg)/m
-//     dxdt.segment<3>(3) = transDynac(thrust_, mass_, gravity_);
-
-//     // 
-//     Eigen::Matrix3d matrix_pdr2dEuler;
-//     matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
-
-//     // compute dphi,   dtheta,     dpsi
-//     dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
-
-//     // compute dp, dq ,dr
-//     dxdt.tail(3) = rotDynac(torque_, m_inertia_, bodyrate);
+    // For instance
+    // std::cout<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
+    // std::cout<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
+    // std::cout<< "position is "<< x.head(3).transpose()<<std::endl;
+    // std::cout<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
 
 
-//     is_recursing = false;
-// }
+    // define bodyrate
+    Eigen::Vector3d bodyrate;
+    bodyrate = x.tail(3);
+
+    // translation in world frame
+    // P = [x,y,z,dx, dy, dz]
+    // dP = [dx, dy, dz, ddx, ddy, ddz]
+    dxdt.head(3) = x.segment<3>(3);
+    // [ddx ddy ddz] = (F-mg)/m
+    dxdt.segment<3>(3) = TransDynac(thrust_, mass_, gravity_);
+
+    // 
+    Eigen::Matrix3d matrix_pdr2dEuler;
+    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
+
+    // compute dphi,   dtheta,     dpsi
+    dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
+
+    // compute dp, dq ,dr
+    dxdt.tail(3) = RotDynac(torque_, m_inertia_, bodyrate);
+
+
+    is_recursing = false;
+}
 
 
 
-// void RigidBody::doOneStepInt()
-// {
+void RigidBody::DoOneStepInt()
+{
 
-//     // call one step integration for quadrotor dynamics
-//     this->stepper_.do_step(*this, state_, current_step_, step_size_);
+    // call one step integration for quadrotor dynamics
+    this->stepper_.do_step(*this, state_, current_step_, step_size_);
 
-//     // update current step
-//     current_step_ = current_step_ + step_size_;
+    // update current step
+    current_step_ = current_step_ + step_size_;
 
 
-// };
+};
   
 
-void RigidBody::setInitialPost(const Eigen::Vector3d &initial_post)
+void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
 {
     state_.head(3) = initial_post;
     //std::cout<< "input drone initial post" << initial_post<<std::endl;
@@ -133,23 +138,31 @@ void RigidBody::SetBodyrate(const Eigen::Vector3d &object_bodyrate)
     state_.tail(3) = object_bodyrate;
 }
 
-void RigidBody::getPosition(Eigen::Vector3d &object_position)
+void RigidBody::GetPosition(Eigen::Vector3d &object_position) const
 {
     object_position = state_.head<3>();
     // std::cout<< "drone state post" << state_.head<3>()<<std::endl;
 };
 
-void RigidBody::getVel(Eigen::Vector3d &object_vel)
+
+void RigidBody::GetState(object_state &state) const 
+{
+
+    state = state_;
+}
+
+
+void RigidBody::GetVel(Eigen::Vector3d &object_vel)
 {
     object_vel = state_.segment<3>(3);
 };
 
-void RigidBody::getBodyrate(Eigen::Vector3d &object_bodyrate)
+void RigidBody::GetBodyrate(Eigen::Vector3d &object_bodyrate) const
 {
     object_bodyrate = state_.tail<3>();
 };
 
-void RigidBody::getAttitude(Eigen::Quaterniond &object_attitude)
+void RigidBody::GetAttitude(Eigen::Quaterniond &object_attitude) const
 {
 
     // compute rotation in Quaternion from quadrotor state
@@ -164,7 +177,7 @@ void RigidBody::getAttitude(Eigen::Quaterniond &object_attitude)
 
 };
 
-void RigidBody::inputForce(const Eigen::Vector3d &force)
+void RigidBody::InputForce(const Eigen::Vector3d &force)
 {
     thrust_ = force;
 };
@@ -189,15 +202,16 @@ void RigidBody::inputForce(const Eigen::Vector3d &force)
 
 // };
 
-void RigidBody::inputTorque(const Eigen::Vector3d &torque)
+void RigidBody::InputTorque(const Eigen::Vector3d &torque)
 {
     torque_ = torque;
 };
 
-// void RigidBody::getCurrentTimeStep(double &current_time)
-// {
-//     current_time = current_step_;
-// };
+
+void RigidBody::GetCurrentTimeStep(double &current_time)
+{
+    current_time = current_step_;
+};
 
 
 Eigen::Matrix3d RigidBody::TransVector3d2SkewSymMatrix(Eigen::Vector3d vector)

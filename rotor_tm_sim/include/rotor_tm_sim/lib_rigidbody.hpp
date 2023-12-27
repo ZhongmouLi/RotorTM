@@ -34,17 +34,22 @@ class RigidBody
         // torque in body frame
         Eigen::Vector3d torque_;
 
+        // simulator setings for an object in 3D
+        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
+        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+        object_state state_;
+
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
         Eigen::Vector3d object_acc_;
         Eigen::Vector3d object_bodyrate_acc_;
 
         // rotational dynamic
         // compute dbodyrate in body frame
-        Eigen::Vector3d rotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate);
+        Eigen::Vector3d RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate);
 
         // translation dyanmic
         // compute acceleration in world frame
-        Eigen::Vector3d transDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity);
+        Eigen::Vector3d TransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity);
 
         // compute matrix transforming bodyrate to dEuler
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
@@ -56,17 +61,10 @@ class RigidBody
         // prevent creating instance using none par
         RigidBody();
 
-    protected:
+        // solver ruge_kutta
+        runge_kutta4<object_state> stepper_;        
 
-        // simulator setings for an object in 3D
-        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-        object_state state_;
-
-    //     // solver ruge_kutta
-    //     runge_kutta4<object_state> stepper_;        
-
-    //     double current_step_ = 0;
+        double current_step_ = 0;
 
     public:
 
@@ -74,30 +72,34 @@ class RigidBody
         RigidBody(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
 
         // call one step integration
-        // virtual void doOneStepInt();
+        // make it virtual and final forbids itself to be overloaded in derived classes
+        virtual void DoOneStepInt() final;
 
         // integration for one step
         // Declare the function call operator to use odeint
-        // virtual void operator()(const object_state &x , object_state &dxdt, const double time); 
+        // Make it virtual as devrived classes may have different dynamic models
+        virtual void operator()(const object_state &x , object_state &dxdt, const double time); 
 
         // get drone status information
-        void getPosition(Eigen::Vector3d &object_position);
+        void GetPosition(Eigen::Vector3d &object_position) const;
 
-        void getVel(Eigen::Vector3d &object_vel);
+        void GetVel(Eigen::Vector3d &object_vel);
 
-        void getBodyrate(Eigen::Vector3d &object_bodyrate);
+        void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
 
-        void getAttitude(Eigen::Quaterniond &object_attitude);
+        void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
 
-        // void getCurrentTimeStep(double &current_time);
+        void GetState(object_state &state) const;
+
+        void GetCurrentTimeStep(double &current_time);
 
         // input for a rigid body
-        void inputForce(const Eigen::Vector3d &force); // force is a force vector in world frame
+        void InputForce(const Eigen::Vector3d &force); // force is a force vector in world frame
 
-        void inputTorque(const Eigen::Vector3d &torque); //torque is a torque vector in body frame
+        void InputTorque(const Eigen::Vector3d &torque); //torque is a torque vector in body frame
 
         // set initial position for quadrotor
-        void setInitialPost(const Eigen::Vector3d &initial_post);        
+        void SetInitialPost(const Eigen::Vector3d &initial_post);        
 
         // set vel in the world frame
         void SetVel(const Eigen::Vector3d &object_vel);
@@ -116,9 +118,7 @@ class RigidBody
 
         inline void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
 
-        double step_size(){return step_size_;};
-
-        object_state state(){return state_;};
+        void SetStatesZeros();
 
         virtual ~RigidBody(){};
 

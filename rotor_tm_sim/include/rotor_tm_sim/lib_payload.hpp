@@ -102,9 +102,9 @@ class Payload: public RigidBody{
 
     void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);
 
-    void doOneStepInt();
+    // void doOneStepInt();
 
-    void operator() (const object_state &x , object_state &dxdt, const double time);
+    void operator() (const object_state &x , object_state &dxdt, const double time) final;
 };
 
 #endif
