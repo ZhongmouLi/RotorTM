@@ -741,18 +741,23 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 
 
-// void Payload::doOneStepInt()
-// {
+void Payload::doOneStepInt()
+{
 
-//     this->stepper().do_step(*this, state(), current_step_, step_size());
+    auto state = RigidBody::state();
 
-//     // acculate simulation steps
-//     current_step_ = current_step_ + step_size();
+    auto step_size = RigidBody::step_size();
 
-//     // // assign states to position and velocity
-//     // assignPtMasState(ptmas_state_);
 
-// }
+    this->stepper_.do_step(*this, state_, current_step_, RigidBody::step_size());
+
+    // acculate simulation steps
+    current_step_ = current_step_ +  RigidBody::step_size();
+
+    // // assign states to position and velocity
+    // assignPtMasState(ptmas_state_);
+
+}
 
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)

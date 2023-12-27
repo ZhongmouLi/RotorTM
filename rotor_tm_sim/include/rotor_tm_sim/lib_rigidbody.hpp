@@ -34,21 +34,9 @@ class RigidBody
         // torque in body frame
         Eigen::Vector3d torque_;
 
-
-        double current_step_ = 0;
-
-        // simulator setings for an object in 3D
-        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-        object_state state_;
-
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
         Eigen::Vector3d object_acc_;
         Eigen::Vector3d object_bodyrate_acc_;
-
-
-        // solver ruge_kutta
-        runge_kutta4<object_state> stepper_;
 
         // rotational dynamic
         // compute dbodyrate in body frame
@@ -68,7 +56,17 @@ class RigidBody
         // prevent creating instance using none par
         RigidBody();
 
-        
+    protected:
+
+        // simulator setings for an object in 3D
+        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
+        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+        object_state state_;
+
+    //     // solver ruge_kutta
+    //     runge_kutta4<object_state> stepper_;        
+
+    //     double current_step_ = 0;
 
     public:
 
@@ -76,11 +74,11 @@ class RigidBody
         RigidBody(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
 
         // call one step integration
-        void doOneStepInt();
+        // virtual void doOneStepInt();
 
         // integration for one step
         // Declare the function call operator to use odeint
-        void operator()(const object_state &x , object_state &dxdt, const double time); 
+        // virtual void operator()(const object_state &x , object_state &dxdt, const double time); 
 
         // get drone status information
         void getPosition(Eigen::Vector3d &object_position);
@@ -91,7 +89,7 @@ class RigidBody
 
         void getAttitude(Eigen::Quaterniond &object_attitude);
 
-        void getCurrentTimeStep(double &current_time);
+        // void getCurrentTimeStep(double &current_time);
 
         // input for a rigid body
         void inputForce(const Eigen::Vector3d &force); // force is a force vector in world frame
@@ -122,6 +120,7 @@ class RigidBody
 
         object_state state(){return state_;};
 
-        runge_kutta4<object_state> stepper(){return stepper_;};
+        virtual ~RigidBody(){};
+
 };
 #endif

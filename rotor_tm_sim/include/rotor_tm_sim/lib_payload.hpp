@@ -10,6 +10,8 @@
 #include "lib_uav_cable.hpp"
 
 
+using namespace boost::numeric::odeint;
+
 class Payload: public RigidBody{
     private:
 
@@ -62,12 +64,11 @@ class Payload: public RigidBody{
         double gravity_ = 9.8;
 
         
-
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
 
 
         // solver ruge_kutta
-        runge_kutta4<object_state> stepper_;
+        runge_kutta4<Eigen::Matrix<double, 12, 1>> stepper_;
 
         double current_step_ = 0;
 
@@ -101,7 +102,7 @@ class Payload: public RigidBody{
 
     void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);
 
-    // void doOneStepInt();
+    void doOneStepInt();
 
     void operator() (const object_state &x , object_state &dxdt, const double time);
 };
