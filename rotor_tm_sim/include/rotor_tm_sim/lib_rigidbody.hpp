@@ -12,8 +12,9 @@
 using namespace boost::numeric::odeint;
 
 
-typedef Eigen::Matrix<double, 12, 1> object_state;
+// typedef Eigen::Matrix<double, 12, 1> object_state;
 
+using object_state = Eigen::Matrix<double, 12, 1>;
 
 class RigidBody
 {
@@ -25,8 +26,6 @@ class RigidBody
 
         // int parameter
         double step_size_;
-
-        const double gravity_ = 9.8;
 
         // dynamic inputs
         // force in world frame
@@ -53,10 +52,6 @@ class RigidBody
 
         // compute matrix transforming bodyrate to dEuler
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
-        
-
-        // transfer deg to radian
-        inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
         // prevent creating instance using none par
         RigidBody();
@@ -65,7 +60,7 @@ class RigidBody
         runge_kutta4<object_state> stepper_;        
 
         double current_step_ = 0;
-
+        
     public:
 
         // constructor
@@ -83,7 +78,7 @@ class RigidBody
         // get drone status information
         void GetPosition(Eigen::Vector3d &object_position) const;
 
-        void GetVel(Eigen::Vector3d &object_vel);
+        void GetVel(Eigen::Vector3d &object_vel) const;
 
         void GetAcc(Eigen::Vector3d &object_acc) const;
 
@@ -91,7 +86,7 @@ class RigidBody
 
         void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
 
-        void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
+        void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
 
         void GetState(object_state &state) const;
 
@@ -102,8 +97,11 @@ class RigidBody
 
         void InputTorque(const Eigen::Vector3d &torque); //torque is a torque vector in body frame
 
-        // set initial position for quadrotor
-        void SetInitialPost(const Eigen::Vector3d &initial_post);        
+        // set initial position
+        void SetInitialPost(const Eigen::Vector3d &initial_post);    
+
+        // set initial attitude in Euler Angles
+        void SetInitialAttitude(const double &phi, const double &theta, const double &psi);   
 
         // set vel in the world frame
         void SetVel(const Eigen::Vector3d &object_vel);
@@ -111,15 +109,22 @@ class RigidBody
         // set bodyrate in the body frame
         void SetBodyrate(const Eigen::Vector3d &object_bodyrate);
 
-        // transfer a vector to tis skew sym matrix
-        Eigen::Matrix3d TransVector3d2SkewSymMatrix(Eigen::Vector3d vector); 
-
         inline void GetMass(double &mass) const {mass= mass_;};
 
         inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
 
-
         void SetStatesZeros();
+
+
+        // TODO:ZLi move physical and mathematical funcs and consts to another file
+        const double gravity_ = 9.8;    
+
+        // transfer a vector to tis skew sym matrix
+        Eigen::Matrix3d TransVector3d2SkewSymMatrix(Eigen::Vector3d vector); 
+
+        // transfer deg to radian
+        inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
+
 
         virtual ~RigidBody(){};
 

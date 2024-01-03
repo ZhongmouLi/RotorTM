@@ -13,6 +13,8 @@ void RigidBody::SetStatesZeros()
     state_.setZero();
 };
 
+
+// TODO-ZLi use quaterion for rotation dynamics in the future
 Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
@@ -86,13 +88,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // [ddx ddy ddz] = (F-mg)/m
     dxdt.segment<3>(3) = TransDynac(force_, mass_, gravity_);
 
-    // // save acc
-    // object_acc_ = dxdt.segment<3>(3);
-    
-    // std::cout<< "acc in class is " << object_acc_.transpose()<<std::endl;
-
-
-    // 
+    // compute matrix that maps bodyrate to dEuler
     Eigen::Matrix3d matrix_pdr2dEuler;
     matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
 
@@ -123,11 +119,24 @@ void RigidBody::DoOneStepInt()
 
 void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
 {
+    
+    // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
+    // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
     state_.head(3) = initial_post;
     //std::cout<< "input drone initial post" << initial_post<<std::endl;
 }; 
 
 
+void RigidBody::SetInitialAttitude(const double &phi, const double &theta, const double &psi)
+{
+    // recall that state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    state_[6] = phi;
+    state_[7] = theta;
+    state_[8] = psi;
+    // std::cout<< "initial state" << state_.transpose()<<std::endl;
+    // std::cout<< "initial attitude" << state_.segment<3>(6)<<std::endl;
+}
+;   
 void RigidBody::SetVel(const Eigen::Vector3d &object_vel)
 {
     state_.segment<3>(3) = object_vel;
@@ -155,7 +164,7 @@ void RigidBody::GetState(object_state &state) const
 }
 
 
-void RigidBody::GetVel(Eigen::Vector3d &object_vel)
+void RigidBody::GetVel(Eigen::Vector3d &object_vel) const
 {
     object_vel = state_.segment<3>(3);
 };
@@ -187,6 +196,12 @@ void RigidBody::GetAttitude(Eigen::Quaterniond &object_attitude) const
     object_attitude = attitude;
 
 };
+
+void RigidBody::GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const
+{ 
+    object_bodyrate_acc = object_bodyrate_acc_;
+    
+}
 
 void RigidBody::InputForce(const Eigen::Vector3d &force)
 {
