@@ -19,7 +19,7 @@ Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::
 
     dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
-    // save acc
+    // save body_rate_acc
     object_bodyrate_acc_ = dBodyRate;
 
     return dBodyRate;
@@ -30,9 +30,6 @@ Eigen::Vector3d RigidBody::TransDynac(const Eigen::Vector3d &Thurst, const doubl
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
     acc = (Thurst-mass*gravity*Eigen::Vector3d::UnitZ())/mass;
-
-    // save acc
-    object_acc_ = acc;
 
     return acc;
 }
@@ -87,7 +84,13 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // dP = [dx, dy, dz, ddx, ddy, ddz]
     dxdt.head(3) = x.segment<3>(3);
     // [ddx ddy ddz] = (F-mg)/m
-    dxdt.segment<3>(3) = TransDynac(thrust_, mass_, gravity_);
+    dxdt.segment<3>(3) = TransDynac(force_, mass_, gravity_);
+
+    // // save acc
+    // object_acc_ = dxdt.segment<3>(3);
+    
+    // std::cout<< "acc in class is " << object_acc_.transpose()<<std::endl;
+
 
     // 
     Eigen::Matrix3d matrix_pdr2dEuler;
@@ -98,6 +101,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // compute dp, dq ,dr
     dxdt.tail(3) = RotDynac(torque_, m_inertia_, bodyrate);
+
 
 
     is_recursing = false;
@@ -113,7 +117,6 @@ void RigidBody::DoOneStepInt()
 
     // update current step
     current_step_ = current_step_ + step_size_;
-
 
 };
   
@@ -157,6 +160,14 @@ void RigidBody::GetVel(Eigen::Vector3d &object_vel)
     object_vel = state_.segment<3>(3);
 };
 
+
+void RigidBody::GetAcc(Eigen::Vector3d &object_acc) const
+{ 
+    
+    // compute translation acc
+    object_acc = object_acc_;
+}
+
 void RigidBody::GetBodyrate(Eigen::Vector3d &object_bodyrate) const
 {
     object_bodyrate = state_.tail<3>();
@@ -179,13 +190,15 @@ void RigidBody::GetAttitude(Eigen::Quaterniond &object_attitude) const
 
 void RigidBody::InputForce(const Eigen::Vector3d &force)
 {
-    thrust_ = force;
+    force_ = force;
+    // compute acc
+    object_acc_ = TransDynac(force_, mass_, gravity_);
 };
 
 // void RigidBody::inputThurst(const double &mav_thrust)
 // {
 //     //1. compute thrust force in body frame [0,0,T]
-//     Eigen::Vector3d thrust_force_bf(0,0,mav_thrust);
+//     Eigen::Vector3d force_force_bf(0,0,mav_thrust);
 
 //     //2. obtain rotation matrix that represents drone rotation w.r.t world frame
 //     // 2.1 compute attitude from drone state's Euler angles
@@ -196,15 +209,23 @@ void RigidBody::InputForce(const Eigen::Vector3d &force)
 //     Eigen::Matrix3d rot_matrix = attitude.toRotationMatrix();
 
 //     // 3. compute thrust force in world frame
-//     Eigen::Vector3d thrust_force_wf =  rot_matrix * thrust_force_bf;
+//     Eigen::Vector3d force_force_wf =  rot_matrix * force_force_bf;
 
-//     inputForce(thrust_force_wf);
+//     inputForce(force_force_wf);
 
 // };
 
 void RigidBody::InputTorque(const Eigen::Vector3d &torque)
 {
     torque_ = torque;
+    // compute body_rate_acc
+    
+    // obtain bodyrate from state
+    Eigen::Vector3d bodyrate = state_.tail(3);
+
+    // compute dp, dq ,dr
+    object_bodyrate_acc_ = RotDynac(torque_, m_inertia_, bodyrate);
+
 };
 
 

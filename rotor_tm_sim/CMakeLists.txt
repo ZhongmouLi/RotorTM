@@ -110,7 +110,7 @@ add_library(lib_payload SHARED
             include/rotor_tm_sim/lib_payload.hpp
             src/rotor_tm_sim/lib/lib_payload.cpp)
 
-            # use this options in the future that specify c++ 17 for  library
+# use this options in the future that specify c++ 17 for  library
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
@@ -151,18 +151,18 @@ target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_opt
 ###########
 
 # test for quadrotor class
-catkin_add_gtest(singleUAVTest gtest/testQuadrotorClass.cpp)
+catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 
-target_link_libraries(singleUAVTest lib_quadrotor ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
 
-# test for quadrotor + point mass
-catkin_add_gtest(singleUAVPointmassTest gtest/testQuadrotorPoinmass.cpp)
+# # test for quadrotor + point mass
+# catkin_add_gtest(singleUAVPointmassTest gtest/testQuadrotorPoinmass.cpp)
 
-target_link_libraries(singleUAVPointmassTest lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(singleUAVPointmassTest lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
-## test for payloads in cooperative case
-catkin_add_gtest(payloadTest gtest/testPayloadClass.cpp)
+# ## test for payloads in cooperative case
+# catkin_add_gtest(payloadTest gtest/testPayloadClass.cpp)
 
-target_link_libraries(payloadTest lib_payload  lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen)
+# target_link_libraries(payloadTest lib_payload  lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen)

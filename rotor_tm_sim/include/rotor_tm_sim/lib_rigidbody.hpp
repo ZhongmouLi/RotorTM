@@ -29,8 +29,8 @@ class RigidBody
         const double gravity_ = 9.8;
 
         // dynamic inputs
-        // thrust force in world frame
-        Eigen::Vector3d thrust_;
+        // force in world frame
+        Eigen::Vector3d force_;
         // torque in body frame
         Eigen::Vector3d torque_;
 
@@ -85,9 +85,13 @@ class RigidBody
 
         void GetVel(Eigen::Vector3d &object_vel);
 
+        void GetAcc(Eigen::Vector3d &object_acc) const;
+
         void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
 
         void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
+
+        void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
 
         void GetState(object_state &state) const;
 
@@ -114,9 +118,6 @@ class RigidBody
 
         inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
 
-        inline void GetAcc(Eigen::Vector3d &object_acc) const { object_acc = object_acc_;};
-
-        inline void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const { object_bodyrate_acc = object_bodyrate_acc_;};
 
         void SetStatesZeros();
 
