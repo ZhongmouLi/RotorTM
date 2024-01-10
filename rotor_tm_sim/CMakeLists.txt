@@ -160,6 +160,12 @@ catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
 target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
+# test for cable class
+catkin_add_gtest(cable_test gtest/testCable.cpp)
+
+target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+
+
 
 
 # # test for quadrotor + point mass
