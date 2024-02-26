@@ -4,7 +4,7 @@
 
 Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size):RigidBody(mass, m_inertia, step_size)
 {
-   SetStatesZeros();
+    //    SetStatesZeros();
 };
 
 // void Quadrotor::rhs(const quadrotor_state &x , quadrotor_state &dxdt, const double time)
@@ -54,6 +54,18 @@ Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, cons
 // }
 
 
+void Quadrotor::InputNetForce(const Eigen::Vector3d &mav_net_force)
+{
+    //1. compute gravity
+    double mav_mass;
+    GetMass(mav_mass);
+
+    Eigen::Vector3d mav_input_force = mav_net_force + (Eigen::Vector3d::UnitZ() * mav_mass * gravity_);
+
+    InputForce(mav_input_force);
+
+}
+
 void Quadrotor::InputThurst(const double &mav_thrust)
 {
     //1. recall thrust force in world frame =  0^R_L * [0,0,T] 
@@ -80,6 +92,8 @@ void Quadrotor::InputThurst(const double &mav_thrust)
 
     // 3. compute thrust force in world frame
     mav_thrust_force_ =  rot_matrix * thrust_force_bf;
+
+    std::cout<<"[----------] mav_thrust_force_ is " << mav_thrust_force_.transpose() << std::endl;
 
     InputForce(mav_thrust_force_);
 

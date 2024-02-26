@@ -28,7 +28,7 @@ void Cable::CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vect
 
     vel_robot2attachpoint_projected_xi_direction = xi_.dot(vel_robot2attachpoint);
 
-    std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
+    // std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
     
     bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction > k_threshold);
 
@@ -41,8 +41,8 @@ void Cable::CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vect
 
     taut_ = flag_relative_vel && flag_distance;
 
-    std::cout<<"flag_relative_vel is " << flag_relative_vel<<std::endl;
-    std::cout<<"flag_distance is " << flag_distance<<std::endl;    
+    // std::cout<<"flag_relative_vel is " << flag_relative_vel<<std::endl;
+    // std::cout<<"flag_distance is " << flag_distance<<std::endl;    
 
 }
 
@@ -83,13 +83,13 @@ void Cable::ComputeCableTensionForce(const double &mav_mass, const Eigen::Vector
     // 2. comupute tension force
     tension_force_ = tension * xi_;
 
-    std::cout<<"tension is "<< tension << std::endl;
+    // std::cout<<"tension is "<< tension << std::endl;
 
-    std::cout<< "tension force is " << tension_force_.transpose() << std::endl;
+    // std::cout<< "tension force is " << tension_force_.transpose() << std::endl;
 }
 
 
-void Cable::ComputeCableBodyrate(const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel)
+void Cable::ComputeCableBodyrate(const Eigen::Vector3d &robot_vel, const Eigen::Vector3d &attachpoint_vel)
 {
     // obtain unit vector of relative vel of attach point to mav
     Eigen::Vector3d relative_vel_unit = (attachpoint_vel - robot_vel)/length_;

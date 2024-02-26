@@ -106,8 +106,14 @@ class RigidBody
         // set vel in the world frame
         void SetVel(const Eigen::Vector3d &object_vel);
 
+        // set acc in the world frame
+        void SetAcc(const Eigen::Vector3d &object_acc);
+
         // set bodyrate in the body frame
         void SetBodyrate(const Eigen::Vector3d &object_bodyrate);
+
+        // set bodyrate_acc 
+        void SetBodyrateAcc(const Eigen::Vector3d &object_bodyrate_acc);
 
         inline void GetMass(double &mass) const {mass= mass_;};
 

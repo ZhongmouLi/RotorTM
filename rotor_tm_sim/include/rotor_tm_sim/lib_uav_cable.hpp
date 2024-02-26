@@ -18,19 +18,18 @@
 class UAVCable{
 
     public:
-        // cable instances (shared pointers)
-        Cable cable_; 
-
-        // uav instances (shared pointers)
+        // uav instances
         Quadrotor mav_;
 
+        // cable instances
+        Cable cable_; 
     private:
         
         //control input
         // mav thrust (double)
-        double mav_thrust_;
+        double mav_thrust_input_;
         // mav torque (3X1 vector) in body frame
-        Eigen::Vector3d mav_torque_;   
+        Eigen::Vector3d mav_torque_input_;   
 
         // attach point force
         // it is the force the drone applies to the attach point
@@ -43,8 +42,6 @@ class UAVCable{
         Eigen::Matrix3d m_D_i_;
         Eigen::Matrix3d m_C_i_;
         Eigen::Matrix3d m_E_i_;               
-
-        UAVCable() = delete ;
 
         // compute the projection of robot vel perpendicular to the cable
         // input: drone vel (3X1 vector) and cable direction (3X1 vector)
@@ -59,19 +56,24 @@ class UAVCable{
         // compute attach point torque that is the torque applied by a drone to the payload at its attached point
         Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
   
+        
+        UAVCable() = delete ;
     public:
 
     // constrcuster for quadrotor and cable
-    UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size, const double & cable_length);    
+    UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double & cable_length, const double &step_size);    
+
+    // call one step dynamic simulation
+    virtual void DoOneStepInt() final;
 
     // check if collision happens for a UAV cable object with its attach point
-    void CheckCollision(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel);
+    bool IsCollided(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel);
 
     // update vel of UAV if collision happend
-    void UpdateVelCollidedUAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
+    void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
 
     // compute force and torque applied by MAV to payload at attach point position
-    void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+    void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
     // compute term m_D (m means matrix) and m_D is to compute payload translational dynamic equation
     void ComputeMatrixMDiMCiMEi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post);
@@ -82,6 +84,12 @@ class UAVCable{
     // import control input from controller
     void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
 
+    // set initial post of MAV
+    void SetMAVInitPost(const Eigen::Vector3d &mav_post);
+
+    // set initiall post of MAV that is above payload post with cable being taut
+    // input payload post
+    void SetMAVInitPostCableTautWithPayloadPost(const Eigen::Vector3d &payload_init_post);
 
     // obtain class member variables
     // obtain attach point force

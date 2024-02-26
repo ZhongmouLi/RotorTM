@@ -372,19 +372,26 @@ TEST_F(rotorTMCableTest, calTensionForceStatic){
 
     ptr_cable->GetCableTautStatus(cable_taut);
 
-    double robot_mass = 1;
-    Eigen::Vector3d robot_force{0,0,9.8*robot_mass};
+     // asumme m_q = 1kg, m_p = 2kg
+    // apply a thrust force 2*9.8N = 19.6N
+    // acc = (19.6 - 2*9.8)/1.5 = 0
+    // take payload a an object
+    // -t - 0.5 * 9.8 = 0 ===> -t = 9.8N
 
-    ptr_cable->ComputeCableTensionForce(robot_mass, robot_force, Eigen::Vector3d::Zero());
+    double robot_mass = 1;
+    Eigen::Vector3d robot_force{0,0,9.8*2};
+
+    Eigen::Vector3d attach_point_acc{0,0,9.8};
+    ptr_cable->ComputeCableTensionForce(robot_mass, robot_force, attach_point_acc );
 
     Eigen::Vector3d tension_force;
     ptr_cable->GetCableTensionForce(tension_force);
 
     ASSERT_TRUE(cable_taut);
 
-    ASSERT_FLOAT_EQ(tension_force[0], robot_force[0]); 
-    ASSERT_FLOAT_EQ(tension_force[1], robot_force[1]); 
-    ASSERT_FLOAT_EQ(tension_force[2], -robot_force[2]);      
+    ASSERT_FLOAT_EQ(tension_force[0], 0); 
+    ASSERT_FLOAT_EQ(tension_force[1], 0); 
+    ASSERT_FLOAT_EQ(tension_force[2], -9.8);      
 }
 
 
@@ -415,6 +422,11 @@ TEST_F(rotorTMCableTest, calTensionForceVerticalAcclerate){
 
     ptr_cable->GetCableTautStatus(cable_taut);
 
+    // asumme m_q = 1kg, m_p = 0.5kg
+    // apply a thrust force 2*9.8N = 19.6N
+    // acc = (19.6 - 1.5*9.8)/1.5 = 3.2667
+    // take payload a an object
+    // -t - 0.5 * 9.8 = 0.5 * 3.2667 ===> -t = 6.5334N
     double robot_mass = 1;
     Eigen::Vector3d robot_force{0,0,2*9.8*robot_mass};
 

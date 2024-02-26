@@ -5,12 +5,16 @@
 RigidBody::RigidBody(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size): mass_(mass), m_inertia_(m_inertia),step_size_(step_size) 
 {
     SetStatesZeros();
+    // std::cout<<"[----------] RigidBody: RigidBody is called" << std::endl;
+
+    // std::cout<<"[----------] RigidBody: RigidBody state is " << state_.transpose()<<std::endl;
 };
 
 
 void RigidBody::SetStatesZeros()
 {
     state_.setZero();
+    // std::cout<<"[----------] RigidBody: SetStatesZeros is called" << std::endl;
 };
 
 
@@ -123,7 +127,7 @@ void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
     // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
     // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
     state_.head(3) = initial_post;
-    //std::cout<< "input drone initial post" << initial_post<<std::endl;
+    // std::cout<< "[----------] RigidBody: SetInitialPost state is " << state_.transpose()<<std::endl;
 }; 
 
 
@@ -135,13 +139,17 @@ void RigidBody::SetInitialAttitude(const double &phi, const double &theta, const
     state_[8] = psi;
     // std::cout<< "initial state" << state_.transpose()<<std::endl;
     // std::cout<< "initial attitude" << state_.segment<3>(6)<<std::endl;
-}
-;   
+};
+
 void RigidBody::SetVel(const Eigen::Vector3d &object_vel)
 {
     state_.segment<3>(3) = object_vel;
-}
+};
 
+void RigidBody::SetAcc(const Eigen::Vector3d &object_acc)
+{
+    object_acc_ = object_acc;
+};
 
 // update objec' bodyrate with input
 void RigidBody::SetBodyrate(const Eigen::Vector3d &object_bodyrate)
@@ -150,10 +158,16 @@ void RigidBody::SetBodyrate(const Eigen::Vector3d &object_bodyrate)
     state_.tail(3) = object_bodyrate;
 }
 
+void RigidBody::SetBodyrateAcc(const Eigen::Vector3d &object_bodyrate_acc)
+{
+    object_bodyrate_acc_ = object_bodyrate_acc;
+};
+
 void RigidBody::GetPosition(Eigen::Vector3d &object_position) const
 {
-    object_position = state_.head<3>();
-    // std::cout<< "drone state post" << state_.head<3>()<<std::endl;
+    // std::cout<< "[----------] RigidBody: GetPosition state is" << state_.transpose() <<std::endl;
+    object_position = state_.head(3);
+    // std::cout<< "[----------] RigidBody: GetPosition" << state_.head<3>().transpose()<< object_position.transpose() <<std::endl;
 };
 
 
@@ -208,6 +222,10 @@ void RigidBody::InputForce(const Eigen::Vector3d &force)
     force_ = force;
     // compute acc
     object_acc_ = TransDynac(force_, mass_, gravity_);
+    std::cout<<"[----------] RigidBodyt/InputForce input force is  " << force_.transpose()<<std::endl;
+    std::cout<<"[----------] RigidBodyt/InputForce mass is  " << mass_<<std::endl;
+    std::cout<<"[----------] RigidBodyt/InputForce gravity is  " << gravity_<<std::endl;
+    std::cout<<"[----------] RigidBodyt/InputForce object_acc_ is  " << object_acc_.transpose()<<std::endl;    
 };
 
 // void RigidBody::inputThurst(const double &mav_thrust)

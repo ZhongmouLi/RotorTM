@@ -36,6 +36,10 @@ class Quadrotor: public RigidBody
 
         void InputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
 
+        // input net force for mav
+        // net force =  resulant force except gravity
+        void InputNetForce(const Eigen::Vector3d &mav_net_force);
+
         // set vel from outside
 
         inline void GetThrustForce(Eigen::Vector3d &mav_thrsut_force) const {mav_thrsut_force = mav_thrust_force_;};      

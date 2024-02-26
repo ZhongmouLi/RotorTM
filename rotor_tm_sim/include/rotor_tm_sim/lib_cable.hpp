@@ -65,7 +65,7 @@ class Cable
         // input: vels of robot and attach_point
         // methods: bodyrate = cable_direction X relative_vel/||relative_vel|| 
         // output: change body_rate_
-        void ComputeCableBodyrate(const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel);
+        void ComputeCableBodyrate(const Eigen::Vector3d &robot_vel, const Eigen::Vector3d &attachpoint_vel);
 
 
         // obtain cable direction
