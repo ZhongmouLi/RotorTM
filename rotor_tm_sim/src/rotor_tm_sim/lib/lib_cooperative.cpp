@@ -22,55 +22,6 @@ Cooperative::Cooperative(const std::vector<Eigen::Vector3d> &v_attach_point_post
     v_controllers_inputs_.reserve(number_robots_);
 }
 
-// Cooperative::Cooperative(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size): RigidBody(mass, m_inertia, step_size), v_attach_point_posts_body_frame_(v_attach_point_post_bf)
-// {
-//     // reserve size of vectors v_attach_point_posts_ and v_attach_point_vels_
-//     v_attach_point_posts_.reserve(v_attach_point_posts_body_frame_.size());
-
-//     v_attach_point_vels_.reserve(v_attach_point_posts_body_frame_.size());
-// }
-
-// void Cooperative::CheckCollision()
-// {
-    
-
-// }
-
-// check all MAVs if there are taut or not
-// then modify var taut_ of cable based on the result
-// void  Cooperative::CheckCollisions4MAVCables()
-// {
-//     // compute post and vels of attach points of payload
-//     payload_.ComputeAttachPointsPostVel();    
-
-//     std::vector<Eigen::Vector3d> v_attach_points_posts;
-
-//     std::vector<Eigen::Vector3d> v_attach_points_vels;
-
-//     payload_.getAttachPointsPosts(v_attach_points_posts);
-
-//     payload_.getAttachPointsVels(v_attach_points_vels);
-
-//     // check all UAV-cables if they have collisions or not
-//     // it will update boolen var taut_ of every cable
-//     for (size_t i = 0; i < number_robots; i++)
-//     {
-//         // obtain ith uav-cable instance from vector
-//         UAVCable drone_cable = v_drone_cable_[i];
-
-//         // obtain the corresponding attach point position and vel
-//         Eigen::Vector3d attach_point_post = v_attach_points_posts[i];
-
-//         Eigen::Vector3d attach_point_vel = v_attach_points_vels[i];
-
-//         // check ith UAV if it has collision or not
-//         drone_cable.CheckCollision(attach_point_post, attach_point_vel);
-
-//         // 
-//     }
-    
-// }
-
 
 void  Cooperative::SetPayloadInitPost()
 {
@@ -81,7 +32,7 @@ void  Cooperative::SetPayloadInitPost()
     for (size_t i = 0; i < number_robots_; i++)
     {
         // obtain ith uav-cable instance from vector
-        UAVCable& mav_cable = v_drone_cable_.at(i);
+        UAVCable& mav_cable = v_drone_cable_[i];
 
         // obtain the corresponding attach point position and vel
         Eigen::Vector3d attach_point_post;
@@ -95,7 +46,7 @@ void  Cooperative::SetPayloadInitPost()
         Eigen::Vector3d mav_post;
         mav_cable.mav_.GetPosition(mav_post);
 
-        // std::cout<<i<<"th mav post is "<< mav_post.transpose()<<std::endl;
+        std::cout<<i<<"th mav initial post is "<< mav_post.transpose()<<std::endl;
     
     };
         
@@ -184,6 +135,34 @@ void Cooperative::InputControllerInput4MAVs(const Eigen::VectorXd v_mavs_thrust,
 
 }
 
+void Cooperative::SetPayloadInitialAccAndBodyrateACC()
+{
+    double mavs_initial_forces = 0;
+    double mavs_masses = 0;
+    double payload_mass;
+    payload_.GetMass(payload_mass);
+
+    for (size_t i = 0; i < number_robots_; i++)
+    {
+        // obtain ith MAV control input
+        std::pair<double, Eigen::Vector3d>& mav_control_input = v_controllers_inputs_.at(i);
+
+        mavs_initial_forces = mavs_initial_forces + mav_control_input.first;
+
+        UAVCable& drone_cable = v_drone_cable_.at(i);
+
+        double mav_mass;
+        drone_cable.mav_.GetMass(mav_mass);
+        mavs_masses = mavs_masses + mav_mass;
+    }
+
+    double net_initial_vertical_acc = (mavs_initial_forces - (mavs_masses + payload_mass) * gravity_)/((mavs_masses + payload_mass));
+
+    Eigen::Vector3d payload_intial_acc{0,0,net_initial_vertical_acc};
+
+    payload_.SetInitialAccBodyRateAcc(payload_intial_acc);
+}
+
 // compute interaction force and torques among MAVs and payload
 void Cooperative::ComputeInteractWrenches()
 {
@@ -208,15 +187,35 @@ void Cooperative::ComputeInteractWrenches()
 
     // compute posts, vels and accs of attach points
     std::cout<< "------------------Cooperative compute ComputeAttachPointsKinematics----------------------"<<std::endl;
+    if (!intial_payload_acc_set)
+    {
+        SetPayloadInitialAccAndBodyrateACC();
+        intial_payload_acc_set = true;
+        std::cout<<"[----------] Cooperative: set initial posts for payload once"<<std::endl;
+    }
+    
+    // for test
+    Eigen::Vector3d test_payload_acc{0,0,0};
+    payload_.GetAcc(test_payload_acc);
+    std::cout<<"[----------] Cooperative: payload_acc "<<test_payload_acc.transpose()<<std::endl;
+
     payload_.ComputeAttachPointsKinematics();  
 
     std::cout<< "------------------Cooperative compute ComputeInteractWrenches----------------------"<<std::endl;
     for (size_t i = 0; i < number_robots_; i++)
     {
-        // obtain ith MAV control input
-        std::pair<double, Eigen::Vector3d>& mav_control_input = v_controllers_inputs_.at(i);
+        // 
+        std::cout<<"[----------] Cooperative: ComputeInteractWrenches " << static_cast<int>(i) << "the mav"<<std::endl;
 
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 1" << static_cast<int>(i) << "th mav thrust input is " << mav_control_input.first<<std::endl;
+        // obtain ith MAV control input
+        // std::pair<double, Eigen::Vector3d> &mav_control_input = v_controllers_inputs_.at(i);
+
+        // remove ith MAV input vector to save space for next input
+        std::pair<double, Eigen::Vector3d> mav_control_input = v_controllers_inputs_.front();
+        v_controllers_inputs_.erase(v_controllers_inputs_.begin());
+
+
+        std::cout<<"[----------] Cooperative: ComputeInteractWrenches " << static_cast<int>(i) << "th mav thrust input is " << mav_control_input.first<<std::endl;
 
         // 2.1 compute net force and torque applied by all MAVs to payload
 
@@ -225,7 +224,7 @@ void Cooperative::ComputeInteractWrenches()
 
         // (1) input controller's input for ith MAV
 
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 2" << std::endl;        
+        // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 2" << std::endl;        
         drone_cable.InputControllerInput(mav_control_input.first, mav_control_input.second);
 
         // (2) compute ith attach point post and vel that are connected to ith MAV through cable
@@ -236,7 +235,7 @@ void Cooperative::ComputeInteractWrenches()
         payload_.GetOneAttachPointVel(i, attach_point_vel); 
 
         // (2) compute force and torque applied by ith MAV to payload at its attach point position
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 3" << std::endl; 
+        // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 3" << std::endl; 
         drone_cable.ComputeAttachPointWrenches(attach_point_post, attach_point_vel, payload_attitude, payload_bodyrate);
 
         Eigen::Vector3d mav_attach_point_force{0,0,0};
@@ -254,7 +253,7 @@ void Cooperative::ComputeInteractWrenches()
         // (1) compute ith MAV's cable direction
         Eigen::Vector3d mav_post{0,0,0};
         drone_cable.mav_.GetPosition(mav_post);
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 4" << std::endl; 
+        // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 4" << std::endl; 
         drone_cable.cable_.ComputeCableDirection(attach_point_post, mav_post);
 
         Eigen::Vector3d cable_direction{0,0,0};
@@ -265,7 +264,7 @@ void Cooperative::ComputeInteractWrenches()
         Eigen::Matrix3d m_D_i = Eigen::MatrixXd::Zero(3, 3);
         Eigen::Matrix3d m_E_i = Eigen::MatrixXd::Zero(3, 3);
 
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 5" << std::endl; 
+        // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 5" << std::endl; 
         drone_cable.ComputeMatrixMDiMCiMEi(cable_direction, payload_attitude, attach_point_post);
 
         drone_cable.GetMatrixMDiMCiMEi(m_C_i, m_D_i, m_E_i);
@@ -289,12 +288,12 @@ void Cooperative::ComputeInteractWrenches()
 
         // (2) comput input force and torque for ith MAV depending on if the cable is taut or slack  
         Eigen::Vector3d attach_point_acc;
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 6" << std::endl; 
+        // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 6" << std::endl; 
         payload_.GetOneAttachPointAcc(i, attach_point_acc);
         std::cout<<"[----------] Cooperative: ComputeInteractWrenches attach_point_acc is " << attach_point_acc.transpose() << std::endl; 
 
 
-        std::cout<<"[----------] Cooperative: ComputeInteractWrenches 7" << std::endl; 
+        std::cout<<"[----------] Cooperative: ComputeInteractWrenches input for "<< i <<"th MAV" << std::endl; 
         drone_cable.ComputeControlInputs4MAV(attach_point_acc);
 
     };
@@ -307,24 +306,45 @@ void Cooperative::ComputeInteractWrenches()
     payload_.InputDronesNetTorques(mavs_net_torque, m_C, m_E);
 
     // compute acc and bodyrate_acc of payload
-    // payload_.ComputeAccBodyRateAcc();
-
+    payload_.ComputeAccBodyRateAcc();
+    // for test
+    Eigen::Vector3d test_payload_acc2{0,0,0};
+    payload_.GetAcc(test_payload_acc2);
+    std::cout<<"[----------] Cooperative: payload_acc "<<test_payload_acc2.transpose()<<std::endl;
 }
 
 
 void Cooperative::DoOneStepInt4Robots()
 {
 
-    std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 1" <<std::endl;
+    // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 1" <<std::endl;
     payload_.DoOneStepInt();
 
-    std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 2" <<std::endl;
+    // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 2" <<std::endl;
     
     for (auto &drone_cable: v_drone_cable_)
     {
-        std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 3" <<std::endl;
+        // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 3" <<std::endl;
         drone_cable.mav_.DoOneStepInt();
+        // Eigen::Vector3d mav_post;
+        // drone_cable.mav_.GetPosition(mav_post);
+
+        // std::cout<<"mav initial post is "<< mav_post.transpose()<<std::endl;
     }
+
+    //  for (size_t i = 0; i < number_robots_; i++)
+    // {
+    //     v_drone_cable_[i].mav_.DoOneStepInt();
+    //     if(i==1)
+    //     {
+    //     Eigen::Vector3d mav_post;
+    //     v_drone_cable_[i].mav_.GetPosition(mav_post);
+
+    //     std::cout<<"mav initial post is "<< mav_post.transpose()<<std::endl;
+    //     };
+    // };
+
+    // clear control 
 }
 
 

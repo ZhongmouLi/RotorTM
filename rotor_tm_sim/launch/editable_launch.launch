@@ -43,15 +43,20 @@
     <arg name="number_of_robots"            default = "3"/>
 -->
 
-<!--
-    3 dragonfly with triangular payload using cable mechanisms (0.5 m)
+
+    <!-- 3 dragonfly with triangular payload using cable mechanisms (0.5 m) -->
     <arg name="uav_params_path"             default = "$(find rotor_tm_config)/config/uav_params/"/>
+
     <arg name="payload_params_path"         default = "$(find rotor_tm_config)/config/load_params/triangular_payload.yaml"/>
     <arg name="mechanism_params_path"       default = "$(find rotor_tm_config)/config/attach_mechanism/cable/3_robots_triangular_payload_0-5m.yaml"/>
+    <!-- mav type is defined  mechanism_params_path -->
+    <!-- payload is defined by  payload_params_path-->
+    
+    <!-- controllers are well tested already -->
     <arg name="payload_control_gain_path"   default = "$(find rotor_tm_config)/config/control_params/triangular_payload_cooperative_cable_gains.yaml"/>
     <arg name="uav_control_gain_path"       default = "$(find rotor_tm_config)/config/control_params/"/>
     <arg name="number_of_robots"            default = "3"/>
--->
+
 
 <!--
     2 dragonfly with long bar payload using cable mechanisms (0.5 m)

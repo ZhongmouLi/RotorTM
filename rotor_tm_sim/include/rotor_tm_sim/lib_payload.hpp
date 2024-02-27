@@ -74,6 +74,8 @@ class Payload: public RigidBody{
 
         double current_step_ = 0;
 
+        bool intial_acc_set_ = false;
+
     public:
 
     Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
@@ -82,6 +84,8 @@ class Payload: public RigidBody{
 
     // ComputeAttachPointsKinematics computes post, vels and accs of attach points
     void ComputeAttachPointsKinematics();
+
+    void SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_acc);
 
     // void UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_drone_cable_ptr);
     void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);

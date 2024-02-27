@@ -32,6 +32,10 @@ class Cooperative{
 
         Cooperative();
 
+        const double gravity_ = 9.8;
+
+        bool intial_payload_acc_set = false;
+
     public:
 
     // put them in private LATER
@@ -48,6 +52,8 @@ class Cooperative{
 
     // set init post of payload
     void SetPayloadInitPost();
+
+    void SetPayloadInitialAccAndBodyrateACC();
 
     // update vels of collided MAVs and payload 
     // method: eq (39)-(42)

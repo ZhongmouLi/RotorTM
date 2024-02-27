@@ -22,8 +22,11 @@ rotorTMCooperative(){
     Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Identity(3,3);
     double cable_length =1;
     double step_size = 0.01;
-    std::vector<Eigen::Vector3d> v_attach_point_post{{1,0,0},{0,1,0}, {0,0,0}};
-
+    std::vector<Eigen::Vector3d> v_attach_point_post{{-0.1540, -0.267,0},{0.3083,  y: 0.0000,0}, {-0.1540, 0.267,0}};
+    //   - {x: -0.1540, y: -0.267, z: 0.01125}
+//   - {x: 0.3083,  y: 0.0000, z: 0.01125}
+//   - {x: -0.1540, y: 0.267,  z: 0.01125}
+    // std::vector<Eigen::Vector3d> v_attach_point_post{{1,1,0},{-1,1,0}, {-1,-1,0}, {1,-1,0}};
 
     ptr_Cooperative = std::make_shared<Cooperative>(v_attach_point_post, mav_mass, mav_inertia, cable_length, payload_mass, payload_inertia, step_size);
 }
