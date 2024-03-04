@@ -266,6 +266,9 @@ void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
             
             Eigen::Vector3d mav_thrust_force =  mav_rot_matrix * (Eigen::Vector3d::UnitZ() * mav_thrust_input_);
 
+            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_input_ is " << mav_thrust_input_<< std::endl;
+            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
+
             Eigen::Vector3d cable_direction;
             
             cable_.GetCableDirection(cable_direction);
@@ -307,7 +310,7 @@ void UAVCable::InputControllerInput(const double &mav_thrust, const Eigen::Vecto
     mav_torque_input_ = mav_torque;
     mav_thrust_input_ = mav_thrust;
     // mav_.InputThurst(mav_thrust);
-    // std::cout<<"[----------] UAVCable:InputControllerInput mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
+    std::cout<<"[----------] UAVCable:InputControllerInput mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
     // mav_.InputTorque(mav_torque);
 }
 
