@@ -13,8 +13,6 @@
 
 using namespace boost::numeric::odeint;
 
-typedef Eigen::Matrix<double, 12, 1> mav_state;
-
 class Quadrotor: public RigidBody
 {
 
@@ -30,13 +28,17 @@ class Quadrotor: public RigidBody
         Quadrotor(const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
 
         // call one step integration
-        void doOneStepInt();
+        // void DoOneStepInt();
 
         // integration for one step
         // Declare the function call operator to use odeint
         // void operator()(const mav_state &x , mav_state &dxdt, const double time) final; 
 
         void InputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
+
+        // input net force for mav
+        // net force =  resulant force except gravity
+        void InputNetForce(const Eigen::Vector3d &mav_net_force);
 
         // set vel from outside
 

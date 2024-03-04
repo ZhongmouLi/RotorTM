@@ -13,18 +13,21 @@ class Cable
     private:
 
         // length
-        double length_;
+        const double length_;
 
         // var indicates taut of slack of cable
         bool taut_ = true;
 
-        // tention force in world frame'
+        // tention force in world frame
+        // tension force applied at "robot" by cable
+        // direction Z up
         Eigen::Vector3d tension_force_;
 
         // body rate
         Eigen::Vector3d body_rate_;
 
         // cable position in world frame
+        // from robot to attach point
         Eigen::Vector3d xi_;
 
         Cable();
@@ -39,7 +42,7 @@ class Cable
 
 
         // compute cable direction in world frame
-        // input:   posts of attach points and drones
+        // input:  posts of attach points and drones
         // methods: eq (16)
         // output: xi_        
         void ComputeCableDirection(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post);
@@ -48,10 +51,7 @@ class Cable
         // input:   mav mass, mav thrust force (3X1 vector) in world frame, acc of attach point (3X1 vector) in world frame 
         // methods: eq (19)
         // output: tension_force_  
-        void ComputeCableTensionForce(const double &robot_mass, const Eigen::Vector3d &mav_thrust_force , const Eigen::Vector3d &xi, const Eigen::Vector3d &attach_point_acc);
-
-
-        // compute tension force in world frame
+        void ComputeCableTensionForce(const double &robot_mass, const Eigen::Vector3d &mav_thrust_force, const Eigen::Vector3d &attach_point_acc);
 
         // change taut status of cable
         // input:   (1) posts of attach points and drones
@@ -59,6 +59,14 @@ class Cable
         // methods: equation (34)-(38)
         // output: change boolen var taut_
         void CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post, const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel);
+
+
+        // compute bodyrate of cable
+        // input: vels of robot and attach_point
+        // methods: bodyrate = cable_direction X relative_vel/||relative_vel|| 
+        // output: change body_rate_
+        void ComputeCableBodyrate(const Eigen::Vector3d &robot_vel, const Eigen::Vector3d &attachpoint_vel);
+
 
         // obtain cable direction
         inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
@@ -70,6 +78,8 @@ class Cable
         inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
 
         inline void GetCableLength(double &cable_length){cable_length = length_;};
+
+        inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
 };
 
 

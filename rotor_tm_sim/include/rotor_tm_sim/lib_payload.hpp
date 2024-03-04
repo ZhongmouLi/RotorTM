@@ -15,6 +15,8 @@ using namespace boost::numeric::odeint;
 class Payload: public RigidBody{
     private:
 
+        size_t num_robot_;
+        
         // vector of attach point positions in body frame
         // it is fixed during initilisation
        std::vector<Eigen::Vector3d> v_attach_points_posts_body_frame_; 
@@ -72,9 +74,21 @@ class Payload: public RigidBody{
 
         double current_step_ = 0;
 
+        bool intial_acc_set_ = false;
+
     public:
 
     Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size);
+
+    // void CalVel4AttachPoint();      
+
+    // ComputeAttachPointsKinematics computes post, vels and accs of attach points
+    void ComputeAttachPointsKinematics();
+
+    void SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_acc);
+
+    // void UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_drone_cable_ptr);
+    void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);
 
     // input mass matrix  
     void InputMassMatrix(const Eigen::Matrix3d &m_mass_matrix);
@@ -83,24 +97,22 @@ class Payload: public RigidBody{
     void InputDronesNetForces(const Eigen::Vector3d &drones_net_force, const Eigen::Matrix3d &m_D);
 
     // input rotational dynamic model inputs: drones' net force to the payload and term m_D
-    void InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_E);
+    void InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_E);    
 
-    // void CalVel4AttachPoint();      
-
-    // ComputeAttachPointsPostVel computes post and vels of attach points
-    void ComputeAttachPointsPostVel();
-
-    void ComputeAttachPointAccs();
+    void ComputeAccBodyRateAcc();
 
     // GetAttachPointsPos obtain (i+1)th attach points post
     void GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_point_post) const;
 
+    // GetAttachPointsPos obtain (i+1)th attach points post in body frame
+    void GetOneAttachPointPostBodyFrame(const size_t &i, Eigen::Vector3d &attach_point_post_bodyframe) const; 
+
     // GetAttachPointsVel obtain (i+1)th attach points vel
-    void GetAttachPointVel(const size_t &i, Eigen::Vector3d &attach_point_vel) const;    
+    void GetOneAttachPointVel(const size_t &i, Eigen::Vector3d &attach_point_vel) const;    
 
-    // void UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_drone_cable_ptr);
+    // GetAttachPointsVel obtain (i+1)th attach points acc
+    void GetOneAttachPointAcc(const size_t &i, Eigen::Vector3d &attach_point_acc) const;    
 
-    void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);
 
     // void doOneStepInt();
 
