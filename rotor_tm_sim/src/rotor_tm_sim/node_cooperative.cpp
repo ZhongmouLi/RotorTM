@@ -40,7 +40,7 @@ geometry_msgs::Quaternion EigenQuadnToGeomQuadn(const Eigen::Quaterniond& q);
 
 // controller inputs:
 // vector of thrust (scalar) with a size of 4
-Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(4,1,13.475);
+Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(4,1,3.0625);
 // vector of torque (Eigen vector 3 X1) with a size of 4
 std::vector<Eigen::Vector3d> v_mavs_torques(4, Eigen::Vector3d::Zero());
 
@@ -121,9 +121,9 @@ int main(int argc, char** argv)
     // 3. define subscriber and publisher
     // subscriber to receve input wrench for mavs
     ros::Subscriber fm_mav0_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_1/dragonfly1/fm_cmd", 1, fmCmdCallback0);
-    ros::Subscriber fm_mav1_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_1/dragonfly2/fm_cmd", 1, fmCmdCallback1);
-    ros::Subscriber fm_mav2_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_1/dragonfly3/fm_cmd", 1, fmCmdCallback2);
-    ros::Subscriber fm_mav3_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_1/dragonfly4/fm_cmd", 1, fmCmdCallback3);
+    ros::Subscriber fm_mav1_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_2/dragonfly2/fm_cmd", 1, fmCmdCallback1);
+    ros::Subscriber fm_mav2_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_3/dragonfly3/fm_cmd", 1, fmCmdCallback2);
+    ros::Subscriber fm_mav3_sub = nh.subscribe<rotor_tm_msgs::FMCommand>("/controller_4/dragonfly4/fm_cmd", 1, fmCmdCallback3);
 
     // publisher to send dyanmic simulation output to mavs and payload
     // mavs
@@ -211,10 +211,9 @@ int main(int argc, char** argv)
 
     while (ros::ok())
     {   
-        // run ros loop
-        ros::spinOnce();
 
-        loop_rate.sleep();   
+
+        ROS_INFO_STREAM("ROS Function Point 1 in loop");
 
         // step 1 input control sigals for mavs
         ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
@@ -295,6 +294,11 @@ int main(int argc, char** argv)
         payload_odom_pub.publish(payload_odom_msg);  
 
         // ROS_INFO_STREAM("payload position "<< payload_position.transpose());
+
+        // run ros loop
+        ros::spinOnce();
+
+        loop_rate.sleep();   
     }
     
 

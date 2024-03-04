@@ -96,10 +96,16 @@ void Payload::ComputeAttachPointsKinematics()
 
         Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)) + (m_payload_rotation * attach_point_centri_acc);
 
+        std::cout<< "attach_point_acc  is " <<attach_point_acc.transpose()<<std::endl;
+        std::cout<< "payload_acc  is " <<payload_acc.transpose()<<std::endl;
+        std::cout<< "m_payload_rotation  is " <<m_payload_rotation<<std::endl;
+        std::cout<< "m_skewsym_payload_bodyrate_acc  is " <<m_skewsym_payload_bodyrate_acc<<std::endl;
+        std::cout<< "attach_point_body_frame  is " <<attach_point_body_frame<<std::endl;
+        std::cout<< "attach_point_centri_acc  is " <<attach_point_centri_acc<<std::endl;
+
         // Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)).transpose();
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 6"<<std::endl;
         v_attach_points_accs_[i] = attach_point_acc;   
-        std::cout<< "attach_point_acc  is " <<attach_point_acc.transpose()<<std::endl;
         std::cout<< "v_attach_points_accs_  is " <<v_attach_points_accs_.at(i).transpose() <<std::endl;            
     };
     
@@ -365,6 +371,7 @@ void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_ac
     if(!intial_acc_set_)
     {
         SetAcc(payload_initial_acc);
+        SetBodyrateAcc(Eigen::Vector3d::Zero());
         intial_acc_set_ =  true;
     }
 }

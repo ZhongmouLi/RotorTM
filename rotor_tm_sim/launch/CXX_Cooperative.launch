@@ -1,0 +1,55 @@
+<launch>
+
+    <!--1 dragonfly with pointmass payload using cable mechanisms (0.5 m)-->
+    <arg name="uav_params_path"             default = "$(find rotor_tm_config)/config/uav_params/"/>
+    <arg name="payload_params_path"         default = "$(find rotor_tm_config)/config/load_params/pointmass_payload.yaml"/>
+    <arg name="mechanism_params_path"       default = "$(find rotor_tm_config)/config/attach_mechanism/cable/1_robot_point_mass_0-5m.yaml"/>
+    <arg name="payload_control_gain_path"   default = "$(find rotor_tm_config)/config/control_params/pointmass_cable_gains.yaml"/>
+    <arg name="uav_control_gain_path"       default = "$(find rotor_tm_config)/config/control_params/"/>
+    <arg name="number_of_robots"            default = "1"/>
+    
+
+
+<!-- Start simulation and trajectory nodes-->
+
+
+
+<!-- run quadrotor + point mass simulator -->
+<node pkg="rotor_tm" type="rotorTM_CXX_Cooperative" name="rotorTM_CXX_Cooperative" output="screen">
+    <!--  <remap from="reference/fm_cmd" to="/fm_cmd"/>  -->
+    <!-- <remap from="outputs/odom" to="/odom"/> -->
+    <!-- <param name="drone_mass" value="1" />
+    <param name="drone_Ixx" value="0.01" />
+    <param name="drone_Iyy" value="0.01" />
+    <param name="drone_Izz" value="0.02" /> -->
+   </node>
+
+<!-- run trajectory generator -->
+<node pkg="rotor_tm_traj" type="traj_node.py" name="traj" output="screen">
+    </node>
+
+    
+<!-- recursively launch controller -->
+    <arg name="nr" default="$(eval number_of_robots + 1)"/>
+    <include file="$(find rotor_tm)/launch/controller_launcher.launch" if="$(eval arg('nr') - 1 > 0)">
+        <arg name="uav_params_path"             value = "$(arg uav_params_path)"/>
+        <arg name="payload_params_path"         value = "$(arg payload_params_path)"/>
+        <arg name="mechanism_params_path"       value = "$(arg mechanism_params_path)"/>
+        <arg name="payload_control_gain_path"   value = "$(arg payload_control_gain_path)"/>
+        <arg name="uav_control_gain_path"       value = "$(arg uav_control_gain_path)"/>
+        <arg name="number_of_robots"            value = "$(arg number_of_robots)"/>
+        <arg name="nr"                          value = "$(eval arg('nr') - 1)"/>
+    </include>
+    
+<!-- Run rviz for visulisation -->
+<!-- <include file="$(find rotor_tm)/launch/rviz_test.launch"></include> -->
+   
+
+   <!-- <arg name = "bags_directory" value = "/home"/>
+
+
+  <node pkg="rosbag" type="record" name="rosbag_record_cam"
+           args=" /controller_1/dragonfly1/fm_cmd /payload/odom /dragonfly1/odom -o $(find rotor_tm)/bag/test"/> -->
+
+
+ </launch>
