@@ -153,6 +153,9 @@ target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody li
 # add_executable(rotorTM_CXX_DronePointMass src/rotor_tm_sim/rotorTM_node_drone_pointmass.cpp)
 # target_link_libraries(rotorTM_CXX_DronePointMass lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
+# 4 mavs + payload
+add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
+target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ###########
 ## Test ##
