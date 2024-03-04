@@ -92,6 +92,8 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // [ddx ddy ddz] = (F-mg)/m
     dxdt.segment<3>(3) = TransDynac(force_, mass_, gravity_);
 
+    std::cout<< "Fuck base class is "<< "force is "<< force_.transpose()<< "mass is" << mass_<<std::endl;
+
     // compute matrix that maps bodyrate to dEuler
     Eigen::Matrix3d matrix_pdr2dEuler;
     matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
@@ -222,10 +224,10 @@ void RigidBody::InputForce(const Eigen::Vector3d &force)
     force_ = force;
     // compute acc
     object_acc_ = TransDynac(force_, mass_, gravity_);
-    std::cout<<"[----------] RigidBodyt/InputForce input force is  " << force_.transpose()<<std::endl;
-    std::cout<<"[----------] RigidBodyt/InputForce mass is  " << mass_<<std::endl;
-    std::cout<<"[----------] RigidBodyt/InputForce gravity is  " << gravity_<<std::endl;
-    std::cout<<"[----------] RigidBodyt/InputForce object_acc_ is  " << object_acc_.transpose()<<std::endl;    
+    // std::cout<<"[----------] RigidBodyt/InputForce input force is  " << force_.transpose()<<std::endl;
+    // std::cout<<"[----------] RigidBodyt/InputForce mass is  " << mass_<<std::endl;
+    // std::cout<<"[----------] RigidBodyt/InputForce gravity is  " << gravity_<<std::endl;
+    // std::cout<<"[----------] RigidBodyt/InputForce object_acc_ is  " << object_acc_.transpose()<<std::endl;    
 };
 
 // void RigidBody::inputThurst(const double &mav_thrust)

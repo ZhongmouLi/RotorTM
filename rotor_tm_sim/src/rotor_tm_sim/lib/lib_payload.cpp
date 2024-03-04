@@ -37,6 +37,7 @@ void Payload::ComputeAttachPointsKinematics()
     GetAttitude(payload_attitude);
     Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
+
     // obtain payload vel and bodyrate
     Eigen::Vector3d payload_vel{0,0,0};    
     Eigen::Vector3d payload_bodyrate{0,0,0};  
@@ -59,17 +60,20 @@ void Payload::ComputeAttachPointsKinematics()
     for (size_t i = 0; i < num_robot_; i++)
     {
 
-        std::cout<<"[----------] Payload: ComputeAttachPointsKinematics" << i << "th attach point"<<std::endl;
+
         // 
         // 1. obtain attach points' posts in body frame
         Eigen::Vector3d attach_point_body_frame = v_attach_points_posts_body_frame_.at(i);
-
+        // std::cout<< i <<"th attach point is " <<attach_point_body_frame.transpose()<<std::endl;
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 2"<<std::endl;
 
         // 2. comnpute attach point's posts in world frame
         // 
         Eigen::Vector3d attach_point_post_world_frame;
         attach_point_post_world_frame = payload_position + (m_payload_rotation* attach_point_body_frame);
+        // std::cout<< "payload rotation" <<payload_attitude<<std::endl;
+        // std::cout<< "payload rotation matrix" <<m_payload_rotation<<std::endl;
+        // std::cout<< i <<"th attach point world frame is " <<attach_point_post_world_frame.transpose()<<std::endl;
 
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 3"<<std::endl;
 
@@ -90,23 +94,22 @@ void Payload::ComputeAttachPointsKinematics()
 
         // 4 compute centri acc of attach point
         Eigen::Vector3d attach_point_centri_acc =  m_payload_bodyrate_skewsym * (m_payload_bodyrate_skewsym * attach_point_body_frame);
-        std::cout<< "attach_point_centri_acc  is " <<attach_point_centri_acc.transpose()<<std::endl;
+        // std::cout<< "attach_point_centri_acc  is " <<attach_point_centri_acc.transpose()<<std::endl;
         // 3.3 compute acc of attach point
         //  self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
 
         Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)) + (m_payload_rotation * attach_point_centri_acc);
 
-        std::cout<< "attach_point_acc  is " <<attach_point_acc.transpose()<<std::endl;
-        std::cout<< "payload_acc  is " <<payload_acc.transpose()<<std::endl;
-        std::cout<< "m_payload_rotation  is " <<m_payload_rotation<<std::endl;
-        std::cout<< "m_skewsym_payload_bodyrate_acc  is " <<m_skewsym_payload_bodyrate_acc<<std::endl;
-        std::cout<< "attach_point_body_frame  is " <<attach_point_body_frame<<std::endl;
-        std::cout<< "attach_point_centri_acc  is " <<attach_point_centri_acc<<std::endl;
+        // std::cout<< "attach_point_acc  is " <<attach_point_acc.transpose()<<std::endl;
+        // std::cout<< "payload_acc  is " <<payload_acc.transpose()<<std::endl;
+        // std::cout<< "m_payload_rotation  is " <<m_payload_rotation<<std::endl;
+        // std::cout<< "m_skewsym_payload_bodyrate_acc  is " <<m_skewsym_payload_bodyrate_acc<<std::endl;
+        // std::cout<< "attach_point_body_frame  is " <<attach_point_body_frame<<std::endl;
 
         // Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)).transpose();
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 6"<<std::endl;
         v_attach_points_accs_[i] = attach_point_acc;   
-        std::cout<< "v_attach_points_accs_  is " <<v_attach_points_accs_.at(i).transpose() <<std::endl;            
+        // std::cout<< "v_attach_points_accs_  is " <<v_attach_points_accs_.at(i).transpose() <<std::endl;            
     };
     
 
@@ -385,24 +388,24 @@ void Payload::ComputeAccBodyRateAcc()
 
     // bodyrate acc
     auto payload_bodyrate_acc = ComputeRotDynamics(drones_net_force_, drones_net_torque_, m_mass_matrix_, payload_bodyrate, m_C_, m_D_, m_E_);
-    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
+    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
 
     std::cout<<"[----------] Payload::ComputeAccBodyRateAcc drones_net_force_ is "<<drones_net_force_.transpose() <<std::endl;
 
 
     std::cout<<"[----------] Payload::ComputeAccBodyRateAcc drones_net_torque_ is "<<drones_net_torque_.transpose() <<std::endl;
 
-    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc m_mass_matrix_ is "<<m_mass_matrix_<<std::endl;
+    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc m_mass_matrix_ is "<<m_mass_matrix_<<std::endl;
 
 
-    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
+    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
 
     // linear acc
     // auto payload_acc = m_mass_matrix_.householderQr().solve(drones_net_force_ + m_D_ * payload_bodyrate_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
     Eigen::Vector3d payload_acc = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_bodyrate_acc);
 
-    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_acc is "<<payload_acc.transpose() <<std::endl;
+    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_acc is "<<payload_acc.transpose() <<std::endl;
     
     SetAcc(payload_acc);
 
@@ -508,6 +511,15 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // [ddx ddy ddz] = 
     dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_bodyrate_acc);
 
+    std::cout<<"fuck payload " << drones_net_force_.transpose() <<std::endl;
+    
+    std::cout<<"fuck payload " << m_mass_matrix_<<std::endl;
+
+
+    std::cout<<"fuck payload " << m_D_ <<std::endl;
+
+
+    std::cout<<"fuck payload " << payload_bodyrate_acc.transpose() <<std::endl;
     // 2. rotation in body frame
     Eigen::Matrix3d matrix_pdr2dEuler;
     matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
@@ -522,6 +534,16 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 }
 
 
+
+void Payload::DoPayloadOneStepInt()
+{
+
+    // call one step integration for quadrotor dynamics
+    this->stepper_.do_step(*this, state_, current_step_, step_size_);
+
+    // update current step
+    current_step_ = current_step_ + step_size_;
+}
 
 // void Payload::doOneStepInt()
 // {
