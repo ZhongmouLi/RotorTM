@@ -10,6 +10,7 @@
 #include <rotor_tm_msgs/FMCommand.h>
 
 #include <vector>
+#include <array>
 
 // headers for rotor_sim class
 #include "rotor_tm_sim/lib_cooperative.hpp"
@@ -56,8 +57,8 @@ void fmCmdCallback0(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // torque = vector3MsgToEigen(msg->moments);
     v_mavs_torques[0] = vector3MsgToEigen(msg->moments);
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
-    // ROS_INFO_STREAM("receive input torque "<<msg->moments);
-    // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
+    ROS_INFO_STREAM("mav0 input torque "<<v_mavs_torques[0]);
+    ROS_INFO_STREAM("mav0 input thrust "<<  v_mavs_thrusts[0]);
 }
 
 
@@ -74,6 +75,9 @@ void fmCmdCallback1(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
+
+    ROS_INFO_STREAM("mav1 input torque "<<v_mavs_torques[1]);
+    ROS_INFO_STREAM("mav1 input thrust "<<  v_mavs_thrusts[1]);    
 }
 
 // callback function to take input wrench for mav2
@@ -89,6 +93,8 @@ void fmCmdCallback2(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
+    ROS_INFO_STREAM("mav2 input torque "<<v_mavs_torques[2]);
+    ROS_INFO_STREAM("mav2 input thrust "<<  v_mavs_thrusts[2]);    
 }
 
 // callback function to take input wrench for mav3
@@ -104,11 +110,14 @@ void fmCmdCallback3(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
+    ROS_INFO_STREAM("mav3 input torque "<<v_mavs_torques[3]);
+    ROS_INFO_STREAM("mav3 input thrust "<<  v_mavs_thrusts[3]);    
 }
 
 
 int main(int argc, char** argv)
 {
+     ROS_INFO_STREAM("FUCKKKK v_mavs_states");
     // 1. init ros nodes
     ros::init(argc, argv, "rotorTM_sim");
     ros::NodeHandle nh("");
@@ -172,13 +181,17 @@ int main(int argc, char** argv)
     ptr_Cooperative->SetPayloadInitPost();
 
     // 7. vars to get from quadrotro simulators to output messages
-    std::vector<RobotState> v_mavs_states;
-    v_mavs_states.reserve(4);
+    // std::vector<RobotState> v_mavs_states(4);
+    std::array<RobotState, 4> v_mavs_states;
+
+    // ROS_INFO_STREAM("FUCKKKK v_mavs_states");
+    // v_mavs_states.reserve(4);
+    // ROS_INFO_STREAM("FUCKKKK v_mavs_states");
 
     // vars to get payload states
     Eigen::Vector3d payload_position_fuck;
     ptr_Cooperative->payload_.GetPosition(payload_position_fuck);
-    ROS_INFO_STREAM("FUCKKKK payload post" << payload_position_fuck);
+    // ROS_INFO_STREAM("FUCKKKK payload post" << payload_position_fuck);
 
     // Eigen::Vector3d payload_vel;
     // Eigen::Vector3d payload_bodyrate(0,0,0);
@@ -212,16 +225,16 @@ int main(int argc, char** argv)
     // drone is above payload by cable length
     
 
-    int i =1;
-    while (i<3)
+    int fuck =1;
+    while (ros::ok())
     {   
 
-        ROS_INFO_STREAM("ROS loop begin");
+        // ROS_INFO_STREAM("ROS loop begin");
         std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
         Eigen::Vector3d mav0_pst{1,2,3};
         v_drone_cable.at(0).mav_.GetPosition(mav0_pst);
 
-        ROS_INFO_STREAM("FUCKKKK loop begin" << mav0_pst);
+        // ROS_INFO_STREAM("FUCKKKK loop begin" << mav0_pst);
 
         // step 1 input control sigals for mavs
         ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
@@ -235,22 +248,43 @@ int main(int argc, char** argv)
 
 
         // step 3.1 obtain mav states
-        
+        // ROS_INFO_STREAM(" fuck states "<< v_mavs_states.size()); 
+
+
         for (size_t i = 0; i < 4; i++)
         {  
-            v_drone_cable.at(0).mav_.GetPosition(v_mavs_states[i].position);
+            // v_drone_cable.at(0).mav_.GetPosition(v_mavs_states[i].position);
+            // Eigen::Vector3d mav_post{0,0,0};
+            // ptr_Cooperative->v_drone_cable_.at(0).mav_.GetPosition(mav_post);
+            
+            // ROS_INFO_STREAM(i<<" th mav post "<< mav_post.transpose());
+            // Eigen::Vector3d mav_post{1.0,2.0,0};
+            // // ptr_Cooperative->v_drone_cable_.at(i).mav_.GetPosition(mav_post);
+            // v_drone_cable.at(i).mav_.GetPosition(mav_post);
+            // v_mavs_states.at(i).position = mav_post;
 
-            v_drone_cable.at(0).mav_.GetVel(v_mavs_states[i].position);    
+            ptr_Cooperative->v_drone_cable_.at(i).mav_.GetPosition(v_mavs_states.at(i).position);
 
-            // v_drone_cable.at(0).mav_.GetAcc(v_mavs_states[i].acc);
+            // ROS_INFO_STREAM(" fuck 2 "<< i <<" th " <<  v_mavs_states.at(i).position.transpose()); 
 
-            v_drone_cable.at(0).mav_.GetBodyrate(v_mavs_states[i].bodyrate);
+            ptr_Cooperative->v_drone_cable_.at(i).mav_.GetVel(v_mavs_states.at(i).vel);    
 
-            v_drone_cable.at(0).mav_.GetAttitude(v_mavs_states[i].attitude);
+            ptr_Cooperative->v_drone_cable_.at(i).mav_.GetBodyrate(v_mavs_states.at(i).bodyrate);
+
+            ptr_Cooperative->v_drone_cable_.at(i).mav_.GetAttitude(v_mavs_states.at(i).attitude);
         
-            // v_drone_cable.at(0).mav_.GetBodyRateAcc(v_mavs_states[i].bodyrate_acc);
         }
         
+
+        // for (auto fuck: v_mavs_states)
+        // {  
+        //     // v_drone_cable.at(0).mav_.GetPosition(v_mavs_states[i].position)
+        //     ROS_INFO_STREAM(" fuck 4 "<< fuck.position.transpose()); 
+        //     ROS_INFO_STREAM(" fuck 4 "<< fuck.vel.transpose()); 
+        // }
+        
+
+
 
         // step 3.2 obtain payload states
        ptr_Cooperative->payload_.GetPosition(payload_state.position);
@@ -263,36 +297,44 @@ int main(int argc, char** argv)
         // setp 5. Publish simulation results to topics
         // setp 5.1 assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
         mav0_odom_msg.header.stamp = ros::Time::now();
+
+        // ROS_INFO_STREAM(" fuck 5"<< v_mavs_states[0].position.transpose()); 
+        
         mav0_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[0].position);
-        ROS_INFO_STREAM("mav0 post "<< v_mavs_states[0].position);
+        // ROS_INFO_STREAM("mav0 post "<< v_mavs_states[0].position.transpose());
+
+        // ROS_INFO_STREAM(" fuck 6"<< v_mavs_states[0].position.transpose()); 
+
         mav0_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[0].attitude);
-        ROS_INFO_STREAM("mav0 attitude "<< v_mavs_states[0].attitude);
+        // ROS_INFO_STREAM("mav0 attitude "<< v_mavs_states[0].attitude);
+
         mav0_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[0].vel);
-        ROS_INFO_STREAM("mav0 vel "<< v_mavs_states[0].vel);
+        // ROS_INFO_STREAM("mav0 vel "<< v_mavs_states[0].vel.transpose());
+
         mav0_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[0].bodyrate);
-        ROS_INFO_STREAM("mav0 bodyrate "<< v_mavs_states[0].bodyrate);
+        // ROS_INFO_STREAM("mav0 bodyrate "<< v_mavs_states[0].bodyrate.transpose());
 
         mav1_odom_msg.header.stamp = ros::Time::now();
         mav1_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[1].position);
-        ROS_INFO_STREAM("mav1 post "<< v_mavs_states[1].position);
+        // ROS_INFO_STREAM("mav1 post "<< v_mavs_states[1].position.transpose());
         mav1_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[1].attitude);
-        ROS_INFO_STREAM("mav1 attitude "<< v_mavs_states[1].attitude);
+        // ROS_INFO_STREAM("mav1 attitude "<< v_mavs_states[1].attitude);
         mav1_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[1].vel);
         mav1_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[1].bodyrate);
 
         mav2_odom_msg.header.stamp = ros::Time::now();
         mav2_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[2].position);
-        ROS_INFO_STREAM("mav2 post "<< v_mavs_states[2].position);
+        // ROS_INFO_STREAM("mav2 post "<< v_mavs_states[2].position.transpose());
         mav2_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[2].attitude);
-        ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[2].attitude);        
+        // ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[2].attitude);        
         mav2_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[2].vel);
         mav2_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[2].bodyrate);
 
         mav3_odom_msg.header.stamp = ros::Time::now();
         mav3_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[3].position);
-        ROS_INFO_STREAM("mav3 post "<< v_mavs_states[3].position);
+        // ROS_INFO_STREAM("mav3 post "<< v_mavs_states[3].position.transpose());
         mav3_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[3].attitude);
-        ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[3].attitude);        
+        // ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[3].attitude);        
         mav3_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[3].vel);
         mav3_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[3].bodyrate);                        
 
@@ -300,13 +342,13 @@ int main(int argc, char** argv)
         payload_odom_msg.header.stamp = ros::Time::now();
 
         payload_odom_msg.pose.pose.position = EigenToPointMsg(payload_state.position);
-        ROS_INFO_STREAM("payload post "<< payload_state.position);
+        // ROS_INFO_STREAM("payload post "<< payload_state.position.transpose());
         payload_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(payload_state.attitude);
-        ROS_INFO_STREAM("payload attitude "<< payload_state.attitude);
+        // ROS_INFO_STREAM("payload attitude "<< payload_state.attitude);
         payload_odom_msg.twist.twist.linear = EigenToVector3Msg(payload_state.vel);
-        ROS_INFO_STREAM("payload vel "<< payload_state.vel);
+        // ROS_INFO_STREAM("payload vel "<< payload_state.vel.transpose());
         payload_odom_msg.twist.twist.angular = EigenToVector3Msg(payload_state.bodyrate);
-        ROS_INFO_STREAM("payload bodyrate "<< payload_state.bodyrate);
+        // ROS_INFO_STREAM("payload bodyrate "<< payload_state.bodyrate.transpose());
 
         // setp 5.publish odom_msgs of drone and payload
         mav0_odom_pub.publish(mav0_odom_msg);    
@@ -316,13 +358,13 @@ int main(int argc, char** argv)
         payload_odom_pub.publish(payload_odom_msg);  
 
        
-         ROS_INFO_STREAM("ROS loop end");
+        //  ROS_INFO_STREAM("ROS loop end");
         // run ros loop
         ros::spinOnce();
 
         loop_rate.sleep();  
         
-        i++;
+        fuck++;
     }
     
 

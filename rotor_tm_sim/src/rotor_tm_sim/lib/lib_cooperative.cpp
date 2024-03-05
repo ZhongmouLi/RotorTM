@@ -323,14 +323,14 @@ void Cooperative::DoOneStepInt4Robots()
 
     Eigen::Vector3d pd_post_before;
     payload_.GetPosition(pd_post_before);
-    std::cout<<"[----------] DoOneStepInt4Robots post is "<< pd_post_before.transpose()<<std::endl;
+    std::cout<<"[----------] DoOneStepInt4Robots post before is "<< pd_post_before.transpose()<<std::endl;
 
     // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 1" <<std::endl;
     payload_.DoPayloadOneStepInt();
 
     Eigen::Vector3d pd_post_after;
     payload_.GetPosition(pd_post_after);
-    std::cout<<"[----------] DoOneStepInt4Robots post is "<< pd_post_after.transpose()<<std::endl;
+    std::cout<<"[----------] DoOneStepInt4Robots post after is "<< pd_post_after.transpose()<<std::endl;
 
 
     // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 2" <<std::endl;
@@ -345,11 +345,21 @@ void Cooperative::DoOneStepInt4Robots()
     //     // std::cout<<"mav initial post is "<< mav_post.transpose()<<std::endl;
     // }
 
+        Eigen::Vector3d mav_post_bf;
+        v_drone_cable_[0].mav_.GetPosition(mav_post_bf);
+        Eigen::Quaterniond mav_attitude_bf;
+        v_drone_cable_[0].mav_.GetAttitude(mav_attitude_bf);
+
+
+        // std::cout<<0<< "th "<<"mav post before is "<< mav_post_bf.transpose()<<std::endl;
+        // std::cout<<0<< "th "<<"mav att before is "<< mav_attitude_bf<<std::endl;
+        // std::cout <<v_drone_cable_.capacity() << number_robots_ <<std::endl;
 
      for (size_t i = 0; i < number_robots_; i++)
     {
-        v_drone_cable_[i].mav_.DoOneStepInt();
-        if(i==0)
+        v_drone_cable_.at(i).mav_.DoOneStepInt();
+
+        // if(i==0)
         {
         Eigen::Vector3d mav_post;
         v_drone_cable_[i].mav_.GetPosition(mav_post);
@@ -357,12 +367,12 @@ void Cooperative::DoOneStepInt4Robots()
         v_drone_cable_[i].mav_.GetAttitude(mav_attitude);
 
 
-        std::cout<<i<< "th "<<"mav post is "<< mav_post.transpose()<<std::endl;
-        std::cout<<i<< "th "<<"mav att is "<< mav_attitude<<std::endl;
+        // std::cout<<i<< "th "<<"mav post after is "<< mav_post.transpose()<<std::endl;
+        // std::cout<<i<< "th "<<"mav att after is "<< mav_attitude<<std::endl;
 
         Eigen::Vector3d pd_post;
         payload_.GetPosition(pd_post);
-        std::cout<<"payload post is "<< pd_post.transpose()<<std::endl;
+        // std::cout<<"payload post is "<< pd_post.transpose()<<std::endl;
         };
     };
 

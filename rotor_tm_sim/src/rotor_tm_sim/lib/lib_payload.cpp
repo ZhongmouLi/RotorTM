@@ -365,7 +365,7 @@ void Payload::InputDronesNetForces(const Eigen::Vector3d &drones_net_force, cons
 
     m_D_ = m_D;
 
-    std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_force is "<< drones_net_force_.transpose()<<std::endl;   
+    // std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_force is "<< drones_net_force_.transpose()<<std::endl;   
 }
 
 
@@ -511,15 +511,15 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // [ddx ddy ddz] = 
     dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_bodyrate_acc);
 
-    std::cout<<"fuck payload " << drones_net_force_.transpose() <<std::endl;
+    // std::cout<<"fuck payload " << drones_net_force_.transpose() <<std::endl;
     
-    std::cout<<"fuck payload " << m_mass_matrix_<<std::endl;
+    // std::cout<<"fuck payload " << m_mass_matrix_<<std::endl;
 
 
-    std::cout<<"fuck payload " << m_D_ <<std::endl;
+    // std::cout<<"fuck payload " << m_D_ <<std::endl;
 
 
-    std::cout<<"fuck payload " << payload_bodyrate_acc.transpose() <<std::endl;
+    // std::cout<<"fuck payload " << payload_bodyrate_acc.transpose() <<std::endl;
     // 2. rotation in body frame
     Eigen::Matrix3d matrix_pdr2dEuler;
     matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));

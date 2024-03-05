@@ -92,7 +92,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // [ddx ddy ddz] = (F-mg)/m
     dxdt.segment<3>(3) = TransDynac(force_, mass_, gravity_);
 
-    std::cout<< "Fuck base class is "<< "force is "<< force_.transpose()<< "mass is" << mass_<<std::endl;
+    // std::cout<< "Fuck base class is "<< "force is "<< force_.transpose()<< "mass is" << mass_<<std::endl;
 
     // compute matrix that maps bodyrate to dEuler
     Eigen::Matrix3d matrix_pdr2dEuler;
