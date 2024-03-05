@@ -74,7 +74,7 @@ They are defined as
 
 
 
-## Simulater supported cases
+## Simulator supported cases
 
 ### 3.1 case of several quadrotors + a payload (Ongoing)
 ### how to run
