@@ -12,7 +12,7 @@
 
 [X] add "the cooperative case" that is a payload + several quadrotors
 
-[ ] use gtests to test all libs
+[X] use gtests to test all libs
 
 [ ] add ros wrappers for libs
 
@@ -75,9 +75,20 @@ They are defined as
 
 
 ## Simulater supported cases
-### 3.1 case of a quadrotor + a pointmass payload
-#### code explanation
-This case mainly involves two libs: lib_quadrotor (lib_quadrotor.cpp/hpp) and lib_pointmass (lib_pointmass.cpp/hpp). Then, a ros node defined in rotorTM_node_drone_pointmass.cpp is used to begin the simulator in ROS.
+
+### 3.1 case of several quadrotors + a payload (Ongoing)
+### how to run
+Steps to run a cooperative case, i.e. 4 quadrotors and a payload. The parameters are specified by ```<!--4 dragonfly with fedex box payload using cable mechanisms-->``` in the editable.launch.
+1. roslaunch the simulator
+```shell
+    roslaunch rotor_tm CXX_Cooperative.launch 
+```
+2. call trajectory generator
+      ```shell
+      rosservice call rosservice call /traj_generator/Circle "radius: 1.0 T: 10.0 duration: 10.0" 
+      ```   
+
+### 3.2 case of a quadrotor + a pointmass payload
 
 #### how to run
 Steps to run the simulator of a quadrotor + a pointmass payload
@@ -89,8 +100,13 @@ Steps to run the simulator of a quadrotor + a pointmass payload
       ```shell
       rosservice call rosservice call /traj_generator/Circle "radius: 1.0 T: 10.0 duration: 10.0" 
       ```         
+#### code explanation
+This case mainly involves two libs: lib_quadrotor (lib_quadrotor.cpp/hpp) and lib_pointmass (lib_pointmass.cpp/hpp). Then, a ros node defined in rotorTM_node_drone_pointmass.cpp is used to begin the simulator in ROS.
 
-### 3.2 case of a quadrotor
+
+### 3.3 case of a quadrotor
+
+#### how to run
 Steps to run single quadrotor dynamic simulator
 1. modify test_CXXSimulator.launch file by
   - changing drone mass and interia that are defined in rotor_tm_config/config/uav_params/race.yaml as
@@ -113,8 +129,7 @@ Steps to run single quadrotor dynamic simulator
     ```
 3. Note that the ros frequency is 100Hz and quadrotor simulators's step is 0.01, but they are be chosen independently.
 
-### 3.3 case of several quadrotors + a payload (Ongoing)
-This case mainly involves more libs and each lib represent a class of object. Once finished, the whole rotorTM will adjust to the base classes here.
+
 
 
 

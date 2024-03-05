@@ -329,18 +329,19 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(4,1,13.475);
     std::vector<Eigen::Vector3d> v_mavs_torques(4, Eigen::Vector3d::Zero());
 
-    // std::cout<< "fuck point cooperative test 1"<<std::endl;
-    ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
-
-    // compute interation wrenches and vars for MAVs and payload
-    // std::cout<< "fuck point cooperative test 2"<<std::endl;
-    ptr_Cooperative->ComputeInteractWrenches();
 
     // call one step dynamic simulation for MAVs and payload
     // std::cout<< "fuck point cooperative test 3"<<std::endl;
     const double dt = 0.01;
     for(double t=dt ; t<=100*dt ; t+= dt)
     {
+            // std::cout<< "fuck point cooperative test 1"<<std::endl;
+            ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
+
+            // compute interation wrenches and vars for MAVs and payload
+            // std::cout<< "fuck point cooperative test 2"<<std::endl;
+            ptr_Cooperative->ComputeInteractWrenches();
+
             ptr_Cooperative->DoOneStepInt4Robots();
             // printf("current step is %.3f \n", t);
     }

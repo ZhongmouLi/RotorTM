@@ -18,7 +18,7 @@ using object_state = Eigen::Matrix<double, 12, 1>;
 
 class RigidBody
 {
-    private:
+    public:
         // quadrotor parameters
         double mass_;
         
@@ -40,7 +40,7 @@ class RigidBody
 
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
         Eigen::Vector3d object_acc_;
-        Eigen::Vector3d object_bodyrate_acc_;
+        Eigen::Vector3d object_bodyrate_acc_ = Eigen::Vector3d::Zero();
 
         // rotational dynamic
         // compute dbodyrate in body frame

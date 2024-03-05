@@ -214,7 +214,7 @@ class simulation_base():
         self.cable_is_slack = np.zeros(self.nquad)
 
         ## init rho_vec_list = [] (empty)
-        self.rho_vec_list = self. .rho_vec_list
+        self.rho_vec_list = self.rho_vec_list
 
         ## init cable_len_list = cable_length (read)
         self.cable_len_list = np.array(self.pl_params.cable_length)

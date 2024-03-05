@@ -116,7 +116,9 @@ class Payload: public RigidBody{
 
     // void doOneStepInt();
 
-    void operator() (const object_state &x , object_state &dxdt, const double time) final;
+    virtual void DoPayloadOneStepInt() final;
+
+    void operator() (const object_state &x , object_state &dxdt, const double time) override;
 };
 
 #endif

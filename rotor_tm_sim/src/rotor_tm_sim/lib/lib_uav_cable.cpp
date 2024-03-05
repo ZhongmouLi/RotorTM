@@ -162,12 +162,12 @@ Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_d
     mav_thrust_force = mav_attitude.toRotationMatrix() * ( Eigen::Vector3d::UnitZ() *  mav_thrust_input_);
     
     // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
-    std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
 
     // obtain cable direction
     mav_thrust_force_along_cable= cable_direction  * cable_direction.transpose() * mav_thrust_force;
     // std::cout<<"[----------] UAVCable::ComputeAttachPointForce cable_direciton is " << cable_direction.transpose() <<std::endl;
-    std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force_along_cable is " << mav_thrust_force_along_cable.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force_along_cable is " << mav_thrust_force_along_cable.transpose() << std::endl;
 
     // 2. compute attach point centrifugal acc
     Eigen::Vector3d attach_point_centri_acc{0,0,0};
@@ -184,7 +184,7 @@ Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_d
 
     mav_attach_point_force = mav_thrust_force_along_cable - mav_mass * cable_length * cable_bodyrate.squaredNorm() * cable_bodyrate.squaredNorm() * cable_direction - mav_mass* ( (cable_direction * cable_direction.transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_attach_point_force is " << mav_attach_point_force.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_attach_point_force is " << mav_attach_point_force.transpose() << std::endl;
     return mav_attach_point_force;
 
 }
@@ -198,16 +198,16 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach
 
     mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(attach_point_post) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post.transpose() << std::endl;
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post)<<std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post)<<std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
 
     return mav_attach_point_torque;
 }
@@ -266,8 +266,8 @@ void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
             
             Eigen::Vector3d mav_thrust_force =  mav_rot_matrix * (Eigen::Vector3d::UnitZ() * mav_thrust_input_);
 
-            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_input_ is " << mav_thrust_input_<< std::endl;
-            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_input_ is " << mav_thrust_input_<< std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
 
             Eigen::Vector3d cable_direction;
             
@@ -286,9 +286,9 @@ void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
             // input net input force for to drone
             mav_.InputForce(mav_net_input_force);
 
-            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable is taut"  << std::endl;
-            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_net_input_force is"  << mav_net_input_force.transpose() <<  std::endl;
-            std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable_tension_force is"  << cable_tension_force.transpose() <<  std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable is taut"  << std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_net_input_force is"  << mav_net_input_force.transpose() <<  std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable_tension_force is"  << cable_tension_force.transpose() <<  std::endl;
         }
     else
         {
@@ -310,7 +310,7 @@ void UAVCable::InputControllerInput(const double &mav_thrust, const Eigen::Vecto
     mav_torque_input_ = mav_torque;
     mav_thrust_input_ = mav_thrust;
     // mav_.InputThurst(mav_thrust);
-    std::cout<<"[----------] UAVCable:InputControllerInput mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
+    // std::cout<<"[----------] UAVCable:InputControllerInput mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
     // mav_.InputTorque(mav_torque);
 }
 
