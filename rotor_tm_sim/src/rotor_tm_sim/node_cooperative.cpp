@@ -126,6 +126,9 @@ int main(int argc, char** argv)
     // 2.define ros frequency to be 100
     const int ROS_FREQ = 100;
     ros::Rate loop_rate(ROS_FREQ);
+    // Next check frequency of payload odom and fm_cmd
+    // 
+
 
     // 3. define subscriber and publisher
     // subscriber to receve input wrench for mavs
@@ -150,7 +153,7 @@ int main(int argc, char** argv)
     // mav
     // snapdragonfly
     const double mav_mass = 0.25;
-    Eigen::Matrix3d mav_inertia = Eigen::Matrix3d::Identity(3,3);
+    Eigen::Matrix3d mav_inertia = Eigen::Matrix3d::Zero(3,3);
     mav_inertia(0,0)= 0.000601;
     mav_inertia(1,1)= 0.000589;
     mav_inertia(2,2)= 0.001076; 
@@ -159,7 +162,7 @@ int main(int argc, char** argv)
     // load_params/fedex_box_payload.yaml
     // 1. set payload param
     double payload_mass = 0.250;
-    Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Identity(3,3);    
+    Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Zero(3,3);    
     payload_inertia(0,0)= 0.000601;
     payload_inertia(1,1)= 0.000589;
     payload_inertia(2,2)= 0.01076; 
@@ -183,37 +186,17 @@ int main(int argc, char** argv)
     // 7. vars to get from quadrotro simulators to output messages
     // std::vector<RobotState> v_mavs_states(4);
     std::array<RobotState, 4> v_mavs_states;
-
-    // ROS_INFO_STREAM("FUCKKKK v_mavs_states");
-    // v_mavs_states.reserve(4);
-    // ROS_INFO_STREAM("FUCKKKK v_mavs_states");
-
-    // vars to get payload states
-    Eigen::Vector3d payload_position_fuck;
-    ptr_Cooperative->payload_.GetPosition(payload_position_fuck);
-    // ROS_INFO_STREAM("FUCKKKK payload post" << payload_position_fuck);
-
-    // Eigen::Vector3d payload_vel;
-    // Eigen::Vector3d payload_bodyrate(0,0,0);
-    // Eigen::Quaterniond payload_attitude(1,0,0,0);    
+ 
     RobotState payload_state;
    
-    nav_msgs::Odometry mav0_odom_msg;
-    mav0_odom_msg.header.frame_id = "odom";
-    mav0_odom_msg.child_frame_id = "base_link";
+    std::array<nav_msgs::Odometry, 4> v_mavs_odoms;
 
-    nav_msgs::Odometry mav1_odom_msg;
-    mav1_odom_msg.header.frame_id = "odom";
-    mav1_odom_msg.child_frame_id = "base_link";
-
-    nav_msgs::Odometry mav2_odom_msg;
-    mav2_odom_msg.header.frame_id = "odom";
-    mav2_odom_msg.child_frame_id = "base_link";
-
-    nav_msgs::Odometry mav3_odom_msg;
-    mav3_odom_msg.header.frame_id = "odom";
-    mav3_odom_msg.child_frame_id = "base_link";
-
+    for (size_t i = 0; i < 4; i++)
+    {
+        v_mavs_odoms.at(i).header.frame_id = "odom";
+        v_mavs_odoms.at(i).child_frame_id = "base_link";
+    }
+    
     nav_msgs::Odometry payload_odom_msg;
     payload_odom_msg.header.frame_id = "odom";
     payload_odom_msg.child_frame_id = "base_link";
@@ -225,8 +208,8 @@ int main(int argc, char** argv)
     // drone is above payload by cable length
     
 
-    int fuck =1;
-    while (ros::ok())
+    int fuck =0;
+    while (ros::ok() && fuck <2)
     {   
 
         // ROS_INFO_STREAM("ROS loop begin");
@@ -234,7 +217,6 @@ int main(int argc, char** argv)
         Eigen::Vector3d mav0_pst{1,2,3};
         v_drone_cable.at(0).mav_.GetPosition(mav0_pst);
 
-        // ROS_INFO_STREAM("FUCKKKK loop begin" << mav0_pst);
 
         // step 1 input control sigals for mavs
         ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
@@ -265,7 +247,6 @@ int main(int argc, char** argv)
 
             ptr_Cooperative->v_drone_cable_.at(i).mav_.GetPosition(v_mavs_states.at(i).position);
 
-            // ROS_INFO_STREAM(" fuck 2 "<< i <<" th " <<  v_mavs_states.at(i).position.transpose()); 
 
             ptr_Cooperative->v_drone_cable_.at(i).mav_.GetVel(v_mavs_states.at(i).vel);    
 
@@ -274,16 +255,7 @@ int main(int argc, char** argv)
             ptr_Cooperative->v_drone_cable_.at(i).mav_.GetAttitude(v_mavs_states.at(i).attitude);
         
         }
-        
-
-        // for (auto fuck: v_mavs_states)
-        // {  
-        //     // v_drone_cable.at(0).mav_.GetPosition(v_mavs_states[i].position)
-        //     ROS_INFO_STREAM(" fuck 4 "<< fuck.position.transpose()); 
-        //     ROS_INFO_STREAM(" fuck 4 "<< fuck.vel.transpose()); 
-        // }
-        
-
+    
 
 
         // step 3.2 obtain payload states
@@ -296,48 +268,15 @@ int main(int argc, char** argv)
     
         // setp 5. Publish simulation results to topics
         // setp 5.1 assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
-        mav0_odom_msg.header.stamp = ros::Time::now();
-
-        // ROS_INFO_STREAM(" fuck 5"<< v_mavs_states[0].position.transpose()); 
+        for (size_t i = 0; i < 4; i++)
+        {
+            v_mavs_odoms.at(i).header.stamp = ros::Time::now();
+            v_mavs_odoms.at(i).pose.pose.position = EigenToPointMsg(v_mavs_states.at(i).position);
+            v_mavs_odoms.at(i).pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states.at(i).attitude);
+            v_mavs_odoms.at(i).twist.twist.linear = EigenToVector3Msg(v_mavs_states.at(i).vel);
+            v_mavs_odoms.at(i).twist.twist.angular = EigenToVector3Msg(v_mavs_states.at(i).bodyrate);
+        }
         
-        mav0_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[0].position);
-        // ROS_INFO_STREAM("mav0 post "<< v_mavs_states[0].position.transpose());
-
-        // ROS_INFO_STREAM(" fuck 6"<< v_mavs_states[0].position.transpose()); 
-
-        mav0_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[0].attitude);
-        // ROS_INFO_STREAM("mav0 attitude "<< v_mavs_states[0].attitude);
-
-        mav0_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[0].vel);
-        // ROS_INFO_STREAM("mav0 vel "<< v_mavs_states[0].vel.transpose());
-
-        mav0_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[0].bodyrate);
-        // ROS_INFO_STREAM("mav0 bodyrate "<< v_mavs_states[0].bodyrate.transpose());
-
-        mav1_odom_msg.header.stamp = ros::Time::now();
-        mav1_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[1].position);
-        // ROS_INFO_STREAM("mav1 post "<< v_mavs_states[1].position.transpose());
-        mav1_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[1].attitude);
-        // ROS_INFO_STREAM("mav1 attitude "<< v_mavs_states[1].attitude);
-        mav1_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[1].vel);
-        mav1_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[1].bodyrate);
-
-        mav2_odom_msg.header.stamp = ros::Time::now();
-        mav2_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[2].position);
-        // ROS_INFO_STREAM("mav2 post "<< v_mavs_states[2].position.transpose());
-        mav2_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[2].attitude);
-        // ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[2].attitude);        
-        mav2_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[2].vel);
-        mav2_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[2].bodyrate);
-
-        mav3_odom_msg.header.stamp = ros::Time::now();
-        mav3_odom_msg.pose.pose.position = EigenToPointMsg(v_mavs_states[3].position);
-        // ROS_INFO_STREAM("mav3 post "<< v_mavs_states[3].position.transpose());
-        mav3_odom_msg.pose.pose.orientation = EigenQuadnToGeomQuadn(v_mavs_states[3].attitude);
-        // ROS_INFO_STREAM("mav3 attitude "<< v_mavs_states[3].attitude);        
-        mav3_odom_msg.twist.twist.linear = EigenToVector3Msg(v_mavs_states[3].vel);
-        mav3_odom_msg.twist.twist.angular = EigenToVector3Msg(v_mavs_states[3].bodyrate);                        
-
         // payload
         payload_odom_msg.header.stamp = ros::Time::now();
 
@@ -351,10 +290,10 @@ int main(int argc, char** argv)
         // ROS_INFO_STREAM("payload bodyrate "<< payload_state.bodyrate.transpose());
 
         // setp 5.publish odom_msgs of drone and payload
-        mav0_odom_pub.publish(mav0_odom_msg);    
-        mav1_odom_pub.publish(mav1_odom_msg);   
-        mav2_odom_pub.publish(mav2_odom_msg);   
-        mav3_odom_pub.publish(mav3_odom_msg);   
+        mav0_odom_pub.publish(v_mavs_odoms.at(0));    
+        mav1_odom_pub.publish(v_mavs_odoms.at(1));   
+        mav2_odom_pub.publish(v_mavs_odoms.at(2));   
+        mav3_odom_pub.publish(v_mavs_odoms.at(3));   
         payload_odom_pub.publish(payload_odom_msg);  
 
        

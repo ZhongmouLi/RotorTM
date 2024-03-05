@@ -422,7 +422,7 @@ void Payload::InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque, co
 
     m_E_ = m_E;
     
-    std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
+    // std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
 }
 
 
