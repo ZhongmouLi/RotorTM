@@ -403,8 +403,8 @@ void Payload::ComputeAccBodyRateAcc()
     GetBodyrate(payload_bodyrate);
 
     // bodyrate acc
+     std::cout<<"[----------] Payload::ComputeAccBodyRateAcc begin "<<std::endl;
     auto payload_bodyrate_acc = ComputeRotDynamics(drones_net_force_, drones_net_torque_, m_mass_matrix_, payload_bodyrate, m_C_, m_D_, m_E_);
-    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
 
     std::cout<<"[----------] Payload::ComputeAccBodyRateAcc drones_net_force_ is "<<drones_net_force_.transpose() <<std::endl;
 
@@ -413,7 +413,9 @@ void Payload::ComputeAccBodyRateAcc()
 
     // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc m_mass_matrix_ is "<<m_mass_matrix_<<std::endl;
 
+    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate is "<<payload_bodyrate.transpose() <<std::endl;
 
+    
     std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
 
     // linear acc
@@ -469,7 +471,7 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
 
     // setp 1. compute effective torque for the payload
     // such that 
-    Eigen::Vector3d torque_effective(0,0,0);
+    Eigen::Vector3d torque_effective{0,0,0};
 
     Eigen::Matrix3d payload_interia;
     GetInertia(payload_interia);
@@ -477,6 +479,14 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
     Eigen::Matrix3d inv_m_mass_matrix = m_mass_matrix.inverse();
 
     torque_effective = drones_net_torques - m_C * inv_m_mass_matrix *  drones_net_forces - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
+
+    std::cout<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
+
+    std::cout<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
+
+    std::cout<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
+
+    std::cout<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;
