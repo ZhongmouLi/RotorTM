@@ -132,6 +132,7 @@ void Payload::GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_poi
           // obtain payload pose: post and attitude
             Eigen::Vector3d payload_position;
             Eigen::Quaterniond payload_attitude;
+            Eigen::Vector3d attach_point_body_frame = v_attach_points_posts_body_frame_.at(i);
 
             // std::cout<<"fuck 1 "<<std::endl;
             GetPosition(payload_position);
@@ -413,14 +414,14 @@ void Payload::ComputeAccBodyRateAcc()
     // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc m_mass_matrix_ is "<<m_mass_matrix_<<std::endl;
 
 
-    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
+    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_bodyrate_acc is "<<payload_bodyrate_acc.transpose() <<std::endl;
 
     // linear acc
     // auto payload_acc = m_mass_matrix_.householderQr().solve(drones_net_force_ + m_D_ * payload_bodyrate_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
     Eigen::Vector3d payload_acc = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_bodyrate_acc);
 
-    // std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_acc is "<<payload_acc.transpose() <<std::endl;
+    std::cout<<"[----------] Payload::ComputeAccBodyRateAcc payload_acc is "<<payload_acc.transpose() <<std::endl;
     
     SetAcc(payload_acc);
 

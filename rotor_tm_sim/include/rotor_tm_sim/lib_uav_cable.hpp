@@ -54,7 +54,7 @@ class UAVCable{
 
 
         // compute attach point torque that is the torque applied by a drone to the payload at its attached point
-        Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
+        Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
   
         
         UAVCable() = delete ;
@@ -73,7 +73,7 @@ class UAVCable{
     void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
 
     // compute force and torque applied by MAV to payload at attach point position
-    void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+    void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
     // compute term m_D (m means matrix) and m_D is to compute payload translational dynamic equation
     void ComputeMatrixMDiMCiMEi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post);
@@ -87,9 +87,9 @@ class UAVCable{
     // set initial post of MAV
     void SetMAVInitPost(const Eigen::Vector3d &mav_post);
 
-    // set initiall post of MAV that is above payload post with cable being taut
+    // set initial post of MAV that is above payload post with cable being taut
     // input attach point post
-    void SetMAVInitPostCableTautWithAttchPointPost(const Eigen::Vector3d &payload_init_post);
+    void SetMAVInitPostCableTautWithAttachPointPost(const Eigen::Vector3d &attach_point_init_post);
 
     // obtain class member variables
     // obtain attach point force

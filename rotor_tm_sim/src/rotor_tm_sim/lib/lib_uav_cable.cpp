@@ -117,7 +117,7 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable(const Eigen::Vector3d mav
 /*-------------------------Dynamic-------------------------*/
 
 
-void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
 {
     // NOTE: only cable is taut can apply wrenches to attach point
     // obtain cable direction and cable body rate
@@ -141,7 +141,7 @@ void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_po
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
     // compute torque applied by MAV to payload at attach point    
-    mav_attach_point_torque_ = ComputeAttachPointTorque(attach_point_post, payload_attitude, mav_attach_point_force_);
+    mav_attach_point_torque_ = ComputeAttachPointTorque(attach_point_post_bf, payload_attitude, mav_attach_point_force_);
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque end" << std::endl;
 }
@@ -191,23 +191,23 @@ Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_d
 
 
 // ComputeAttachPointTorque computes the torque applied by MAV at the attach point
-Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force)
+Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force)
 {
 
     Eigen::Vector3d mav_attach_point_torque(0,0,0);
 
-    mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(attach_point_post) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
+    mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post.transpose() << std::endl;
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post_bf.transpose() << std::endl;
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post)<<std::endl;
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque TransVector3d2SkewSymMatrix(attach_point_post) is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf)<<std::endl;
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
+    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
 
     return mav_attach_point_torque;
 }
@@ -336,7 +336,7 @@ void UAVCable::SetMAVInitPost(const Eigen::Vector3d &mav_post)
 }
 
 
-void UAVCable::SetMAVInitPostCableTautWithAttchPointPost(const Eigen::Vector3d &attach_point_init_post)
+void UAVCable::SetMAVInitPostCableTautWithAttachPointPost(const Eigen::Vector3d &attach_point_init_post)
 {
     // get cable length
     double cable_length;

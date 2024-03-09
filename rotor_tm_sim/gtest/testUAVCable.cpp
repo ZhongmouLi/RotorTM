@@ -75,7 +75,7 @@ TEST_F(rotorTMUAVCableTest, checkSetInitPostWithPayload){
     double cable_length;
     ptr_UAVCable->cable_.GetCableLength(cable_length);
 
-    ptr_UAVCable->SetMAVInitPostCableTautWithPayloadPost(Eigen::Vector3d::Zero());
+    ptr_UAVCable->SetMAVInitPostCableTautWithAttachPointPost(Eigen::Vector3d::Zero());
 
     // 2. set post and vel of payload in vertical direction
     Eigen::Vector3d attachpoint_post{0,0,0};

@@ -41,7 +41,7 @@ void  Cooperative::SetPayloadInitPost()
         // std::cout<<i<<"th attach point post is "<< attach_point_post.transpose()<<std::endl;
 
         // set mav init post that is just above attach point with distance being cable length
-        mav_cable.SetMAVInitPostCableTautWithPayloadPost(attach_point_post);
+        mav_cable.SetMAVInitPostCableTautWithAttachPointPost(attach_point_post);
 
         Eigen::Vector3d mav_post;
         mav_cable.mav_.GetPosition(mav_post);
@@ -70,9 +70,7 @@ void  Cooperative::SetPayloadInitPost(const Eigen::Vector3d &payload_init_post)
         // std::cout<<i<<"th attach point post is "<< attach_point_post.transpose()<<std::endl;
 
         // set mav init post that is just above attach point with distance being cable length
-        Eigen::Vector3d mav_int_post = payload_init_post + attach_point_post;
-
-        mav_cable.SetMAVInitPostCableTautWithPayloadPost();
+        mav_cable.SetMAVInitPostCableTautWithAttachPointPost(attach_point_post);
 
         Eigen::Vector3d mav_post;
         mav_cable.mav_.GetPosition(mav_post);
@@ -259,16 +257,19 @@ void Cooperative::ComputeInteractWrenches()
         // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 2" << std::endl;        
         drone_cable.InputControllerInput(mav_control_input.first, mav_control_input.second);
 
-        // (2) compute ith attach point post and vel that are connected to ith MAV through cable
+        // (2) compute ith attach point post in body frame and world frame, and vel that are connected to ith MAV through cable
         Eigen::Vector3d attach_point_post;
         payload_.GetOneAttachPointPost(i, attach_point_post);  
 
         Eigen::Vector3d attach_point_vel;
         payload_.GetOneAttachPointVel(i, attach_point_vel); 
 
+        Eigen::Vector3d attach_point_post_bf;
+        payload_.GetOneAttachPointPostBodyFrame(i, attach_point_post_bf);
+
         // (2) compute force and torque applied by ith MAV to payload at its attach point position
         // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 3" << std::endl; 
-        drone_cable.ComputeAttachPointWrenches(attach_point_post, attach_point_vel, payload_attitude, payload_bodyrate);
+        drone_cable.ComputeAttachPointWrenches(attach_point_post_bf, attach_point_post, attach_point_vel, payload_attitude, payload_bodyrate);
 
         Eigen::Vector3d mav_attach_point_force{0,0,0};
         Eigen::Vector3d mav_attach_point_torque{0,0,0};
@@ -276,6 +277,7 @@ void Cooperative::ComputeInteractWrenches()
         drone_cable.GetAttachPointForce(mav_attach_point_force);
         drone_cable.GetAttachPointTorque(mav_attach_point_torque);
 
+        std::cout<<i<<"th mav attach point torque is " << mav_attach_point_torque.transpose() << std::endl;
         // (3) allocate for all MAVs
         mavs_net_force = mavs_net_force + mav_attach_point_force;
         mavs_net_torque = mavs_net_torque + mav_attach_point_torque;
@@ -409,6 +411,10 @@ void Cooperative::DoOneStepInt4Robots()
     };
 
     // clear control 
+
+        Eigen::Vector3d test_payload_acc2{0,0,0};
+    payload_.GetAcc(test_payload_acc2);
+    std::cout<<"[----------] Cooperative: payload_acc last"<<test_payload_acc2.transpose()<<std::endl;
 }
 
 
