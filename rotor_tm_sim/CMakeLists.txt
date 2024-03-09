@@ -189,17 +189,17 @@ target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES
 
 
 # # test for cooperative class
-# catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
+catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
 
-# target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# ros tests for cooperative
-catkin_add_gtest(
-  ros_cooperative
-  rostest/ros_cooerative.cpp
-)
-target_link_libraries(ros_cooperative lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options ${CMAKE_THREAD_LIBS_INIT}) 
+# # ros tests for cooperative
+# catkin_add_gtest(
+#   ros_cooperative
+#   rostest/ros_cooerative.cpp
+# )
+# target_link_libraries(ros_cooperative lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options ${CMAKE_THREAD_LIBS_INIT}) 
 
 
 

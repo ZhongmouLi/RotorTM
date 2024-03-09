@@ -53,6 +53,8 @@ class Cooperative{
     // set init post of payload
     void SetPayloadInitPost();
 
+    void  SetPayloadInitPost(const Eigen::Vector3d &payload_init_post);    
+
     void SetPayloadInitialAccAndBodyrateACC();
 
     // update vels of collided MAVs and payload 

@@ -52,6 +52,38 @@ void  Cooperative::SetPayloadInitPost()
         
 }
 
+void  Cooperative::SetPayloadInitPost(const Eigen::Vector3d &payload_init_post)
+{
+    // payload begins at origin
+    payload_.SetInitialPost(payload_init_post);
+
+    // each mav begins from attach point's above
+    for (size_t i = 0; i < number_robots_; i++)
+    {
+        // obtain ith uav-cable instance from vector
+        UAVCable& mav_cable = v_drone_cable_[i];
+
+        // obtain the corresponding attach point position and vel
+        Eigen::Vector3d attach_point_post;
+        payload_.GetOneAttachPointPost(i, attach_point_post);
+
+        // std::cout<<i<<"th attach point post is "<< attach_point_post.transpose()<<std::endl;
+
+        // set mav init post that is just above attach point with distance being cable length
+        Eigen::Vector3d mav_int_post = payload_init_post + attach_point_post;
+
+        mav_cable.SetMAVInitPostCableTautWithPayloadPost();
+
+        Eigen::Vector3d mav_post;
+        mav_cable.mav_.GetPosition(mav_post);
+
+        std::cout<<i<<"th mav initial post is "<< mav_post.transpose()<<std::endl;
+    
+    };
+        
+}
+
+
 // update vels of MAVs and payload after collsion
 void Cooperative::UpdateVelsCollidedUAVsPayload()
 {

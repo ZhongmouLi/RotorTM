@@ -88,8 +88,8 @@ class UAVCable{
     void SetMAVInitPost(const Eigen::Vector3d &mav_post);
 
     // set initiall post of MAV that is above payload post with cable being taut
-    // input payload post
-    void SetMAVInitPostCableTautWithPayloadPost(const Eigen::Vector3d &payload_init_post);
+    // input attach point post
+    void SetMAVInitPostCableTautWithAttchPointPost(const Eigen::Vector3d &payload_init_post);
 
     // obtain class member variables
     // obtain attach point force

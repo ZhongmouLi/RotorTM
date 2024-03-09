@@ -336,7 +336,7 @@ void UAVCable::SetMAVInitPost(const Eigen::Vector3d &mav_post)
 }
 
 
-void UAVCable::SetMAVInitPostCableTautWithPayloadPost(const Eigen::Vector3d &payload_init_post)
+void UAVCable::SetMAVInitPostCableTautWithAttchPointPost(const Eigen::Vector3d &attach_point_init_post)
 {
     // get cable length
     double cable_length;
@@ -344,7 +344,7 @@ void UAVCable::SetMAVInitPostCableTautWithPayloadPost(const Eigen::Vector3d &pay
     cable_.GetCableLength(cable_length);
 
     // mav init post = [x_payload, y_payload, z_payload + cable_length]
-    Eigen::Vector3d mav_init_post = payload_init_post + Eigen::Vector3d::UnitZ() * cable_length;
+    Eigen::Vector3d mav_init_post = attach_point_init_post + Eigen::Vector3d::UnitZ() * cable_length;
 
     //
     mav_.SetInitialPost(mav_init_post);

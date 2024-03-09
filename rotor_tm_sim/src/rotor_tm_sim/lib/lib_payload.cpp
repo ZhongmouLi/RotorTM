@@ -124,8 +124,23 @@ void Payload::GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_poi
     {
         if (i < num_robot_ ) 
         {
-            attach_point_post = v_attach_points_posts_[i];
+            // attach_point_post = v_attach_points_posts_[i];
+
+
             // std::cout<<"[----------]" << i << "th attach point post is" << attach_point_post.transpose()<<std::endl;
+
+          // obtain payload pose: post and attitude
+            Eigen::Vector3d payload_position;
+            Eigen::Quaterniond payload_attitude;
+
+            // std::cout<<"fuck 1 "<<std::endl;
+            GetPosition(payload_position);
+            GetAttitude(payload_attitude);
+            Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
+
+
+            attach_point_post = payload_position + (m_payload_rotation* attach_point_body_frame);
+
         } 
         else {
         throw i;
