@@ -486,6 +486,13 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
 
     std::cout<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
 
+
+    std::cout<< "m_C  is " << m_C  <<std::endl; 
+
+    std::cout<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
+
+    std::cout<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
+
     std::cout<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
 
     // step 2. compute effective inertia

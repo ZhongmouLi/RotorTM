@@ -299,7 +299,7 @@ void Cooperative::ComputeInteractWrenches()
         Eigen::Matrix3d m_E_i = Eigen::MatrixXd::Zero(3, 3);
 
         // std::cout<<"[----------] Cooperative: ComputeInteractWrenches 5" << std::endl; 
-        drone_cable.ComputeMatrixMDiMCiMEi(cable_direction, payload_attitude, attach_point_post);
+        drone_cable.ComputeMatrixMDiMCiMEi(cable_direction, payload_attitude, attach_point_post_bf);
 
         drone_cable.GetMatrixMDiMCiMEi(m_C_i, m_D_i, m_E_i);
 

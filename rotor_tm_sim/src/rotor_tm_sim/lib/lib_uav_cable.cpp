@@ -213,19 +213,19 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach
 }
 
 
-void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Vector3d & cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post)
+void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Vector3d & cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post_bf)
 {
     double mav_mass;
     mav_.GetMass(mav_mass);
 
     // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post);
+    m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf);
 
     // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
-    m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post) * payload_attitude.toRotationMatrix().transpose() * cable_direction * cable_direction.transpose();
+    m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * cable_direction * cable_direction.transpose();
 
     // compute m_E_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T *  0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
+    m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
 }
 
 
