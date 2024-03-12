@@ -480,24 +480,26 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
 
     torque_effective = drones_net_torques - m_C * inv_m_mass_matrix *  drones_net_forces - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
 
-    std::cout<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
+    // std::cout<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
 
-    std::cout<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
+    // std::cout<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
 
-    std::cout<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
+    // std::cout<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
 
 
-    std::cout<< "m_C  is " << m_C  <<std::endl; 
+    // std::cout<< "m_C  is " << m_C  <<std::endl; 
 
-    std::cout<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
+    // std::cout<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
 
-    std::cout<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
+    // std::cout<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
 
-    std::cout<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
+    // std::cout<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;
 
+    // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
+    
     interia_effective = payload_interia + m_C * (inv_m_mass_matrix * m_D) - m_E;
 
     // step 3 compute bodyrate acc
@@ -544,7 +546,6 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // [ddx ddy ddz] = 
     dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_bodyrate_acc);
 
-    // std::cout<<"fuck payload " << drones_net_force_.transpose() <<std::endl;
     
     // std::cout<<"fuck payload " << m_mass_matrix_<<std::endl;
 
@@ -562,6 +563,10 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     // compute dp, dq ,dr
     dxdt.tail(3) =ComputeRotDynamics(drones_net_force_, drones_net_torque_, m_mass_matrix_, payload_bodyrate, m_C_, m_D_, m_E_);
+
+
+    std::cout<<"fuck payload post" << x.head(3).transpose() <<std::endl;
+    std::cout<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
 
     is_recursing = false;
 }

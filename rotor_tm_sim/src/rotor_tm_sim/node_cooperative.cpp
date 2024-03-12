@@ -209,7 +209,7 @@ int main(int argc, char** argv)
     
 
     int fuck =0;
-    while (ros::ok() && fuck <2)
+    while (ros::ok())
     {   
 
         // ROS_INFO_STREAM("ROS loop begin");

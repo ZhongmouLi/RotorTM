@@ -357,14 +357,14 @@ void Cooperative::DoOneStepInt4Robots()
 
     Eigen::Vector3d pd_post_before;
     payload_.GetPosition(pd_post_before);
-    // std::cout<<"[----------] DoOneStepInt4Robots post before is "<< pd_post_before.transpose()<<std::endl;
+    std::cout<<"[----------] DoOneStepInt4Robots post before is "<< pd_post_before.transpose()<<std::endl;
 
     // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 1" <<std::endl;
     payload_.DoPayloadOneStepInt();
 
     Eigen::Vector3d pd_post_after;
     payload_.GetPosition(pd_post_after);
-    // std::cout<<"[----------] DoOneStepInt4Robots post after is "<< pd_post_after.transpose()<<std::endl;
+    std::cout<<"[----------] DoOneStepInt4Robots post after is "<< pd_post_after.transpose()<<std::endl;
 
 
     // std::cout<< "[----------] Cooperative DoOneStepInt4Robots: fuck point 2" <<std::endl;

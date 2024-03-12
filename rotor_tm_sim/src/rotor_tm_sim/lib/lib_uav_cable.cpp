@@ -201,11 +201,11 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach
     std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post_bf.transpose() << std::endl;
     std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque TransVector3d2SkewSymMatrix(attach_point_post) is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf)<<std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque TransVector3d2SkewSymMatrix(attach_point_post) is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf)<<std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() is "<< payload_attitude.toRotationMatrix().transpose()<<std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
 
     std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
 
@@ -218,14 +218,30 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Vector3d & cable_direction, c
     double mav_mass;
     mav_.GetMass(mav_mass);
 
-    // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf);
+    // Ck = self.uav_params[uav_idx].mass * np.matmul(rho_qn_asym, np.matmul(pl_rot.T, xixiT))
+    // Dk = - np.transpose(Ck)
+    // Ek = np.matmul(Ck, np.matmul(pl_rot, rho_qn_asym))
 
     // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
-    m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * cable_direction * cable_direction.transpose();
+    m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * (cable_direction * cable_direction.transpose()) );
+
+    // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
+    // m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf);
+    m_D_i_ = - m_C_i_.transpose();
+
 
     // compute m_E_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T *  0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
+    // m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
+    m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf));   
+
+    // auto fuck1 = m_C_i_;
+    // auto fuck2 = payload_attitude.toRotationMatrix();
+    // auto fuck3 =attach_point_post_bf;
+
+    // std::cout<<"--------------------------------m_C_i_"<<fuck1<<std::endl;
+    // std::cout<<"--------------------------------payload_attitude.toRotationMatrix()"<<fuck2<<std::endl;
+    // std::cout<<"--------------------------------attach_point_post_bf"<<fuck3<<std::endl;
+    //  std::cout<<"---------------------------------------"<<std::endl << fuck1 * (fuck2 * fuck3) <<std::endl;
 }
 
 
