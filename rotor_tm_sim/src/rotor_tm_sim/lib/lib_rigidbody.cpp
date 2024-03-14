@@ -105,7 +105,10 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     dxdt.tail(3) = RotDynac(torque_, m_inertia_, bodyrate);
 
 
-
+    std::cout<<"fuck uav post" << x.head(3).transpose() <<std::endl;
+    std::cout<<"fuck uav acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
+    std::cout<<"fuck uav input force" <<  force_.transpose() <<std::endl;
+    
     is_recursing = false;
 }
 

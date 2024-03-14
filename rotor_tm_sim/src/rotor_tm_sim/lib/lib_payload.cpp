@@ -108,7 +108,7 @@ void Payload::ComputeAttachPointsKinematics()
 
         // Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)).transpose();
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 6"<<std::endl;
-        v_attach_points_accs_[i] = attach_point_acc;   
+        v_attach_points_accs_.at(i) = attach_point_acc;   
         // std::cout<< "v_attach_points_accs_  is " <<v_attach_points_accs_.at(i).transpose() <<std::endl;            
     };
     
@@ -159,7 +159,7 @@ void Payload::GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_poi
 void Payload::GetOneAttachPointPostBodyFrame(const size_t &i, Eigen::Vector3d &attach_point_post_bodyframe) const
 {
 
-    attach_point_post_bodyframe = v_attach_points_posts_body_frame_[i];
+    attach_point_post_bodyframe = v_attach_points_posts_body_frame_.at(i);
 } 
 
 

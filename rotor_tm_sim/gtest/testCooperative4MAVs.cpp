@@ -2772,6 +2772,9 @@ TEST_F(rotorTMCooperative, checkInstanceClass){
 // variable acc for 100 steps
 TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
 
+    const int step_1_segment = 2;
+    const int step_2_segment = 2;
+
     // set initial posts for mavs and payload
     ptr_Cooperative->SetPayloadInitPost();
 
@@ -2790,8 +2793,10 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
 
     
     const double dt = 0.01;
-    for(double t=0 ; t<2*dt ; t+= dt)
+    for(double t=0 ; t<step_1_segment*dt ; t+= dt)
     {
+
+        ptr_Cooperative->UpdateVelsCollidedUAVsPayload();
 
         // std::cout<< "fuck point cooperative test 1"<<std::endl;
         ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
@@ -2820,30 +2825,16 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     ASSERT_FLOAT_EQ(payload_post[0], payload_init_post[0]); 
     ASSERT_FLOAT_EQ(payload_post[1], payload_init_post[1]); 
 
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;
-    std::cout<< "================================="<<std::endl;                
-
+          
     std::cout<< "payload_post is " <<payload_post.transpose()<<std::endl;
-    std::cout<< "payload_init_post[2]+0.5*1*pow(0.01*2,2) is " << payload_init_post[2]+0.5*1*pow(0.01*2,2) <<std::endl;
-    ASSERT_NEAR(payload_post[2], payload_init_post[2]+0.5*1*pow(0.01*2,2), 1e-6); 
+    std::cout<< "payload_init_post[2]+0.5*1*pow(0.01*2,2) is " << payload_init_post[2]+0.5*1*pow(0.01*step_1_segment,2) <<std::endl;
+    ASSERT_NEAR(payload_post[2], payload_init_post[2]+0.5*1*pow(0.01*step_1_segment,2), 1e-6); 
 
     // vel of payload
     ptr_Cooperative->payload_.GetVel(payload_vel);
     ASSERT_FLOAT_EQ(payload_vel[0], 0); 
     ASSERT_FLOAT_EQ(payload_vel[1], 0); 
-    ASSERT_NEAR(payload_vel[2], 0.01*2, 1e-10);     
+    ASSERT_NEAR(payload_vel[2], 0.01*step_1_segment, 1e-10);     
 
     // acc of payload
     ptr_Cooperative->payload_.GetAcc(payload_acc);
@@ -2873,88 +2864,14 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     ASSERT_FLOAT_EQ(payload_bodyrate_acc[2], 0);  
 
 
-        
-    // (2) input mav controllers' inputs to produce 0.5m/s^2 along vertical direction for 50 seconds
-    // 4 mavs + 1 payload =  4 + 1.5 = 5.5
-    // mav thrust = (5.5 * (0.5+9.8) )/4 = 14.1625N
-    // mavs' net thrust force = 56.65
-    std::cout<<"[----------] second segment of trajectory"<<std::endl;
-    Eigen::VectorXd v_mavs_thrusts_second_segment = Eigen::MatrixXd::Constant(4,1,14.1625);
-    std::vector<Eigen::Vector3d> v_mavs_torques_second_segment(4, Eigen::Vector3d::Zero());
-
-    // call one step dynamic simulation for MAVs and payload
-    // std::cout<< "fuck point cooperative test 3"<<std::endl;
-    // ptr_Cooperative->DoOneStepInt4Robots();
-    for(double t=0 ; t<2*dt ; t+= dt)
-    {
-
-        // std::cout<< "fuck point cooperative test 1"<<std::endl;
-        ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts_second_segment, v_mavs_torques_second_segment);
-
-        // compute interation wrenches and vars for MAVs and payload
-        // std::cout<< "fuck point cooperative test 2"<<std::endl;
-        ptr_Cooperative->ComputeInteractWrenches();
-
-
-        ptr_Cooperative->DoOneStepInt4Robots();
-            // printf("current step is %.3f \n", t);
-    }    
-
-
-    // payload
-    ptr_Cooperative->payload_.GetPosition(payload_post);
-
-
-    std::cout<<"second segment of trajectory payload_init_post[2]+0.5*1*pow(0.01*2,2)+0.5*1*pow(0.01*2,2)   "<< payload_init_post[2]+0.5*1*pow(0.01*2,2)+0.5*0.5*pow(0.01*2,2)<< std::endl;
-     std::cout<<"second segment of trajectory post"<< payload_post.transpose()<< std::endl;
-
-    ASSERT_NEAR(payload_post[0], payload_init_post[0], 1e-6); 
-    ASSERT_NEAR(payload_post[1], payload_init_post[1], 1e-6); 
-    ASSERT_NEAR(payload_post[2], payload_init_post[2]+0.5*1*pow(0.01*2,2)+(1*0.01*2)*(0.01*2) + 0.5*0.5*pow(0.01*2,2), 1e-6); 
-
-    // vel of payload
-    ptr_Cooperative->payload_.GetVel(payload_vel);
-    ASSERT_FLOAT_EQ(payload_vel[0], 0); 
-    ASSERT_FLOAT_EQ(payload_vel[1], 0); 
-    ASSERT_NEAR(payload_vel[2], 0.01*2, 1e-10);     
-
-    // acc of payload
-    ptr_Cooperative->payload_.GetAcc(payload_acc);
-
-    std::cout<<"FUCK " <<payload_acc.transpose()<<std::endl;
-    ASSERT_FLOAT_EQ(payload_acc[0], 0); 
-    ASSERT_FLOAT_EQ(payload_acc[1], 0); 
-    ASSERT_NEAR(payload_acc[2], 1, 1e-10);   
-
-    //  bodyrate of payload
-    ptr_Cooperative->payload_.GetBodyrate(payload_bodyrate);
-    ASSERT_FLOAT_EQ(payload_bodyrate[0], 0); 
-    ASSERT_FLOAT_EQ(payload_bodyrate[1], 0); 
-    ASSERT_FLOAT_EQ(payload_bodyrate[2], 0);  
-
-    // attitude of payload
-    ptr_Cooperative->payload_.GetAttitude(payload_attitude);
-    ASSERT_FLOAT_EQ(payload_attitude.x(), 0);     
-    ASSERT_FLOAT_EQ(payload_attitude.y(), 0);      
-    ASSERT_FLOAT_EQ(payload_attitude.z(), 0);     
-    ASSERT_FLOAT_EQ(payload_attitude.w(), 1);      
-
-    // bodyrate_acc of payload
-    ptr_Cooperative->payload_.GetBodyRateAcc(payload_bodyrate_acc);
-    ASSERT_FLOAT_EQ(payload_bodyrate_acc[0], 0); 
-    ASSERT_FLOAT_EQ(payload_bodyrate_acc[1], 0); 
-    ASSERT_FLOAT_EQ(payload_bodyrate_acc[2], 0);  
-
-
-
-
-    // 
+    // mavs
     Eigen::Vector3d mav0_post{0,0,0};
     Eigen::Vector3d mav1_post{0,0,0};
     Eigen::Vector3d mav2_post{0,0,0};
     Eigen::Vector3d mav3_post{0,0,0};
+    
 
-    // std::cout<< "fuck point cooperative test 4"<<std::endl;
+ // std::cout<< "fuck point cooperative test 4"<<std::endl;
     std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
 
     v_drone_cable.at(0).mav_.GetPosition(mav0_post);
@@ -2971,7 +2888,7 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     std::cout<< "cable length is " <<cable_length<<std::endl;
     std::cout<< "cable_length+0.5*1*pow(0.01*50,2) + +0.5*0.5*pow(0.01*50,2) is " <<cable_length+0.5*1*pow(0.01*10,2) + +0.5*0.5*pow(0.01*10,2)<<std::endl;
     std::cout<< "mav0_post[2] is " <<mav0_post[2]<<std::endl;
-    ASSERT_FLOAT_EQ(mav0_post[2], cable_length+0.5*1*pow(0.01*10,2) + +0.5*0.5*pow(0.01*10,2));  
+    ASSERT_FLOAT_EQ(mav0_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2));  
 
     // vel of mav0
     // at
@@ -2979,7 +2896,7 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     v_drone_cable.at(0).mav_.GetVel(mav0_vel);    
     ASSERT_NEAR(mav0_vel[0], 0.0, 1e-10); 
     ASSERT_NEAR(mav0_vel[1], 0.0, 1e-10);
-    ASSERT_NEAR(mav0_vel[2], 1*0.01*10 + 0.5*0.01*10, 1e-10);  
+    ASSERT_NEAR(mav0_vel[2], (1*0.01*step_1_segment) , 1e-10);  
 
     // acc of mav0
     Eigen::Vector3d mav0_acc = Eigen::Vector3d::Random();
@@ -3015,14 +2932,14 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     //mav1
     ASSERT_FLOAT_EQ(mav1_post[0], -1); 
     ASSERT_FLOAT_EQ(mav1_post[1], 1); 
-    ASSERT_FLOAT_EQ(mav1_post[2], cable_length+0.5*1*pow(0.01*50,2) + +0.5*0.5*pow(0.01*50,2));  
+    ASSERT_FLOAT_EQ(mav1_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2));  
 
     // vel of mav1
     Eigen::Vector3d mav1_vel;
     v_drone_cable.at(1).mav_.GetVel(mav1_vel);    
     ASSERT_NEAR(mav1_vel[0], 0.0, 1e-10); 
     ASSERT_NEAR(mav1_vel[1], 0.0, 1e-10);
-    ASSERT_NEAR(mav1_vel[2], 1*0.01*50 + 0.5*0.01*50, 1e-10);  
+    ASSERT_NEAR(mav1_vel[2], (1*0.01*step_1_segment), 1e-10);  
 
     // acc of mav1
     Eigen::Vector3d mav1_acc = Eigen::Vector3d::Random();
@@ -3057,14 +2974,14 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     //mav2
     ASSERT_FLOAT_EQ(mav2_post[0], -1); 
     ASSERT_FLOAT_EQ(mav2_post[1], -1); 
-    ASSERT_FLOAT_EQ(mav2_post[2], cable_length+0.5*1*pow(0.01*50,2) + +0.5*0.5*pow(0.01*50,2));  
+    ASSERT_FLOAT_EQ(mav2_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2));  
 
     // vel of mav2
     Eigen::Vector3d mav2_vel;
     v_drone_cable.at(2).mav_.GetVel(mav2_vel);    
     ASSERT_NEAR(mav2_vel[0], 0.0, 1e-10); 
     ASSERT_NEAR(mav2_vel[1], 0.0, 1e-10);
-    ASSERT_NEAR(mav2_vel[2],1*0.01*50 + 0.5*0.01*50, 1e-10);  
+    ASSERT_NEAR(mav2_vel[2],(1*0.01*step_1_segment), 1e-10);  
 
 
     // acc of mav2
@@ -3072,7 +2989,7 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     v_drone_cable.at(2).mav_.GetAcc(mav2_acc);
     ASSERT_NEAR(mav2_acc[0], 0, 1e-10);  
     ASSERT_NEAR(mav2_acc[1], 0, 1e-10);  
-    ASSERT_NEAR(mav2_acc[2], 0.5, 1e-10);   
+    ASSERT_NEAR(mav2_acc[2], 1, 1e-10);   
 
     // check bodyrate of mav2
     Eigen::Vector3d mav2_bodyrate = Eigen::Vector3d::Random();
@@ -3099,14 +3016,14 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     //mav3
     ASSERT_FLOAT_EQ(mav3_post[0], 1); 
     ASSERT_FLOAT_EQ(mav3_post[1], -1); 
-    ASSERT_FLOAT_EQ(mav3_post[2], cable_length+0.5*1*pow(0.01*50,2) + +0.5*0.5*pow(0.01*50,2));  
+    ASSERT_FLOAT_EQ(mav3_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2) );  
 
     // vel of mav3
     Eigen::Vector3d mav3_vel;
     v_drone_cable.at(3).mav_.GetVel(mav3_vel);    
     ASSERT_NEAR(mav3_vel[0], 0.0, 1e-10); 
     ASSERT_NEAR(mav3_vel[1], 0.0, 1e-10);
-    ASSERT_NEAR(mav3_vel[2], 1*0.01*50 + 0.5*0.01*50, 1e-10);  
+    ASSERT_NEAR(mav3_vel[2], (1*0.01*step_1_segment) , 1e-10);  
 
 
     // acc of mav3
@@ -3114,7 +3031,7 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
     v_drone_cable.at(3).mav_.GetAcc(mav3_acc);
     ASSERT_NEAR(mav3_acc[0], 0, 1e-10);  
     ASSERT_NEAR(mav3_acc[1], 0, 1e-10);  
-    ASSERT_NEAR(mav3_acc[2], 0.5, 1e-10);   
+    ASSERT_NEAR(mav3_acc[2], 1, 1e-10);   
 
     // check bodyrate of mav3
     Eigen::Vector3d mav3_bodyrate = Eigen::Vector3d::Random();
@@ -3133,6 +3050,271 @@ TEST_F(rotorTMCooperative, checkVerticalVarAcc100Step){
 
     // check bodyrate_acc of mav3
     Eigen::Vector3d mav3_bodyrate_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(3).mav_.GetBodyRateAcc(mav3_bodyrate_acc);
+    ASSERT_FLOAT_EQ(mav3_bodyrate_acc[0], 0); 
+    ASSERT_FLOAT_EQ(mav3_bodyrate_acc[1], 0); 
+    ASSERT_FLOAT_EQ(mav3_bodyrate_acc[2], 0);     
+
+
+
+    // (2) input mav controllers' inputs to produce 0.5m/s^2 along vertical direction for 50 seconds
+    // 4 mavs + 1 payload =  4 + 1.5 = 5.5
+    // mav thrust = (5.5 * (0.5+9.8) )/4 = 14.1625N
+    // mavs' net thrust force = 56.65
+    std::cout<<"[----------] second segment of trajectory"<<std::endl;
+    Eigen::VectorXd v_mavs_thrusts_second_segment = Eigen::MatrixXd::Constant(4,1,14.1625);
+    std::vector<Eigen::Vector3d> v_mavs_torques_second_segment(4, Eigen::Vector3d::Zero());
+
+    // call one step dynamic simulation for MAVs and payload
+    // std::cout<< "fuck point cooperative test 3"<<std::endl;
+    // ptr_Cooperative->DoOneStepInt4Robots();
+    for(double t=0 ; t<step_2_segment*dt ; t+= dt)
+    {
+
+        ptr_Cooperative->UpdateVelsCollidedUAVsPayload();
+
+        // std::cout<< "fuck point cooperative test 1"<<std::endl;
+        ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts_second_segment, v_mavs_torques_second_segment);
+
+
+        // ptr_Cooperative->UpdateVelsCollidedUAVsPayload();
+        // compute interation wrenches and vars for MAVs and payload
+        // std::cout<< "fuck point cooperative test 2"<<std::endl;
+        ptr_Cooperative->ComputeInteractWrenches();
+
+
+        ptr_Cooperative->DoOneStepInt4Robots();
+            // printf("current step is %.3f \n", t);
+    }    
+
+
+    // payload
+    ptr_Cooperative->payload_.GetPosition(payload_post);
+
+
+    // std::cout<<"second segment of trajectory payload_init_post[2]+0.5*1*pow(0.01*step_1_segment,2)+ (1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2)   "<< payload_init_post[2]+0.5*1*pow(0.01*step_1_segment,2)+ (1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2)<< std::endl;
+    
+    std::cout<<"second segment of trajectory post"<< payload_post.transpose()<< std::endl;
+
+    ASSERT_NEAR(payload_post[0], payload_init_post[0], 1e-6); 
+    ASSERT_NEAR(payload_post[1], payload_init_post[1], 1e-6); 
+    ASSERT_NEAR(payload_post[2], payload_init_post[2]+0.5*1*pow(0.01*step_1_segment,2)+ (1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2), 1e-7); 
+
+    // vel of payload
+    ptr_Cooperative->payload_.GetVel(payload_vel);
+    ASSERT_FLOAT_EQ(payload_vel[0], 0); 
+    ASSERT_FLOAT_EQ(payload_vel[1], 0); 
+    ASSERT_NEAR(payload_vel[2], (1*0.01*step_1_segment) + (0.5*0.01*step_2_segment), 1e-10);     
+
+    // acc of payload
+    ptr_Cooperative->payload_.GetAcc(payload_acc);
+
+    std::cout<<"FUCK " <<payload_acc.transpose()<<std::endl;
+    ASSERT_FLOAT_EQ(payload_acc[0], 0); 
+    ASSERT_FLOAT_EQ(payload_acc[1], 0); 
+    ASSERT_NEAR(payload_acc[2], 0.5, 1e-10);   
+
+    //  bodyrate of payload
+    ptr_Cooperative->payload_.GetBodyrate(payload_bodyrate);
+    ASSERT_FLOAT_EQ(payload_bodyrate[0], 0); 
+    ASSERT_FLOAT_EQ(payload_bodyrate[1], 0); 
+    ASSERT_FLOAT_EQ(payload_bodyrate[2], 0);  
+
+    // attitude of payload
+    ptr_Cooperative->payload_.GetAttitude(payload_attitude);
+    ASSERT_FLOAT_EQ(payload_attitude.x(), 0);     
+    ASSERT_FLOAT_EQ(payload_attitude.y(), 0);      
+    ASSERT_FLOAT_EQ(payload_attitude.z(), 0);     
+    ASSERT_FLOAT_EQ(payload_attitude.w(), 1);      
+
+    // bodyrate_acc of payload
+    ptr_Cooperative->payload_.GetBodyRateAcc(payload_bodyrate_acc);
+    ASSERT_FLOAT_EQ(payload_bodyrate_acc[0], 0); 
+    ASSERT_FLOAT_EQ(payload_bodyrate_acc[1], 0); 
+    ASSERT_FLOAT_EQ(payload_bodyrate_acc[2], 0);  
+
+
+
+
+    // 
+    // std::cout<< "fuck point cooperative test 4"<<std::endl;
+    // std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
+
+    v_drone_cable.at(0).mav_.GetPosition(mav0_post);
+    v_drone_cable.at(1).mav_.GetPosition(mav1_post);
+    v_drone_cable.at(2).mav_.GetPosition(mav2_post);    
+    v_drone_cable.at(3).mav_.GetPosition(mav3_post);    
+
+    ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
+
+    // std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
+    ASSERT_FLOAT_EQ(mav0_post[0], 1); 
+    ASSERT_FLOAT_EQ(mav0_post[1], 1); 
+    std::cout<< "cable length is " <<cable_length<<std::endl;
+    std::cout<< "cable_length+0.5*1*pow(0.01*50,2) + +0.5*0.5*pow(0.01*50,2) is " <<cable_length+0.5*1*pow(0.01*10,2) + +0.5*0.5*pow(0.01*10,2)<<std::endl;
+    std::cout<< "mav0_post[2] is " <<mav0_post[2]<<std::endl;
+    ASSERT_FLOAT_EQ(mav0_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2) +(1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2) );  
+
+    // vel of mav0
+    // at
+    mav0_vel = Eigen::Vector3d::Random();
+    v_drone_cable.at(0).mav_.GetVel(mav0_vel);    
+    ASSERT_NEAR(mav0_vel[0], 0.0, 1e-10); 
+    ASSERT_NEAR(mav0_vel[1], 0.0, 1e-10);
+    ASSERT_NEAR(mav0_vel[2], (1*0.01*step_1_segment) + (0.5*0.01*step_2_segment), 1e-10);  
+
+    // acc of mav0
+    mav0_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(0).mav_.GetAcc(mav0_acc);
+    ASSERT_NEAR(mav0_acc[0], 0, 1e-10);  
+    ASSERT_NEAR(mav0_acc[1], 0, 1e-10);  
+    ASSERT_NEAR(mav0_acc[2], 0.5, 1);   
+
+    // check bodyrate of mav0
+    mav0_bodyrate = Eigen::Vector3d::Random();
+    v_drone_cable.at(0).mav_.GetBodyrate(mav0_bodyrate);
+    ASSERT_FLOAT_EQ(mav0_bodyrate[0], 0); 
+    ASSERT_FLOAT_EQ(mav0_bodyrate[1], 0); 
+    ASSERT_FLOAT_EQ(mav0_bodyrate[2], 0);  
+
+    // check attitude of mav0
+    mav0_att = Eigen::Quaterniond::UnitRandom();
+    v_drone_cable.at(0).mav_.GetAttitude(mav0_att);
+    ASSERT_FLOAT_EQ(mav0_att.x(), 0);     
+    ASSERT_FLOAT_EQ(mav0_att.y(), 0);      
+    ASSERT_FLOAT_EQ(mav0_att.z(), 0);     
+    ASSERT_FLOAT_EQ(mav0_att.w(), 1);      
+
+    // check bodyrate_acc of mav0
+    mav0_bodyrate_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(0).mav_.GetBodyRateAcc(mav0_bodyrate_acc);
+    ASSERT_FLOAT_EQ(mav0_bodyrate_acc[0], 0); 
+    ASSERT_FLOAT_EQ(mav0_bodyrate_acc[1], 0); 
+    ASSERT_FLOAT_EQ(mav0_bodyrate_acc[2], 0);  
+
+
+
+    //mav1
+    ASSERT_FLOAT_EQ(mav1_post[0], -1); 
+    ASSERT_FLOAT_EQ(mav1_post[1], 1); 
+    ASSERT_FLOAT_EQ(mav1_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2) +(1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2));  
+
+    // vel of mav1
+    mav1_vel= Eigen::Vector3d::Random();
+    v_drone_cable.at(1).mav_.GetVel(mav1_vel);    
+    ASSERT_NEAR(mav1_vel[0], 0.0, 1e-10); 
+    ASSERT_NEAR(mav1_vel[1], 0.0, 1e-10);
+    ASSERT_NEAR(mav1_vel[2], (1*0.01*step_1_segment) + (0.5*0.01*step_2_segment), 1e-10);  
+
+    // acc of mav1
+    mav1_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(1).mav_.GetAcc(mav1_acc);
+    ASSERT_NEAR(mav1_acc[0], 0, 1e-10);  
+    ASSERT_NEAR(mav1_acc[1], 0, 1e-10);  
+    ASSERT_NEAR(mav1_acc[2], 0.5, 1);   
+
+    // check bodyrate of mav1
+    mav1_bodyrate = Eigen::Vector3d::Random();
+    v_drone_cable.at(1).mav_.GetBodyrate(mav1_bodyrate);
+    ASSERT_FLOAT_EQ(mav1_bodyrate[0], 0); 
+    ASSERT_FLOAT_EQ(mav1_bodyrate[1], 0); 
+    ASSERT_FLOAT_EQ(mav1_bodyrate[2], 0);  
+
+    // check attitude of mav1
+    mav1_att = Eigen::Quaterniond::UnitRandom();
+    v_drone_cable.at(1).mav_.GetAttitude(mav1_att);
+    ASSERT_FLOAT_EQ(mav1_att.x(), 0);     
+    ASSERT_FLOAT_EQ(mav1_att.y(), 0);      
+    ASSERT_FLOAT_EQ(mav1_att.z(), 0);     
+    ASSERT_FLOAT_EQ(mav1_att.w(), 1);      
+
+    // check bodyrate_acc of mav1
+    mav1_bodyrate_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(1).mav_.GetBodyRateAcc(mav1_bodyrate_acc);
+    ASSERT_FLOAT_EQ(mav1_bodyrate_acc[0], 0); 
+    ASSERT_FLOAT_EQ(mav1_bodyrate_acc[1], 0); 
+    ASSERT_FLOAT_EQ(mav1_bodyrate_acc[2], 0);      
+
+
+    //mav2
+    ASSERT_FLOAT_EQ(mav2_post[0], -1); 
+    ASSERT_FLOAT_EQ(mav2_post[1], -1); 
+    ASSERT_FLOAT_EQ(mav2_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2) +(1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2));  
+
+    // vel of mav2
+    mav2_vel= Eigen::Vector3d::Random();
+    v_drone_cable.at(2).mav_.GetVel(mav2_vel);    
+    ASSERT_NEAR(mav2_vel[0], 0.0, 1e-10); 
+    ASSERT_NEAR(mav2_vel[1], 0.0, 1e-10);
+    ASSERT_NEAR(mav2_vel[2],(1*0.01*step_1_segment) + (0.5*0.01*step_2_segment), 1e-10);  
+
+
+    // acc of mav2
+    mav2_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(2).mav_.GetAcc(mav2_acc);
+    ASSERT_NEAR(mav2_acc[0], 0, 1e-10);  
+    ASSERT_NEAR(mav2_acc[1], 0, 1e-10);  
+    ASSERT_NEAR(mav2_acc[2], 0.5, 1e-10);   
+
+    // check bodyrate of mav2
+    mav2_bodyrate = Eigen::Vector3d::Random();
+    v_drone_cable.at(2).mav_.GetBodyrate(mav2_bodyrate);
+    ASSERT_FLOAT_EQ(mav2_bodyrate[0], 0); 
+    ASSERT_FLOAT_EQ(mav2_bodyrate[1], 0); 
+    ASSERT_FLOAT_EQ(mav2_bodyrate[2], 0);  
+
+    // check attitude of mav2
+    mav2_att = Eigen::Quaterniond::UnitRandom();
+    v_drone_cable.at(2).mav_.GetAttitude(mav2_att);
+    ASSERT_FLOAT_EQ(mav2_att.x(), 0);     
+    ASSERT_FLOAT_EQ(mav2_att.y(), 0);      
+    ASSERT_FLOAT_EQ(mav2_att.z(), 0);     
+    ASSERT_FLOAT_EQ(mav2_att.w(), 1);      
+
+    // check bodyrate_acc of mav2
+    mav2_bodyrate_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(2).mav_.GetBodyRateAcc(mav2_bodyrate_acc);
+    ASSERT_FLOAT_EQ(mav2_bodyrate_acc[0], 0); 
+    ASSERT_FLOAT_EQ(mav2_bodyrate_acc[1], 0); 
+    ASSERT_FLOAT_EQ(mav2_bodyrate_acc[2], 0); 
+
+    //mav3
+    ASSERT_FLOAT_EQ(mav3_post[0], 1); 
+    ASSERT_FLOAT_EQ(mav3_post[1], -1); 
+    ASSERT_FLOAT_EQ(mav3_post[2], cable_length+0.5*1*pow(0.01*step_1_segment,2) +(1*0.01*step_1_segment)*(0.01*step_2_segment) + 0.5*0.5*pow(0.01*step_2_segment,2));  
+
+    // vel of mav3
+    mav3_vel= Eigen::Vector3d::Random();
+    v_drone_cable.at(3).mav_.GetVel(mav3_vel);    
+    ASSERT_NEAR(mav3_vel[0], 0.0, 1e-10); 
+    ASSERT_NEAR(mav3_vel[1], 0.0, 1e-10);
+    ASSERT_NEAR(mav3_vel[2], (1*0.01*step_1_segment) + (0.5*0.01*step_2_segment), 1e-10);  
+
+
+    // acc of mav3
+    mav3_acc = Eigen::Vector3d::Random();
+    v_drone_cable.at(3).mav_.GetAcc(mav3_acc);
+    ASSERT_NEAR(mav3_acc[0], 0, 1e-10);  
+    ASSERT_NEAR(mav3_acc[1], 0, 1e-10);  
+    ASSERT_NEAR(mav3_acc[2], 0.5, 1e-10);   
+
+    // check bodyrate of mav3
+    mav3_bodyrate = Eigen::Vector3d::Random();
+    v_drone_cable.at(3).mav_.GetBodyrate(mav3_bodyrate);
+    ASSERT_FLOAT_EQ(mav3_bodyrate[0], 0); 
+    ASSERT_FLOAT_EQ(mav3_bodyrate[1], 0); 
+    ASSERT_FLOAT_EQ(mav3_bodyrate[2], 0);  
+
+    // check attitude of mav3
+    mav3_att = Eigen::Quaterniond::UnitRandom();
+    v_drone_cable.at(3).mav_.GetAttitude(mav3_att);
+    ASSERT_FLOAT_EQ(mav3_att.x(), 0);     
+    ASSERT_FLOAT_EQ(mav3_att.y(), 0);      
+    ASSERT_FLOAT_EQ(mav3_att.z(), 0);     
+    ASSERT_FLOAT_EQ(mav3_att.w(), 1);      
+
+    // check bodyrate_acc of mav3
+    mav3_bodyrate_acc = Eigen::Vector3d::Random();
     v_drone_cable.at(3).mav_.GetBodyRateAcc(mav3_bodyrate_acc);
     ASSERT_FLOAT_EQ(mav3_bodyrate_acc[0], 0); 
     ASSERT_FLOAT_EQ(mav3_bodyrate_acc[1], 0); 

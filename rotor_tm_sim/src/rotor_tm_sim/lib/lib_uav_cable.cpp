@@ -137,7 +137,7 @@ void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_po
     cable_.GetCableBodyRate(cable_bodyrate);
 
     // compute force applied by MAV to payload at attach point    
-    mav_attach_point_force_ = ComputeAttachPointForce(cable_direction, cable_bodyrate, attach_point_post, payload_attitude, payload_bodyrate);
+    mav_attach_point_force_ = ComputeAttachPointForce(cable_direction, cable_bodyrate, attach_point_post_bf, payload_attitude, payload_bodyrate);
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
     // compute torque applied by MAV to payload at attach point    
@@ -148,7 +148,7 @@ void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_po
 
 
 // ComputeAttachPointTorque computes the force applied by MAV at the attach point
-Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
 {
 
     // 1. cal uav thrust force along cable direction in world frame
@@ -172,7 +172,7 @@ Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_d
     // 2. compute attach point centrifugal acc
     Eigen::Vector3d attach_point_centri_acc{0,0,0};
 
-    attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * attach_point_post;
+    attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * attach_point_post_bf);
 
 
     // 3. compute the force applied by drone to the attach point
@@ -198,7 +198,6 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach
 
     mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque attach_point_post is " << attach_point_post_bf.transpose() << std::endl;
     std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque TransVector3d2SkewSymMatrix(attach_point_post) is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf)<<std::endl;
