@@ -20,6 +20,15 @@ Cooperative::Cooperative(const std::vector<Eigen::Vector3d> &v_attach_point_post
 
     // initilise controller inputs with size being number of robots
     v_controllers_inputs_.reserve(number_robots_);
+
+    double mav_hovering_thrust = (4*mav_mass + payload_mass)/4;
+
+    for (size_t i = 0; i < number_robots_; i++)
+     {
+        // v_drone_cable_.at(i).InputControllerInput(v_mavs_thrust[i], v_mavs_torque[i] );
+        v_controllers_inputs_.emplace_back(mav_hovering_thrust, Eigen::Vector3d::Zero()); 
+        std::cout<<"mav "<<i<< " initial input thrust is " << mav_hovering_thrust << std::endl;
+     }
 }
 
 
@@ -157,8 +166,15 @@ void Cooperative::InputControllerInput4MAVs(const Eigen::VectorXd v_mavs_thrust,
     
      for (size_t i = 0; i < number_robots_; i++)
      {
+
+
         // v_drone_cable_.at(i).InputControllerInput(v_mavs_thrust[i], v_mavs_torque[i] );
-        v_controllers_inputs_.emplace_back(v_mavs_thrust[i], v_mavs_torque.at(i)); 
+        // v_drone_cable_.at(i) = (v_mavs_thrust[i], v_mavs_torque[i] );
+
+        // v_controllers_inputs_.emplace_back(v_mavs_thrust[i], v_mavs_torque.at(i)); 
+        std::pair<double, Eigen::Vector3d> mav_input(v_mavs_thrust[i], v_mavs_torque.at(i));
+
+        v_controllers_inputs_.at(i) = mav_input;
         std::cout<<"mav "<<i<< " input thrust is " << v_mavs_thrust[i] << " input torque is " << v_mavs_torque.at(i).transpose() << std::endl;
      }
     
@@ -188,9 +204,9 @@ void Cooperative::SetPayloadInitialAccAndBodyrateACC()
 
     double net_initial_vertical_acc = (mavs_initial_forces - (mavs_masses + payload_mass) * gravity_)/((mavs_masses + payload_mass));
 
-    // Eigen::Vector3d payload_intial_acc{0,0,net_initial_vertical_acc};
+    Eigen::Vector3d payload_intial_acc{0,0,net_initial_vertical_acc};
 
-    Eigen::Vector3d payload_intial_acc{0,0,0};
+    // Eigen::Vector3d payload_intial_acc{0,0,0};
 
 
     payload_.SetInitialAccBodyRateAcc(payload_intial_acc);
@@ -241,7 +257,7 @@ void Cooperative::ComputeInteractWrenches()
         // std::cout<<"[----------] Cooperative: ComputeInteractWrenches " << static_cast<int>(i) << "the mav"<<std::endl;
 
         // obtain ith MAV control input
-        // std::pair<double, Eigen::Vector3d> &mav_control_input = v_controllers_inputs_.at(i);
+        std::pair<double, Eigen::Vector3d> &mav_control_input = v_controllers_inputs_.at(i);
 
         // for (size_t i = 0; i < v_controllers_inputs_.size(); i++)
         // {
@@ -251,8 +267,8 @@ void Cooperative::ComputeInteractWrenches()
         
 
         // remove ith MAV input vector to save space for next input
-        std::pair<double, Eigen::Vector3d> mav_control_input = v_controllers_inputs_.front();
-        v_controllers_inputs_.erase(v_controllers_inputs_.begin());
+        // std::pair<double, Eigen::Vector3d> mav_control_input = v_controllers_inputs_.front();
+        // v_controllers_inputs_.erase(v_controllers_inputs_.begin());
 
 
 
