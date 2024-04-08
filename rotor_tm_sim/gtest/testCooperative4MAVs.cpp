@@ -227,7 +227,6 @@ TEST_F(rotorTMCooperative, checkInitialPostsRandInput){
 
 
 // test if initial posts are set for mavs
-// test if instance is created
 TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium){
 
     // set initial posts for mavs and payload

@@ -39,6 +39,8 @@
         <arg name="nr"                          value = "$(eval arg('nr') - 1)"/>
     </include>
     
+
+ <node pkg="rviz" type="rviz"   name="rviz" args="-d $(find rotor_tm)/launch/rviz_CXX.rviz"/>    
 <!-- Run rviz for visulisation -->
 <!-- <include file="$(find rotor_tm)/launch/rviz_test.launch"></include> -->
    

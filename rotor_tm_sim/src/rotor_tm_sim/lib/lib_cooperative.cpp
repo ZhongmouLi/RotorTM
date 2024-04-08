@@ -243,9 +243,9 @@ void Cooperative::ComputeInteractWrenches()
         std::cout<<"[----------] Cooperative: set initial posts for payload once"<<std::endl;
     }
     
-    // for test
+    // for testtest_payload_acc
     Eigen::Vector3d test_payload_acc{0,0,0};
-    payload_.GetAcc(test_payload_acc);
+    payload_.GetAcc();
     std::cout<<"[----------] Cooperative: payload_acc "<<test_payload_acc.transpose()<<std::endl;
 
     payload_.ComputeAttachPointsKinematics();  
@@ -428,8 +428,8 @@ void Cooperative::DoOneStepInt4Robots()
                 v_drone_cable_[i].mav_.GetAttitude(mav_attitude);
 
 
-                std::cout<<i<< "th "<<"mav post before is "<< mav_post.transpose()<<std::endl;
-                std::cout<<i<< "th "<<"mav att before is "<< mav_attitude<<std::endl;   
+                // std::cout<<i<< "th "<<"mav post before is "<< mav_post.transpose()<<std::endl;
+                // std::cout<<i<< "th "<<"mav att before is "<< mav_attitude<<std::endl;   
 
             // Eigen::Vector3d pd_post;
             // payload_.GetPosition(pd_post);
@@ -448,8 +448,8 @@ void Cooperative::DoOneStepInt4Robots()
                 v_drone_cable_[i].mav_.GetAttitude(mav_attitude);
 
 
-            std::cout<<i<< "th "<<"mav post after is "<< mav_post.transpose()<<std::endl;
-            std::cout<<i<< "th "<<"mav att after is "<< mav_attitude<<std::endl;
+            // std::cout<<i<< "th "<<"mav post after is "<< mav_post.transpose()<<std::endl;
+            // std::cout<<i<< "th "<<"mav att after is "<< mav_attitude<<std::endl;
 
             // Eigen::Vector3d pd_post;
             // payload_.GetPosition(pd_post);

@@ -145,6 +145,10 @@ class controller:
         e_omega = qd["omega"] - np.matmul(Rot.T, np.matmul(Rot_des, omega_des))
         M = np.cross(qd["omega"], np.matmul(params.I, qd["omega"]), axisa=0, axisb=0).T - np.matmul(params.Kpe, e_angle) - np.matmul(params.Kde, e_omega) 
 
+        print("FUCK mav inertia", params.I)
+        print("FUCK mav mass", params.mass)
+        
+
         return M
 
     def cooperative_suspended_payload_controller(self, ql, qd, pl_params, qd_params, uav_id):
@@ -213,6 +217,9 @@ class controller:
         g = pl_params.grav
         m = pl_params.mass
         nquad = pl_params.nquad
+
+        print("FUXK payload mass",  pl_params.mass)
+        print("FUXK payload inertia",  pl_params.I)
 
         e3 = np.array([[0],[0],[1.0]])
 

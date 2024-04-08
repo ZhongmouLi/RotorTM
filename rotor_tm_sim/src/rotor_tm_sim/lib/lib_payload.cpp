@@ -565,8 +565,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     dxdt.tail(3) =ComputeRotDynamics(drones_net_force_, drones_net_torque_, m_mass_matrix_, payload_bodyrate, m_C_, m_D_, m_E_);
 
 
-    std::cout<<"fuck payload post" << x.head(3).transpose() <<std::endl;
-    std::cout<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
+    // std::cout<<"fuck payload post" << x.head(3).transpose() <<std::endl;
+    // std::cout<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
 
     is_recursing = false;
 }

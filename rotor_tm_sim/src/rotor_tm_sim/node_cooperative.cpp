@@ -55,9 +55,9 @@ void fmCmdCallback0(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     v_mavs_thrusts[0] = static_cast<double>(msg->thrust);
 
     // torque = vector3MsgToEigen(msg->moments);
-    v_mavs_torques[0] = vector3MsgToEigen(msg->moments);
+    v_mavs_torques.at(0) = vector3MsgToEigen(msg->moments);
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
-    ROS_INFO_STREAM("mav0 input torque "<<v_mavs_torques[0]);
+    ROS_INFO_STREAM("mav0 input torque "<<v_mavs_torques.at(0));
     ROS_INFO_STREAM("mav0 input thrust "<<  v_mavs_thrusts[0]);
 }
 
@@ -71,12 +71,12 @@ void fmCmdCallback1(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     v_mavs_thrusts[1] = static_cast<double>(msg->thrust);
 
     // torque = vector3MsgToEigen(msg->moments);
-    v_mavs_torques[1] = vector3MsgToEigen(msg->moments);
+    v_mavs_torques.at(1) = vector3MsgToEigen(msg->moments);
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
 
-    ROS_INFO_STREAM("mav1 input torque "<<v_mavs_torques[1]);
+    ROS_INFO_STREAM("mav1 input torque "<<v_mavs_torques.at(1));
     ROS_INFO_STREAM("mav1 input thrust "<<  v_mavs_thrusts[1]);    
 }
 
@@ -89,11 +89,11 @@ void fmCmdCallback2(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     v_mavs_thrusts[2] = static_cast<double>(msg->thrust);
 
     // torque = vector3MsgToEigen(msg->moments);
-    v_mavs_torques[2] = vector3MsgToEigen(msg->moments);
+    v_mavs_torques.at(2) = vector3MsgToEigen(msg->moments);
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
-    ROS_INFO_STREAM("mav2 input torque "<<v_mavs_torques[2]);
+    ROS_INFO_STREAM("mav2 input torque "<<v_mavs_torques.at(2));
     ROS_INFO_STREAM("mav2 input thrust "<<  v_mavs_thrusts[2]);    
 }
 
@@ -106,12 +106,12 @@ void fmCmdCallback3(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     v_mavs_thrusts[3] = static_cast<double>(msg->thrust);
 
     // torque = vector3MsgToEigen(msg->moments);
-    v_mavs_torques[3] = vector3MsgToEigen(msg->moments);
+    v_mavs_torques.at(3) = vector3MsgToEigen(msg->moments);
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
-    ROS_INFO_STREAM("mav3 input torque "<<v_mavs_torques[3]);
-    ROS_INFO_STREAM("mav3 input thrust "<<  v_mavs_thrusts[3]);    
+    ROS_INFO_STREAM("mav3 input torque "<<v_mavs_torques.at(3));
+    ROS_INFO_STREAM("mav3 input thrust "<<v_mavs_thrusts[3]);    
 }
 
 
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh_private("~");
 
     // 2.define ros frequency to be 100
-    const int ROS_FREQ = 100;
+    const int ROS_FREQ = 70;
     ros::Rate loop_rate(ROS_FREQ);
     // Next check frequency of payload odom and fm_cmd
     // 
@@ -176,6 +176,7 @@ int main(int argc, char** argv)
     // 5. define quadrotor simulator
     // set int step size to be same as ros step
     const double dt = 1.0/ROS_FREQ;
+    ROS_INFO_STREAM("step size is " << dt);
 
     
     // 6. define instance of single quadrotor +  a point mass payload 
@@ -209,13 +210,17 @@ int main(int argc, char** argv)
     
 
     int fuck =0;
+
+    Eigen::Vector3d payload_init_post{1,2,3};
+    ptr_Cooperative->SetPayloadInitPost(payload_init_post);
+
     while (ros::ok())
     {   
 
         // ROS_INFO_STREAM("ROS loop begin");
         std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
-        Eigen::Vector3d mav0_pst{1,2,3};
-        v_drone_cable.at(0).mav_.GetPosition(mav0_pst);
+        // Eigen::Vector3d mav0_pst{1,2,3};
+        // v_drone_cable.at(0).mav_.GetPosition(mav0_pst);
 
 
         // step 1 input control sigals for mavs
