@@ -13,13 +13,15 @@ class rotorTMQuadrotorTest : public ::testing::Test
 public:
 
 rotorTMQuadrotorTest(){
-    Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
+Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
 
     double mass =1;
 
-    double dt = 0.01;
+    MassProperty mav_mass_property = {mass, m_inertia};
 
-    ptr_quadrotor = std::make_shared<Quadrotor>(mass, m_inertia, dt);
+    double dt=0.01;
+
+    ptr_quadrotor = std::make_shared<Quadrotor>(mav_mass_property, dt);
 }
 
 ~rotorTMQuadrotorTest(){
@@ -48,8 +50,9 @@ TEST_F(rotorTMQuadrotorTest, calHoverEqulibirum){
     const Eigen::Vector3d torque{0, 0, 0};
     
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();
@@ -120,8 +123,9 @@ TEST_F(rotorTMQuadrotorTest, calApplyConstThrust){
     const Eigen::Vector3d torque{0, 0, 0};
     
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();
@@ -197,8 +201,9 @@ TEST_F(rotorTMQuadrotorTest, calApplyConstThrustRotX90d){
     ptr_quadrotor->SetInitialAttitude(90.0/180*M_PI,0,0);
 
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();
@@ -276,8 +281,9 @@ TEST_F(rotorTMQuadrotorTest, calApplyRandThrustRotX90d){
     ptr_quadrotor->SetInitialAttitude(90.0/180*M_PI,0,0);
 
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();
@@ -354,8 +360,9 @@ TEST_F(rotorTMQuadrotorTest, calApplyRandThrustRotY90d){
     ptr_quadrotor->SetInitialAttitude(0,90.0/180*M_PI,0);
 
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();
@@ -429,8 +436,9 @@ TEST_F(rotorTMQuadrotorTest, calApplyRandThrustRotZ90d){
     ptr_quadrotor->SetInitialAttitude(0,0,90.0/180*M_PI);
 
     // input force and torque
-    ptr_quadrotor->InputThurst(thrust);
-    ptr_quadrotor->InputTorque(torque);
+    // ptr_quadrotor->InputThurst(thrust);
+    // ptr_quadrotor->InputTorque(torque);
+    ptr_quadrotor->InputDroneThrustTorque(thrust, torque);
 
     // do one integration
     ptr_quadrotor->DoOneStepInt();

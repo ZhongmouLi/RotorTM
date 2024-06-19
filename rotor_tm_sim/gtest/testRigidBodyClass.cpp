@@ -16,9 +16,11 @@ rotorTMRigidBodyTest(){
 
     double mass =1;
 
+    MassProperty mass_property = {mass, m_inertia};
+
     double dt = 0.01;
 
-    ptr_rigidbody = std::make_shared<RigidBody>(mass, m_inertia, dt);
+    ptr_rigidbody = std::make_shared<RigidBody>(mass_property, dt);
 }
 
 ~rotorTMRigidBodyTest(){
@@ -47,9 +49,13 @@ TEST_F(rotorTMRigidBodyTest, calHoverEqulibirum){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+     ptr_rigidbody->InputWrench(mav_wrench);
+
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -119,9 +125,12 @@ TEST_F(rotorTMRigidBodyTest, applyForce4Zdirection){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+     ptr_rigidbody->InputWrench(mav_wrench);
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -193,9 +202,12 @@ TEST_F(rotorTMRigidBodyTest, applyRandomForceOneStep){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+     ptr_rigidbody->InputWrench(mav_wrench);
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -265,9 +277,12 @@ TEST_F(rotorTMRigidBodyTest, applyIdentityForceTwoSteps){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do two steps integration
     const double dt = 0.01;
@@ -341,9 +356,12 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceTwoSteps){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+     ptr_rigidbody->InputWrench(mav_wrench);
 
     // do two steps integration
     const double dt = 0.01;
@@ -415,9 +433,12 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceTenSteps){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do 10 steps integration
     const double dt = 0.01;
@@ -488,9 +509,12 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceThousandSteps){
 
     const Eigen::Vector3d torque(0, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do two steps integration
     const double dt = 0.01;
@@ -568,9 +592,12 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceNonOriginThousandSteps){
     ptr_rigidbody->SetInitialPost(initial_post);
 
 
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do two steps integration
     const double dt = 0.01;
@@ -642,9 +669,12 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XRotation){
 
     const Eigen::Vector3d torque(4.5, 0, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -709,9 +739,12 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4YRotation){
 
     const Eigen::Vector3d torque(0, 5.25, 0);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -778,9 +811,12 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4ZRotation){
 
     const Eigen::Vector3d torque(0, 0, 6.13);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
@@ -847,9 +883,12 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XYZRotationTenSteps){
 
     const Eigen::Vector3d torque(0.1, 0.2, 0.3);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do 10 steps integration
     const double dt = 0.01;
@@ -920,9 +959,12 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XYZRotationThreeHundSteps){
 
     const Eigen::Vector3d torque(0.1, 0.2, 0.3);
     
+    const Wrench mav_wrench = {force, torque};
+
     // input force and torque
-    ptr_rigidbody->InputForce(force);
-    ptr_rigidbody->InputTorque(torque);
+    // ptr_rigidbody->InputForce(force);
+    // ptr_rigidbody->InputTorque(torque);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
     // do 10 steps integration
     const double dt = 0.01;

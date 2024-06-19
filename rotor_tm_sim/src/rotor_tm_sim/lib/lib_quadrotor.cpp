@@ -2,7 +2,7 @@
 
 
 
-Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, const double &step_size):RigidBody(mass, m_inertia, step_size)
+Quadrotor::Quadrotor(const MassProperty &mass_property, const double &step_size):RigidBody(mass_property, step_size)
 {
     //    SetStatesZeros();
 };
@@ -54,19 +54,7 @@ Quadrotor::Quadrotor(const double &mass,  const Eigen::Matrix3d &m_inertia, cons
 // }
 
 
-void Quadrotor::InputNetForce(const Eigen::Vector3d &mav_net_force)
-{
-    //1. compute gravity
-    double mav_mass;
-    GetMass(mav_mass);
-
-    Eigen::Vector3d mav_input_force = mav_net_force + (Eigen::Vector3d::UnitZ() * mav_mass * gravity_);
-
-    InputForce(mav_input_force);
-
-}
-
-void Quadrotor::InputThurst(const double &mav_thrust)
+void Quadrotor::InputDroneThrustTorque(const double &mav_thrust, const Eigen::Vector3d &mav_torque)
 {
     //1. recall thrust force in world frame =  0^R_L * [0,0,T] 
      Eigen::Vector3d thrust_force_bf(0,0,mav_thrust);
@@ -91,10 +79,37 @@ void Quadrotor::InputThurst(const double &mav_thrust)
     // std::cout<< "rot matrix of quadrotor is " <<std::endl <<rot_matrix<<std::endl;
 
     // 3. compute thrust force in world frame
-    mav_thrust_force_ =  rot_matrix * thrust_force_bf;
+    Eigen::Vector3d mav_thrust_force =  rot_matrix * thrust_force_bf;
 
-    std::cout<<"[----------] mav_thrust_force_ is " << mav_thrust_force_.transpose() << std::endl;
+    // 4. create input wrench
+    Wrench mav_wrench = {mav_thrust_force, mav_torque};
 
-    InputForce(mav_thrust_force_);
+    InputWrench(mav_wrench);
 
-};
+    // 5. save thrust and torque
+    mav_thrust_ = mav_thrust;
+    mav_torque_ = mav_torque;
+}
+
+
+// void Quadrotor::InputNetForce(const Eigen::Vector3d &mav_net_force)
+// {
+//     //1. compute gravity
+//     double mav_mass;
+//     GetMass(mav_mass);
+
+//     Eigen::Vector3d mav_input_force = mav_net_force + (Eigen::Vector3d::UnitZ() * mav_mass * gravity_);
+
+//     InputForce(mav_input_force);
+
+// }
+
+// void Quadrotor::InputThurst(const double &mav_thrust)
+// {
+    
+
+//     std::cout<<"[----------] mav_thrust_force_ is " << mav_thrust_force_.transpose() << std::endl;
+
+//     InputForce(mav_thrust_force_);
+
+// };

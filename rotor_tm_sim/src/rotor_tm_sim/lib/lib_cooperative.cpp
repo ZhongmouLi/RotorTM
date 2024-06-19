@@ -154,6 +154,67 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
 }
 
 
+Eigen::MatrixXd Payload::ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
+{
+    // define matrix Ji in Eq45    
+    Eigen::MatrixXd Ji = Eigen::MatrixXd::Identity(6,6);
+
+    // compute ai in Eq 43
+    // xi = cable_direction
+    Eigen::Matrix3d ai = cable_direction *cable_direction.transpose();
+    
+    // compute bi in Eq 43 and 44
+    Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
+    Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
+
+    Eigen::Matrix3d bi = hat_pho * payload_R.transpose();
+
+    // compute bi_t in Eq 44
+    Eigen::Matrix3d bi_t = - payload_R * hat_pho;
+
+
+    // construct matrix Ji in Eq 46
+    // Ji[1:3,1:3] = ai
+    Ji.block<3,3>(0,0) = ai;
+
+    // Ji[1:3,4:6] = ai * bi_t
+    Ji.block<3,3>(0,3) = ai * bi_t;
+
+    // Ji[4:6,1:3] = bi * ai
+    Ji.block<3,3>(3,0) = bi * ai;
+
+
+    // Ji[4:6,4:6] = bi * ai
+    Ji.block<3,3>(3,3) = bi * ai * bi_t;
+
+
+    return Ji;
+}
+
+Eigen::VectorXd Payload::ComputeVectorbi(const double &mav_mass, const Eigen::Vector3d &mav_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
+{
+    Eigen::VectorXd bi = Eigen::MatrixXd::Identity(6,1);
+
+    Eigen::Vector3d bi_up = Eigen::MatrixXd::Identity(3,1);
+    Eigen::Vector3d bi_down = Eigen::MatrixXd::Identity(3,1);
+
+    // compute first three elements in bi in eq 42
+    bi_up = mav_mass * cable_direction *cable_direction.transpose()*mav_vel;
+
+    Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
+    Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
+
+    // compute last three elements in bi in eq 42
+    bi_down = mav_mass * hat_pho * payload_R.transpose() * cable_direction *cable_direction.transpose()*mav_vel;
+
+    bi.head<3>() = bi_up;
+    bi.tail<3>() = bi_down;
+
+    return bi;
+
+}
+
+
 
 void Cooperative::InputControllerInput4MAVs(const Eigen::VectorXd v_mavs_thrust, const std::vector<Eigen::Vector3d> v_mavs_torque)
 {
@@ -243,7 +304,7 @@ void Cooperative::ComputeInteractWrenches()
         std::cout<<"[----------] Cooperative: set initial posts for payload once"<<std::endl;
     }
     
-    // for test
+    // for testtest_payload_acc
     Eigen::Vector3d test_payload_acc{0,0,0};
     payload_.GetAcc(test_payload_acc);
     std::cout<<"[----------] Cooperative: payload_acc "<<test_payload_acc.transpose()<<std::endl;
@@ -428,8 +489,8 @@ void Cooperative::DoOneStepInt4Robots()
                 v_drone_cable_[i].mav_.GetAttitude(mav_attitude);
 
 
-                std::cout<<i<< "th "<<"mav post before is "<< mav_post.transpose()<<std::endl;
-                std::cout<<i<< "th "<<"mav att before is "<< mav_attitude<<std::endl;   
+                // std::cout<<i<< "th "<<"mav post before is "<< mav_post.transpose()<<std::endl;
+                // std::cout<<i<< "th "<<"mav att before is "<< mav_attitude<<std::endl;   
 
             // Eigen::Vector3d pd_post;
             // payload_.GetPosition(pd_post);
@@ -448,8 +509,8 @@ void Cooperative::DoOneStepInt4Robots()
                 v_drone_cable_[i].mav_.GetAttitude(mav_attitude);
 
 
-            std::cout<<i<< "th "<<"mav post after is "<< mav_post.transpose()<<std::endl;
-            std::cout<<i<< "th "<<"mav att after is "<< mav_attitude<<std::endl;
+            // std::cout<<i<< "th "<<"mav post after is "<< mav_post.transpose()<<std::endl;
+            // std::cout<<i<< "th "<<"mav att after is "<< mav_attitude<<std::endl;
 
             // Eigen::Vector3d pd_post;
             // payload_.GetPosition(pd_post);

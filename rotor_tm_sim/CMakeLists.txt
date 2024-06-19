@@ -64,28 +64,28 @@ target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
 
 
 # (3)pointmass 
-add_library(lib_pointmass SHARED
-            include/rotor_tm_sim/lib_pointmass.hpp
-            src/rotor_tm_sim/lib/lib_pointmass.cpp)
+# add_library(lib_pointmass SHARED
+#             include/rotor_tm_sim/lib_pointmass.hpp
+#             src/rotor_tm_sim/lib/lib_pointmass.cpp)
 
 # use this options in the future that specify c++ 17 for  library
-target_compile_options(lib_pointmass PRIVATE -std=c++17 -Wall -Wextra)
+# target_compile_options(lib_pointmass PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_pointmass
-target_link_libraries(lib_pointmass Boost::program_options Eigen3::Eigen)
+# target_link_libraries(lib_pointmass Boost::program_options Eigen3::Eigen)
 
 # (4) cable
-add_library(lib_cable SHARED
-            include/rotor_tm_sim/lib_cable.hpp
-            src/rotor_tm_sim/lib/lib_cable.cpp)
+# add_library(lib_cable SHARED
+#             include/rotor_tm_sim/lib_cable.hpp
+#             src/rotor_tm_sim/lib/lib_cable.cpp)
 
-target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
+# target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_cable Eigen3::Eigen)
+# target_link_libraries(lib_cable Eigen3::Eigen)
 
 
 ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
-## (1) quadrotor
+# (1) quadrotor
 add_library(lib_quadrotor SHARED
             include/rotor_tm_sim/lib_quadrotor.hpp
             src/rotor_tm_sim/lib/lib_quadrotor.cpp)
@@ -97,35 +97,35 @@ target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
 
 # (3) mav + cable
-add_library(lib_uav_cable SHARED
-            include/rotor_tm_sim/lib_uav_cable.hpp
-            src/rotor_tm_sim/lib/lib_uav_cable.cpp)
+# add_library(lib_uav_cable SHARED
+#             include/rotor_tm_sim/lib_uav_cable.hpp
+#             src/rotor_tm_sim/lib/lib_uav_cable.cpp)
 
-target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
+# target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+# target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
 
 # (3) payload 
-add_library(lib_payload SHARED
-            include/rotor_tm_sim/lib_payload.hpp
-            src/rotor_tm_sim/lib/lib_payload.cpp)
+# add_library(lib_payload SHARED
+#             include/rotor_tm_sim/lib_payload.hpp
+#             src/rotor_tm_sim/lib/lib_payload.cpp)
 
 # use this options in the future that specify c++ 17 for  library
-target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
+# target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
+# target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
 
 
 #  (4) cooperative
-add_library(lib_cooperative SHARED
-            include/rotor_tm_sim/lib_cooperative.hpp
-            src/rotor_tm_sim/lib/lib_cooperative.cpp)
+# add_library(lib_cooperative SHARED
+#             include/rotor_tm_sim/lib_cooperative.hpp
+#             src/rotor_tm_sim/lib/lib_cooperative.cpp)
 
-target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
+# target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody lib_quadrotor Boost::program_options Eigen3::Eigen)
+# target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody lib_quadrotor Boost::program_options Eigen3::Eigen)
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
 # # (1) single quadrotor + point mass payload
@@ -154,22 +154,22 @@ target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody li
 # target_link_libraries(rotorTM_CXX_DronePointMass lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # 4 mavs + payload
-add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
-target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
+# target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ###########
 ## Test ##
 ###########
 
 # # test for rigid body class
-# catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
+catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 
-# target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for quadrotor class
-# catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
+catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
-# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for cable class
 # catkin_add_gtest(cable_test gtest/testCable.cpp)
@@ -189,9 +189,9 @@ target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES
 
 
 # # test for cooperative class
-catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
+# catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
 
-target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
 # # ros tests for cooperative
