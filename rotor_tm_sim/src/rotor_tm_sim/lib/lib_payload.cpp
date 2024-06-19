@@ -43,8 +43,9 @@ void Payload::ComputeAttachPointsKinematics()
     Eigen::Vector3d payload_bodyrate{0,0,0};  
     GetVel(payload_vel);
     GetBodyrate(payload_bodyrate);
-    Eigen::Matrix3d m_payload_bodyrate_skewsym = TransVector3d2SkewSymMatrix(payload_bodyrate);
+    Eigen::Matrix3d m_skewsym_payload_bodyrate = TransVector3d2SkewSymMatrix(payload_bodyrate);
 
+    
 
     // obtain payload acc
     Eigen::Vector3d payload_acc;
@@ -85,15 +86,15 @@ void Payload::ComputeAttachPointsKinematics()
         // 3. compute attach point's vels in world frame
         Eigen::Vector3d attach_point_vel_world_frame;
 
-        Eigen::Matrix3d m_skew_payload_bodyrate = TransVector3d2SkewSymMatrix(payload_bodyrate);
+        // Eigen::Matrix3d m_skew_payload_bodyrate = TransVector3d2SkewSymMatrix(payload_bodyrate);
             
-        attach_point_vel_world_frame = payload_vel + m_payload_rotation * m_skew_payload_bodyrate * attach_point_body_frame;
+        attach_point_vel_world_frame = payload_vel + m_payload_rotation * m_skewsym_payload_bodyrate * attach_point_body_frame;
         
         // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 5"<<std::endl;
         v_attach_points_vels_.at(i) = attach_point_vel_world_frame;        
 
         // 4 compute centri acc of attach point
-        Eigen::Vector3d attach_point_centri_acc =  m_payload_bodyrate_skewsym * (m_payload_bodyrate_skewsym * attach_point_body_frame);
+        Eigen::Vector3d attach_point_centri_acc =  m_skewsym_payload_bodyrate * (m_skewsym_payload_bodyrate * attach_point_body_frame);
         // std::cout<< "attach_point_centri_acc  is " <<attach_point_centri_acc.transpose()<<std::endl;
         // 3.3 compute acc of attach point
         //  self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
@@ -309,65 +310,65 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_mav_cable)
 }
 
 
-Eigen::MatrixXd Payload::ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
-{
-    // define matrix Ji in Eq45    
-    Eigen::MatrixXd Ji = Eigen::MatrixXd::Identity(6,6);
+// Eigen::MatrixXd Payload::ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
+// {
+//     // define matrix Ji in Eq45    
+//     Eigen::MatrixXd Ji = Eigen::MatrixXd::Identity(6,6);
 
-    // compute ai in Eq 43
-    // xi = cable_direction
-    Eigen::Matrix3d ai = cable_direction *cable_direction.transpose();
+//     // compute ai in Eq 43
+//     // xi = cable_direction
+//     Eigen::Matrix3d ai = cable_direction *cable_direction.transpose();
     
-    // compute bi in Eq 43 and 44
-    Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
-    Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
+//     // compute bi in Eq 43 and 44
+//     Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
+//     Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
 
-    Eigen::Matrix3d bi = hat_pho * payload_R.transpose();
+//     Eigen::Matrix3d bi = hat_pho * payload_R.transpose();
 
-    // compute bi_t in Eq 44
-    Eigen::Matrix3d bi_t = - payload_R * hat_pho;
-
-
-    // construct matrix Ji in Eq 46
-    // Ji[1:3,1:3] = ai
-    Ji.block<3,3>(0,0) = ai;
-
-    // Ji[1:3,4:6] = ai * bi_t
-    Ji.block<3,3>(0,3) = ai * bi_t;
-
-    // Ji[4:6,1:3] = bi * ai
-    Ji.block<3,3>(3,0) = bi * ai;
+//     // compute bi_t in Eq 44
+//     Eigen::Matrix3d bi_t = - payload_R * hat_pho;
 
 
-    // Ji[4:6,4:6] = bi * ai
-    Ji.block<3,3>(3,3) = bi * ai * bi_t;
+//     // construct matrix Ji in Eq 46
+//     // Ji[1:3,1:3] = ai
+//     Ji.block<3,3>(0,0) = ai;
+
+//     // Ji[1:3,4:6] = ai * bi_t
+//     Ji.block<3,3>(0,3) = ai * bi_t;
+
+//     // Ji[4:6,1:3] = bi * ai
+//     Ji.block<3,3>(3,0) = bi * ai;
 
 
-    return Ji;
-}
+//     // Ji[4:6,4:6] = bi * ai
+//     Ji.block<3,3>(3,3) = bi * ai * bi_t;
 
-Eigen::VectorXd Payload::ComputeVectorbi(const double &mav_mass, const Eigen::Vector3d &mav_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
-{
-    Eigen::VectorXd bi = Eigen::MatrixXd::Identity(6,1);
 
-    Eigen::Vector3d bi_up = Eigen::MatrixXd::Identity(3,1);
-    Eigen::Vector3d bi_down = Eigen::MatrixXd::Identity(3,1);
+//     return Ji;
+// }
 
-    // compute first three elements in bi in eq 42
-    bi_up = mav_mass * cable_direction *cable_direction.transpose()*mav_vel;
+// Eigen::VectorXd Payload::ComputeVectorbi(const double &mav_mass, const Eigen::Vector3d &mav_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame)
+// {
+//     Eigen::VectorXd bi = Eigen::MatrixXd::Identity(6,1);
 
-    Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
-    Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
+//     Eigen::Vector3d bi_up = Eigen::MatrixXd::Identity(3,1);
+//     Eigen::Vector3d bi_down = Eigen::MatrixXd::Identity(3,1);
 
-    // compute last three elements in bi in eq 42
-    bi_down = mav_mass * hat_pho * payload_R.transpose() * cable_direction *cable_direction.transpose()*mav_vel;
+//     // compute first three elements in bi in eq 42
+//     bi_up = mav_mass * cable_direction *cable_direction.transpose()*mav_vel;
 
-    bi.head<3>() = bi_up;
-    bi.tail<3>() = bi_down;
+//     Eigen::Matrix3d payload_R = payload_attitude.toRotationMatrix(); // convert a quaternion to a 3x3 rotation matrix
+//     Eigen::Matrix3d hat_pho = TransVector3d2SkewSymMatrix(attach_point_body_frame);
 
-    return bi;
+//     // compute last three elements in bi in eq 42
+//     bi_down = mav_mass * hat_pho * payload_R.transpose() * cable_direction *cable_direction.transpose()*mav_vel;
 
-}
+//     bi.head<3>() = bi_up;
+//     bi.tail<3>() = bi_down;
+
+//     return bi;
+
+// }
 
 
 void Payload::InputMassMatrix(const Eigen::Matrix3d &m_mass_matrix)
@@ -455,8 +456,9 @@ Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &drones_net_
     return payload_acc;
 }
 
+// Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
 
-Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
+Eigen::Vector3d Payload::ComputeRotDynamics(const Wrench &mavs_net_wrench, const AttachPoint &attach_point, const CooperIntertPara &cooper_interact_para);
 {
 
     // compute effective inertia and torque for the payload
@@ -476,9 +478,9 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
     Eigen::Matrix3d payload_interia;
     GetInertia(payload_interia);
 
-    Eigen::Matrix3d inv_m_mass_matrix = m_mass_matrix.inverse();
+    Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para.m_mass_matrix.inverse();
 
-    torque_effective = drones_net_torques - m_C * inv_m_mass_matrix *  drones_net_forces - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
+    torque_effective = mavs_net_wrench.torque - cooper_interact_para.m_C * inv_m_mass_matrix *  mavs_net_wrench.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
 
     // std::cout<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
 
@@ -500,7 +502,7 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_fo
 
     // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
     
-    interia_effective = payload_interia + m_C * (inv_m_mass_matrix * m_D) - m_E;
+    interia_effective = payload_interia + cooper_interact_para.m_C * (inv_m_mass_matrix * cooper_interact_para.m_D) - cooper_interact_para.m_E;
 
     // step 3 compute bodyrate acc
     // bodyrate_acc = inv(effective_inertia) * effective_torque
