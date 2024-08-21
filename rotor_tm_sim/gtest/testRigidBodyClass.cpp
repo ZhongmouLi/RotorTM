@@ -54,66 +54,64 @@ TEST_F(rotorTMRigidBodyTest, calHoverEqulibirum){
     // input force and torque
     // ptr_rigidbody->InputForce(force);
     // ptr_rigidbody->InputTorque(torque);
-     ptr_rigidbody->InputWrench(mav_wrench);
+    ptr_rigidbody->InputWrench(mav_wrench);
 
 
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    Pose pose;
 
-    ptr_rigidbody->GetPosition(pos);
+    // 
 
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    pose =  ptr_rigidbody->pose();
+
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = gt
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    Vels vels;
+    // 
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    vels = ptr_rigidbody->vels();
+
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     // check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
+    Accs accs;
+    // 
+    accs =  ptr_rigidbody->accs();
     
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    ASSERT_EQ(acc[2], 0);  
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    double step_current = ptr_rigidbody->timestep();
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 
@@ -135,62 +133,50 @@ TEST_F(rotorTMRigidBodyTest, applyForce4Zdirection){
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
+
+    // obtain pose, vels, accs
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+    
+    
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
-
-    ptr_rigidbody->GetPosition(pos);
-
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    EXPECT_FLOAT_EQ(pos[2], 0.00026);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.00026);    
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
-
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    EXPECT_FLOAT_EQ(vel[2], 0.05199999999999999);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0.05199999999999999);  
 
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-
-    // std::cout<< "acc is " << acc.transpose()<<std::endl;
-    
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 5.2);  
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 5.2);  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);   
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 
@@ -212,61 +198,47 @@ TEST_F(rotorTMRigidBodyTest, applyRandomForceOneStep){
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
-    // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    // obtain pose, vels, accs
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
 
-    ptr_rigidbody->GetPosition(pos);
-
-    EXPECT_FLOAT_EQ(pos[0], 0.5 * (force[0]) * 0.01 *0.01); 
-    EXPECT_FLOAT_EQ(pos[1], 0.5 * (force[1]) * 0.01 *0.01); 
-    EXPECT_FLOAT_EQ(pos[2], 0.5 * (force[2]-9.8) * 0.01 *0.01); 
+    EXPECT_FLOAT_EQ(pose.post[0], 0.5 * (force[0]) * 0.01 *0.01); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0.5 * (force[1]) * 0.01 *0.01); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.5 * (force[2]-9.8) * 0.01 *0.01); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
-
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *0.01);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *0.01);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *0.01);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *0.01);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *0.01);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *0.01);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-
-    // std::cout<< "acc is " << acc.transpose()<<std::endl;
-    
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
+
+    // check angular_acc =0
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 TEST_F(rotorTMRigidBodyTest, applyIdentityForceTwoSteps){
@@ -292,60 +264,49 @@ TEST_F(rotorTMRigidBodyTest, applyIdentityForceTwoSteps){
             // printf("current step is %.3f", t);
     }
     
+    // obtain pose, vels, accs
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
 
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
-
-    ptr_rigidbody->GetPosition(pos);
-
-    EXPECT_FLOAT_EQ(pos[0], 0.5 * (force[0]) * pow(0.02,2)); 
-    EXPECT_FLOAT_EQ(pos[1], 0.5 * (force[1]) * pow(0.02,2)); 
-    EXPECT_FLOAT_EQ(pos[2], 0.5 * (force[2]-9.8) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[0], 0.5 * (force[0]) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0.5 * (force[1]) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.5 * (force[2]-9.8) * pow(0.02,2)); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
-
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *0.02);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *0.02);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *0.02);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.02);  
+    EXPECT_FLOAT_EQ(step_current, 0.02);  
 }
 
 TEST_F(rotorTMRigidBodyTest, applyRandomnForceTwoSteps){
@@ -372,58 +333,65 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceTwoSteps){
     }
     
 
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
 
-    ptr_rigidbody->GetPosition(pos);
-
-    EXPECT_FLOAT_EQ(pos[0], 0.5 * (force[0]) * pow(0.02,2)); 
-    EXPECT_FLOAT_EQ(pos[1], 0.5 * (force[1]) * pow(0.02,2)); 
-    EXPECT_FLOAT_EQ(pos[2], 0.5 * (force[2]-9.8) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[0], 0.5 * (force[0]) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0.5 * (force[1]) * pow(0.02,2)); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.5 * (force[2]-9.8) * pow(0.02,2)); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *0.02);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *0.02);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *0.02);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *0.02);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.02);  
+    
+    
+    EXPECT_FLOAT_EQ(step_current, 0.02);  
 }
+
+
+
+
+
 
 TEST_F(rotorTMRigidBodyTest, applyRandomnForceTenSteps){
 
@@ -448,56 +416,56 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceTenSteps){
             // printf("current step is %.3f \n", t);
     }
     
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
 
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
-
-    ptr_rigidbody->GetPosition(pos);
-
-    EXPECT_FLOAT_EQ(pos[0], 0.5 * (force[0]) * pow(10*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[1], 0.5 * (force[1]) * pow(10*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[2], 0.5 * (force[2]-9.8) * pow(10*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[0], 0.5 * (force[0]) * pow(10*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0.5 * (force[1]) * pow(10*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.5 * (force[2]-9.8) * pow(10*dt,2)); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *10*dt);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *10*dt);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *10*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *10*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *10*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *10*dt);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
+    
+    
     ASSERT_FLOAT_EQ(step_current, 10*dt);  
 }
 
@@ -525,57 +493,59 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceThousandSteps){
     }
     
 
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
-
-    ptr_rigidbody->GetPosition(pos);
-
-    EXPECT_FLOAT_EQ(pos[0], 0.5 * (force[0]) * pow(1000*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[1], 0.5 * (force[1]) * pow(1000*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[2], 0.5 * (force[2]-9.8) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[0], 0.5 * (force[0]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0.5 * (force[1]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0.5 * (force[2]-9.8) * pow(1000*dt,2)); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *1000*dt);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *1000*dt);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *1000*dt);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
+    
+    
     ASSERT_FLOAT_EQ(step_current, 1000*dt);  
 }
 
@@ -608,57 +578,63 @@ TEST_F(rotorTMRigidBodyTest, applyRandomnForceNonOriginThousandSteps){
     }
     
 
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    
 
-    ptr_rigidbody->GetPosition(pos);
+    
 
-    EXPECT_FLOAT_EQ(pos[0], initial_post[0]+0.5 * (force[0]) * pow(1000*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[1], initial_post[1]+0.5 * (force[1]) * pow(1000*dt,2)); 
-    EXPECT_FLOAT_EQ(pos[2], initial_post[2]+0.5 * (force[2]-9.8) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[0], initial_post[0]+0.5 * (force[0]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[1], initial_post[1]+0.5 * (force[1]) * pow(1000*dt,2)); 
+    EXPECT_FLOAT_EQ(pose.post[2], initial_post[2]+0.5 * (force[2]-9.8) * pow(1000*dt,2)); 
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    EXPECT_FLOAT_EQ(vel[0], (force[0]) *1000*dt);
-    EXPECT_FLOAT_EQ(vel[1], (force[1]) *1000*dt);
-    EXPECT_FLOAT_EQ(vel[2], (force[2]-9.8) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], (force[0]) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], (force[1]) *1000*dt);
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], (force[2]-9.8) *1000*dt);
 
     // check acc = a
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], force[0]); 
-    ASSERT_EQ(acc[1], force[1]); 
-    EXPECT_FLOAT_EQ(acc[2], (force[2]-9.8));  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], force[0]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], force[1]); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], (force[2]-9.8));  
 
 
     // check attitude = 0
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    ASSERT_EQ(att.x(), 0); 
-    ASSERT_EQ(att.y(), 0); 
-    ASSERT_EQ(att.z(), 0);  
-    ASSERT_EQ(att.w(), 1);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 1);  
 
     // check bodyrate =0
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    ASSERT_EQ(bodyrate[0], 0); 
-    ASSERT_EQ(bodyrate[1], 0); 
-    ASSERT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
-    // check bodyrate_acc =0
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc =0
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
+    
+    
     ASSERT_FLOAT_EQ(step_current, 1000*dt);  
 }
 
@@ -679,57 +655,60 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XRotation){
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
+
+
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
-
-    ptr_rigidbody->GetPosition(pos);
-
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     // check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
     // check bodyrate
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    EXPECT_FLOAT_EQ(bodyrate[0], 0.045); 
-    EXPECT_FLOAT_EQ(bodyrate[1], 0); 
-    EXPECT_FLOAT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0.045); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
     // check attitude
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    EXPECT_FLOAT_EQ(att.x(), 0.00011249999976269531); 
-    EXPECT_FLOAT_EQ(att.y(), 0); 
-    EXPECT_FLOAT_EQ(att.z(), 0);  
-    EXPECT_FLOAT_EQ(att.w(), 0.99999999367187498);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0.00011249999976269531); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 0.99999999367187498);  
 
-    // check bodyrate_acc
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 4.5); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 4.5); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    
+    
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 TEST_F(rotorTMRigidBodyTest, applyTorque4YRotation){
@@ -749,58 +728,66 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4YRotation){
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
+
+
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    
 
-    ptr_rigidbody->GetPosition(pos);
+    
 
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     // check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
 
     // check bodyrate
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    EXPECT_FLOAT_EQ(bodyrate[0], 0); 
-    EXPECT_FLOAT_EQ(bodyrate[1], 0.0525); 
-    EXPECT_FLOAT_EQ(bodyrate[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0.0525); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0);  
 
     // check attitude
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    EXPECT_FLOAT_EQ(att.x(), 0); 
-    EXPECT_FLOAT_EQ(att.y(), 0.00013124999962316894); 
-    EXPECT_FLOAT_EQ(att.z(), 0);  
-    EXPECT_FLOAT_EQ(att.w(), 0.99999999138671880);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0.00013124999962316894); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 0.99999999138671880);  
 
-    // check bodyrate_acc
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 5.25); 
-    ASSERT_EQ(bodyrate_acc[2], 0);  
+    // check angular_acc
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 5.25); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    
+    
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 
@@ -821,57 +808,65 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4ZRotation){
     // do one integration
     ptr_rigidbody->DoOneStepInt();
 
+
+
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    
 
-    ptr_rigidbody->GetPosition(pos);
+    
 
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     // check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
     // check bodyrate
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    EXPECT_FLOAT_EQ(bodyrate[0], 0); 
-    EXPECT_FLOAT_EQ(bodyrate[1], 0); 
-    EXPECT_FLOAT_EQ(bodyrate[2],  0.0613);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2],  0.0613);  
 
     // check attitude
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    EXPECT_FLOAT_EQ(att.x(), 0); 
-    EXPECT_FLOAT_EQ(att.y(), 0); 
-    EXPECT_FLOAT_EQ(att.z(), 0.0001532499994001396);  
-    EXPECT_FLOAT_EQ(att.w(), 0.9999999882572188);  
+    
+    
+    EXPECT_FLOAT_EQ(pose.att.x(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.y(), 0); 
+    EXPECT_FLOAT_EQ(pose.att.z(), 0.0001532499994001396);  
+    EXPECT_FLOAT_EQ(pose.att.w(), 0.9999999882572188);  
 
-    // check bodyrate_acc
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0); 
-    ASSERT_EQ(bodyrate_acc[1], 0); 
-    ASSERT_EQ(bodyrate_acc[2], 6.13);  
+    // check angular_acc
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 6.13);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
-    ASSERT_EQ(step_current, 0.01);  
+    
+    
+    EXPECT_FLOAT_EQ(step_current, 0.01);  
 }
 
 
@@ -899,56 +894,63 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XYZRotationTenSteps){
     }
     
 
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    
 
-    ptr_rigidbody->GetPosition(pos);
+    
 
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     //check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
     // check bodyrate
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    EXPECT_FLOAT_EQ(bodyrate[0], 0.01); 
-    EXPECT_FLOAT_EQ(bodyrate[1], 0.02); 
-    EXPECT_FLOAT_EQ(bodyrate[2], 0.03);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0.01); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0.02); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0.03);  
 
     // check attitude
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    EXPECT_NEAR(att.x(), 2.5004037205422324e-4, 1e-5);     
-    EXPECT_NEAR(att.y(), 5.0002658173730924e-4, 1e-5);      
-    EXPECT_NEAR(att.z(), 7.5006364505842392e-4, 1e-5);     
-    EXPECT_NEAR(att.w(), 9.9999956242878352e-1, 1e-5);      
+    
+    
+    EXPECT_NEAR(pose.att.x(), 2.5004037205422324e-4, 1e-5);     
+    EXPECT_NEAR(pose.att.y(), 5.0002658173730924e-4, 1e-5);      
+    EXPECT_NEAR(pose.att.z(), 7.5006364505842392e-4, 1e-5);     
+    EXPECT_NEAR(pose.att.w(), 9.9999956242878352e-1, 1e-5);      
 
-    // check bodyrate_acc
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0.1); 
-    ASSERT_EQ(bodyrate_acc[1], 0.2); 
-    ASSERT_EQ(bodyrate_acc[2], 0.3);  
+    // check angular_acc
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0.1); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0.2); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0.3);  
 
 
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
+    
+    
     ASSERT_FLOAT_EQ(step_current, 10*dt);  
 }
 
@@ -975,55 +977,62 @@ TEST_F(rotorTMRigidBodyTest, applyTorque4XYZRotationThreeHundSteps){
     }
     
 
+    Pose pose =  ptr_rigidbody->pose();
+    Vels vels = ptr_rigidbody->vels();    
+    Accs accs = ptr_rigidbody->accs();
+    double step_current = ptr_rigidbody->timestep();
+
+
+
     // check position = 0.5at^2
-    Eigen::Vector3d pos = Eigen::Vector3d::Random();
+    
 
-    ptr_rigidbody->GetPosition(pos);
+    
 
-    ASSERT_EQ(pos[0], 0); 
-    ASSERT_EQ(pos[1], 0); 
-    ASSERT_EQ(pos[2], 0);   
+    EXPECT_FLOAT_EQ(pose.post[0], 0); 
+    EXPECT_FLOAT_EQ(pose.post[1], 0); 
+    EXPECT_FLOAT_EQ(pose.post[2], 0);   
 
     // check vel = at
-    Eigen::Vector3d vel = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetVel(vel);
+    
+    
 
-    ASSERT_EQ(vel[0], 0); 
-    ASSERT_EQ(vel[1], 0); 
-    ASSERT_EQ(vel[2], 0);  
+    EXPECT_FLOAT_EQ(vels.linear_vel[0], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[1], 0); 
+    EXPECT_FLOAT_EQ(vels.linear_vel[2], 0);  
 
     // check acc = 0
-    Eigen::Vector3d acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetAcc(acc);
-    ASSERT_EQ(acc[0], 0); 
-    ASSERT_EQ(acc[1], 0); 
-    EXPECT_FLOAT_EQ(acc[2], 0);  
+    
+    
+    EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
+    EXPECT_FLOAT_EQ(accs.linear_acc[2], 0);  
 
     // check bodyrate
-    Eigen::Vector3d bodyrate = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyrate(bodyrate);
-    EXPECT_FLOAT_EQ(bodyrate[0], 0.3); 
-    EXPECT_FLOAT_EQ(bodyrate[1], 0.6); 
-    EXPECT_FLOAT_EQ(bodyrate[2], 0.9);  
+    
+    
+    EXPECT_FLOAT_EQ(vels.bodyrate[0], 0.3); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[1], 0.6); 
+    EXPECT_FLOAT_EQ(vels.bodyrate[2], 0.9);  
 
     // check attitude
-    Eigen::Quaterniond att = Eigen::Quaterniond::UnitRandom();
-    ptr_rigidbody->GetAttitude(att);
-    EXPECT_NEAR(att.x(), 0.19934871398234738, 1e-5);    
-    EXPECT_NEAR(att.y(), 0.3986953792988834, 1e-5);  
-    EXPECT_NEAR(att.z(), 0.5980442862305684, 1e-5);  
-    EXPECT_NEAR(att.w(), 0.6660669008938018, 1e-5);  
+    
+    
+    EXPECT_NEAR(pose.att.x(), 0.19934871398234738, 1e-5);    
+    EXPECT_NEAR(pose.att.y(), 0.3986953792988834, 1e-5);  
+    EXPECT_NEAR(pose.att.z(), 0.5980442862305684, 1e-5);  
+    EXPECT_NEAR(pose.att.w(), 0.6660669008938018, 1e-5);  
 
-    // check bodyrate_acc
-    Eigen::Vector3d bodyrate_acc = Eigen::Vector3d::Random();
-    ptr_rigidbody->GetBodyRateAcc(bodyrate_acc);
-    ASSERT_EQ(bodyrate_acc[0], 0.1); 
-    ASSERT_EQ(bodyrate_acc[1], 0.2); 
-    ASSERT_EQ(bodyrate_acc[2], 0.3);  
+    // check angular_acc
+    
+    
+    EXPECT_FLOAT_EQ(accs.angular_acc[0], 0.1); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[1], 0.2); 
+    EXPECT_FLOAT_EQ(accs.angular_acc[2], 0.3);  
     
     //check time step = dt
-    double step_current = 0;
-    ptr_rigidbody->GetCurrentTimeStep(step_current);
+    
+    
     ASSERT_FLOAT_EQ(step_current, 300*dt);  
 }
 

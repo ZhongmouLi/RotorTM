@@ -286,10 +286,17 @@ Accs RigidBody::accs() const
     return accs_;
 }
 
-void RigidBody::GetCurrentTimeStep(double &current_time)
+// void RigidBody::GetCurrentTimeStep(double &current_time)
+// {
+//     current_time = current_step_;
+// };
+
+
+double RigidBody::timestep() const
 {
-    current_time = current_step_;
-};
+
+    return current_step_;
+}
 
 
 Eigen::Matrix3d RigidBody::TransVector3d2SkewSymMatrix(Eigen::Vector3d vector)
