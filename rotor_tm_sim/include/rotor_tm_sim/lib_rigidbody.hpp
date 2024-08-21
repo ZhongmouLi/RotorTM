@@ -19,23 +19,32 @@ using object_state = Eigen::Matrix<double, 12, 1>;
 
 struct MassProperty {
         double mass;
-        Eigen::Matrix3d inertia;};
+        Eigen::Matrix3d inertia;
+        };
 
-struct Kinematics{
-        Eigen::Vector3d vel;
-        Eigen::Vector3d bodyrate;         
-        Eigen::Vector3d acc;
-        Eigen::Vector3d bodyrate_acc;
+struct Vels{
+        Eigen::Vector3d linear_vel  = Eigen::Vector3d::Zero(); 
+        Eigen::Vector3d  bodyrate = Eigen::Vector3d::Zero();         
+
+        Vels(const Eigen::Vector3d& l_vel, const Eigen::Vector3d& b_rate) : linear_vel(l_vel), bodyrate(b_rate) {};
         };  
 
+struct Accs{      
+        Eigen::Vector3d linear_acc  = Eigen::Vector3d::Zero(); 
+        Eigen::Vector3d angular_acc  = Eigen::Vector3d::Zero(); 
+        };  
+
+
 struct Pose{
-        Eigen::Vector3d post;  
-        Eigen::Quaterniond att;
-}
+        Eigen::Vector3d post  = Eigen::Vector3d::Zero(); 
+        Eigen::Quaterniond att = Eigen::Quaterniond::Identity();
+
+        Pose(const Eigen::Vector3d& p, const Eigen::Quaterniond& q) : post(p), att(q) {};
+};
 
 struct Wrench{
-        Eigen::Vector3d force;
-        Eigen::Vector3d torque;
+        Eigen::Vector3d force = Eigen::Vector3d::Zero(); 
+        Eigen::Vector3d torque = Eigen::Vector3d::Zero();
         };
 
 
@@ -59,18 +68,18 @@ class RigidBody
         // Eigen::Vector3d torque_;
         Wrench input_wrench_;
 
-        Pose pose_;
-
-        Kinematics kinematics_;
 
         // simulator setings for an object in 3D
         // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
         // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
         object_state state_;
 
+
+        Accs accs_;
+
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
-        Eigen::Vector3d object_acc_;
-        Eigen::Vector3d object_bodyrate_acc_ = Eigen::Vector3d::Zero();
+        // Eigen::Vector3d object_acc_;
+        // Eigen::Vector3d object_bodyrate_acc_ = Eigen::Vector3d::Zero();
 
         // rotational dynamic
         // compute dbodyrate in body frame
@@ -107,17 +116,28 @@ class RigidBody
         virtual void operator()(const object_state &x , object_state &dxdt, const double time); 
 
         // get drone status information
-        void GetPosition(Eigen::Vector3d &object_position) const;
+        // void GetPosition(Eigen::Vector3d &object_position) const;
 
-        void GetVel(Eigen::Vector3d &object_vel) const;
 
-        void GetAcc(Eigen::Vector3d &object_acc) const;
+        // get robot infor
+        double mass() const;
 
-        void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
+        Eigen::Matrix3d inertia() const;
 
-        void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
+        Pose pose() const;
 
-        void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
+        Vels vels() const;
+
+        Accs accs() const;
+        // void GetVel(Eigen::Vector3d &object_vel) const;
+
+        // void GetAcc(Eigen::Vector3d &object_acc) const;
+
+        // void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
+
+        // void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
+
+        // void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
 
         void GetState(object_state &state) const;
 
