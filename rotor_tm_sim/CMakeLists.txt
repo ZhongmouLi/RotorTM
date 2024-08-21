@@ -167,9 +167,9 @@ catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # # test for quadrotor class
-# catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
+catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
-# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for cable class
 # catkin_add_gtest(cable_test gtest/testCable.cpp)
