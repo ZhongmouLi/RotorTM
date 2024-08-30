@@ -1,7 +1,7 @@
 #include "rotor_tm_sim/lib_uav_cable.hpp"
 
 
-UAVCable::UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double & cable_length, const double &step_size):mav_(mass,  m_inertia, step_size), cable_(cable_length)
+UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const double &step_size):mav_(mav_mass_property, step_size), cable_(cable_length)
 {
 
 }

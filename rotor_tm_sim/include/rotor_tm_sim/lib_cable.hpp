@@ -69,17 +69,23 @@ class Cable
 
 
         // obtain cable direction
-        inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
+        inline Eigen::Vector3d direction() const {return xi_;};
+
+        // inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
 
         // obtain cable taut status
-        inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_;};
+        // inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_;};
+        inline bool tautStatus() const {return taut_;};
 
         // obtain cable tension force
-        inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
+        // inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
+        inline Eigen::Vector3d tensionForce() const {return tension_force_;};
 
-        inline void GetCableLength(double &cable_length){cable_length = length_;};
+        // inline void GetCableLength(double &cable_length){cable_length = length_;};
+        inline double length() const {return length_;};
 
-        inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
+        // inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
+        inline Eigen::Vector3d bodyrate() const {return body_rate_;};
 };
 
 

@@ -46,10 +46,10 @@ TEST_F(rotorTMCableTest, calZDireAttachPoints){
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
     
-    auto robot_post_z = RandomGenerate(-length, length);
+    auto robot_post_z = RandomGenerate(-ptr_cable->length(), ptr_cable->length());
 
     Eigen::Vector3d robot_post{0,0,robot_post_z};
 
@@ -58,13 +58,13 @@ TEST_F(rotorTMCableTest, calZDireAttachPoints){
     // compute cable direction and result is stored in xi_
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
 
-    Eigen::Vector3d cable_direction;
+    
 
-    ptr_cable->GetCableDirection(cable_direction);
+    
 
-    ASSERT_FLOAT_EQ(cable_direction[0], -robot_post.normalized()[0]); 
-    ASSERT_FLOAT_EQ(cable_direction[1], -robot_post.normalized()[1]); 
-    ASSERT_FLOAT_EQ(cable_direction[2], -robot_post.normalized()[2]);  
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[0], -robot_post.normalized()[0]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[1], -robot_post.normalized()[1]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[2], -robot_post.normalized()[2]);  
 }
 
 
@@ -75,23 +75,23 @@ TEST_F(rotorTMCableTest, calXDireAttachPoints){
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
     
-    auto robot_post_x = RandomGenerate(-length, length);
+    auto robot_post_x = RandomGenerate(-ptr_cable->length(), ptr_cable->length());
     
     Eigen::Vector3d robot_post{robot_post_x,0,0};
 
     // compute cable direction and result is stored in xi_
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
 
-    Eigen::Vector3d cable_direction;
+    
 
-    ptr_cable->GetCableDirection(cable_direction);
+    
 
-    ASSERT_FLOAT_EQ(cable_direction[0], -robot_post.normalized()[0]); 
-    ASSERT_FLOAT_EQ(cable_direction[1], -robot_post.normalized()[1]); 
-    ASSERT_FLOAT_EQ(cable_direction[2], -robot_post.normalized()[2]);  
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[0], -robot_post.normalized()[0]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[1], -robot_post.normalized()[1]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[2], -robot_post.normalized()[2]);  
 }
 
 
@@ -101,24 +101,24 @@ TEST_F(rotorTMCableTest, calYDireAttachPoints){
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
     
-    auto robot_post_y = RandomGenerate(-length, length);
+    auto robot_post_y = RandomGenerate(-ptr_cable->length(), ptr_cable->length());
     
     Eigen::Vector3d robot_post{0,robot_post_y,0};
 
     // compute cable direction and result is stored in xi_
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
 
-    Eigen::Vector3d cable_direction;
+    
 
-    ptr_cable->GetCableDirection(cable_direction);
+    
 
 
-    ASSERT_FLOAT_EQ(cable_direction[0], -robot_post.normalized()[0]); 
-    ASSERT_FLOAT_EQ(cable_direction[1], -robot_post.normalized()[1]); 
-    ASSERT_FLOAT_EQ(cable_direction[2], -robot_post.normalized()[2]);  
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[0], -robot_post.normalized()[0]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[1], -robot_post.normalized()[1]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[2], -robot_post.normalized()[2]);  
 }
 
 
@@ -133,14 +133,14 @@ TEST_F(rotorTMCableTest, calRandomAttachPoints){
     // compute cable direction and result is stored in xi_
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
 
-    Eigen::Vector3d cable_direction;
+    
 
-    ptr_cable->GetCableDirection(cable_direction);
+    
 
 
-    ASSERT_FLOAT_EQ(cable_direction[0], -robot_post.normalized()[0]); 
-    ASSERT_FLOAT_EQ(cable_direction[1], -robot_post.normalized()[1]); 
-    ASSERT_FLOAT_EQ(cable_direction[2], -robot_post.normalized()[2]);  
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[0], -robot_post.normalized()[0]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[1], -robot_post.normalized()[1]); 
+    ASSERT_FLOAT_EQ(ptr_cable->direction()[2], -robot_post.normalized()[2]);  
 }
 
 
@@ -148,23 +148,19 @@ TEST_F(rotorTMCableTest, calRandomAttachPoints){
 // check vertical taut
 TEST_F(rotorTMCableTest, calTautVeriticalNoMotion){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // 
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
 
-    bool cable_taut;
-
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(!cable_taut);
+    ASSERT_TRUE(!ptr_cable->tautStatus());
  
 }
 
@@ -172,13 +168,13 @@ TEST_F(rotorTMCableTest, calTautVeriticalNoMotion){
 // check vertical taut
 TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionClose){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
     // robot and pose vel
     Eigen::Vector3d robot_vel{0,0,-1};
 
@@ -186,24 +182,20 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionClose){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, Eigen::Vector3d::Zero(), robot_vel);
 
-    bool cable_taut;
-
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(!cable_taut);
+    ASSERT_TRUE(!ptr_cable->tautStatus());
  
 }
 
 // check vertical taut
 TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionRandClose){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot and pose vel
     double robot_z_vel = RandomGenerate(-5, -0.01);
@@ -213,11 +205,7 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionRandClose){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, Eigen::Vector3d::Zero(), robot_vel);
 
-    bool cable_taut;
-
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(!cable_taut);
+    ASSERT_TRUE(!ptr_cable->tautStatus());
  
 }
 
@@ -225,13 +213,13 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionRandClose){
 // check vertical taut
 TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionRandLeave){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
     // robot and pose vel
     double robot_z_vel = RandomGenerate(0.05, 5);
     Eigen::Vector3d robot_vel{0,0,robot_z_vel};
@@ -240,24 +228,20 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotMotionRandLeave){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, Eigen::Vector3d::Zero(), robot_vel);
 
-    bool cable_taut;
-
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(cable_taut);
+    ASSERT_TRUE(ptr_cable->tautStatus());
  
 }
 
 // check vertical taut when they are relative static
 TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionStatic){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot vel
     double robot_z_vel = RandomGenerate(0.05, 5);
@@ -271,12 +255,8 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionStatic){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
-    bool cable_taut;
 
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(!cable_taut);
- 
+    ASSERT_TRUE(!ptr_cable->tautStatus());
 }
 
 
@@ -284,13 +264,13 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionStatic){
 // check vertical taut when they are further
 TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionFar){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot vel
     double robot_z_vel = RandomGenerate(0.05, 5);
@@ -304,24 +284,20 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionFar){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
-    bool cable_taut;
 
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(cable_taut);
- 
+    ASSERT_TRUE(ptr_cable->tautStatus());
 }
 
 // check vertical taut when they are closer
 TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionClose){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot vel
     double robot_z_vel = RandomGenerate(0.05, 5);
@@ -335,12 +311,8 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionClose){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
-    bool cable_taut;
 
-    ptr_cable->GetCableTautStatus(cable_taut);
-
-    ASSERT_TRUE(!cable_taut);
- 
+    ASSERT_TRUE(!ptr_cable->tautStatus());
 }
 
 
@@ -348,13 +320,13 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionClose){
 // check tension force for static equilibrium in vertical direction
 TEST_F(rotorTMCableTest, calTensionForceStatic){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot vel
     double robot_z_vel = RandomGenerate(0.05, 5);
@@ -368,9 +340,6 @@ TEST_F(rotorTMCableTest, calTensionForceStatic){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
-    bool cable_taut;
-
-    ptr_cable->GetCableTautStatus(cable_taut);
 
      // asumme m_q = 1kg, m_p = 2kg
     // apply a thrust force 2*9.8N = 19.6N
@@ -384,27 +353,25 @@ TEST_F(rotorTMCableTest, calTensionForceStatic){
     Eigen::Vector3d attach_point_acc{0,0,9.8};
     ptr_cable->ComputeCableTensionForce(robot_mass, robot_force, attach_point_acc );
 
-    Eigen::Vector3d tension_force;
-    ptr_cable->GetCableTensionForce(tension_force);
 
-    ASSERT_TRUE(cable_taut);
+    ASSERT_TRUE(ptr_cable->tautStatus());
 
-    ASSERT_FLOAT_EQ(tension_force[0], 0); 
-    ASSERT_FLOAT_EQ(tension_force[1], 0); 
-    ASSERT_FLOAT_EQ(tension_force[2], -9.8);      
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[0], 0); 
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[1], 0); 
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[2], -9.8);      
 }
 
 
 // check tension force to accelerate in vertical direction
 TEST_F(rotorTMCableTest, calTensionForceVerticalAcclerate){
 
-    double length =0;
-    ptr_cable->GetCableLength(length);
+    // double length =0;
+    // ptr_cable->GetCableLength(length);
 
     // input two attach points (one is robot)
     Eigen::Vector3d attachpoint_post{0,0,0};
 
-    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(length+2e-3);
+    Eigen::Vector3d robot_post = attachpoint_post + Eigen::Vector3d::UnitZ()*(ptr_cable->length()+2e-3);
 
     // robot vel
     double robot_z_vel = RandomGenerate(0.05, 5);
@@ -418,9 +385,7 @@ TEST_F(rotorTMCableTest, calTensionForceVerticalAcclerate){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
-    bool cable_taut;
 
-    ptr_cable->GetCableTautStatus(cable_taut);
 
     // asumme m_q = 1kg, m_p = 0.5kg
     // apply a thrust force 2*9.8N = 19.6N
@@ -434,14 +399,11 @@ TEST_F(rotorTMCableTest, calTensionForceVerticalAcclerate){
 
     ptr_cable->ComputeCableTensionForce(robot_mass, robot_force, attach_point_acc);
 
-    Eigen::Vector3d tension_force;
-    ptr_cable->GetCableTensionForce(tension_force);
+    ASSERT_TRUE(ptr_cable->tautStatus());
 
-    ASSERT_TRUE(cable_taut);
-
-    ASSERT_FLOAT_EQ(tension_force[0], 0); 
-    ASSERT_FLOAT_EQ(tension_force[1], 0); 
-    ASSERT_FLOAT_EQ(tension_force[2], -6.533333333);      
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[0], 0); 
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[1], 0); 
+    ASSERT_FLOAT_EQ(ptr_cable->tensionForce()[2], -6.533333333);      
 }
 
 

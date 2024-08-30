@@ -27,19 +27,6 @@ class Quadrotor: public RigidBody
         // constructor
         Quadrotor(const MassProperty &mass_property, const double &step_size);
 
-        // call one step integration
-        // void DoOneStepInt();
-
-        // integration for one step
-        // Declare the function call operator to use odeint
-        // void operator()(const mav_state &x , mav_state &dxdt, const double time) final; 
-
-        // void InputThurst(const double &mav_thrust); // mav_thrust is the norm of thrust force
-
-        // // input net force for mav
-        // // net force =  resulant force except gravity
-        // void InputNetForce(const Eigen::Vector3d &mav_net_force);
-
         void InputDroneThrustTorque(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
         // set vel from outside
 

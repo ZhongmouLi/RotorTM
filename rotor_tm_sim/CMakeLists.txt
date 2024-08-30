@@ -75,13 +75,13 @@ target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
 # target_link_libraries(lib_pointmass Boost::program_options Eigen3::Eigen)
 
 # (4) cable
-# add_library(lib_cable SHARED
-#             include/rotor_tm_sim/lib_cable.hpp
-#             src/rotor_tm_sim/lib/lib_cable.cpp)
+add_library(lib_cable SHARED
+            include/rotor_tm_sim/lib_cable.hpp
+            src/rotor_tm_sim/lib/lib_cable.cpp)
 
-# target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-# target_link_libraries(lib_cable Eigen3::Eigen)
+target_link_libraries(lib_cable Eigen3::Eigen)
 
 
 ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
@@ -172,9 +172,9 @@ catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for cable class
-# catkin_add_gtest(cable_test gtest/testCable.cpp)
+catkin_add_gtest(cable_test gtest/testCable.cpp)
 
-# target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for UAVcable class
 # catkin_add_gtest(UAVcable_test gtest/testUAVCable.cpp)

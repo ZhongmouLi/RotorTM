@@ -26,17 +26,19 @@ class UAVCable{
     private:
         
         //control input
-        // mav thrust (double)
-        double mav_thrust_input_;
-        // mav torque (3X1 vector) in body frame
-        Eigen::Vector3d mav_torque_input_;   
+        // // mav thrust (double)
+        // double mav_thrust_input_;
+        // // mav torque (3X1 vector) in body frame
+        // Eigen::Vector3d mav_torque_input_;   
+        Wrench mav_input_wrench_;
 
         // attach point force
-        // it is the force the drone applies to the attach point
-        Eigen::Vector3d mav_attach_point_force_;
+        // // it is the force the drone applies to the attach point
+        // Eigen::Vector3d mav_attach_point_force_;
 
-        // it is the force the drone applies to the attach point
-        Eigen::Vector3d mav_attach_point_torque_;        
+        // // it is the force the drone applies to the attach point
+        // Eigen::Vector3d mav_attach_point_torque_;        
+        Wrench mav_attach_point_wrench_;
 
         // paramters for payload dynamic equation
         Eigen::Matrix3d m_D_i_;
@@ -61,8 +63,9 @@ class UAVCable{
     public:
 
     // constrcuster for quadrotor and cable
-    UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double & cable_length, const double &step_size);    
-
+    // UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double & cable_length, const double &step_size);   
+    UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const double &step_size);  
+    
     // call one step dynamic simulation
     virtual void DoOneStepInt() final;
 
@@ -82,7 +85,9 @@ class UAVCable{
     void ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc);
 
     // import control input from controller
-    void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
+    // void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
+    void InputControllerInput(const Wrench &mav_input_wrench_);
+    
 
     // set initial post of MAV
     void SetMAVInitPost(const Eigen::Vector3d &mav_post);
@@ -93,11 +98,11 @@ class UAVCable{
 
     // obtain class member variables
     // obtain attach point force
-    void GetAttachPointForce(Eigen::Vector3d &mav_attach_point_force){ mav_attach_point_force = mav_attach_point_force_;};
+    // void GetAttachPointForce(Eigen::Vector3d &mav_attach_point_force){ mav_attach_point_force = mav_attach_point_force_;};
 
-    // obtain attach point torque
-    void GetAttachPointTorque(Eigen::Vector3d &mav_attach_point_torque){ mav_attach_point_torque = mav_attach_point_torque_;};
-
+    // // obtain attach point torque
+    // void GetAttachPointTorque(Eigen::Vector3d &mav_attach_point_torque){ mav_attach_point_torque = mav_attach_point_torque_;};
+    inline Wrench attach_point_wrench() const (return mav_attach_point_wrench_);
     // obtain m_D_i
     void GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const;
 
