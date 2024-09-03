@@ -38,7 +38,7 @@ class Payload: public RigidBody{
 
     //     // vector of attach point accs     
     //    std::vector<Eigen::Vector3d> v_attach_points_accs_; 
-       std::vector<AttachPoint> v_attach_points_; 
+    std::vector<AttachPoint> v_attach_points_; 
 
        // net force applied by drones
     //    Eigen::Vector3d drones_net_force_;

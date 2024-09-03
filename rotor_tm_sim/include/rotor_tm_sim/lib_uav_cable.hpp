@@ -10,8 +10,8 @@
 
 #include "lib_cable.hpp"
 #include "lib_quadrotor.hpp"
-
-
+#include "lib_attachpoint.hpp"
+#include "lib_base.hpp"
 // typedef Eigen::Matrix<double, 12, 1> object_state;
 
 
@@ -23,6 +23,13 @@ class UAVCable{
 
         // cable instances
         Cable cable_; 
+
+        // attach point is a shared property between payload and UAVCable
+        std::shared_ptr<const AttachPoint> ptr_attach_point_;
+
+        //
+        // std::shared_ptr<const Payload> ptr_payload_;
+
     private:
         
         //control input
@@ -48,16 +55,17 @@ class UAVCable{
         // compute the projection of robot vel perpendicular to the cable
         // input: drone vel (3X1 vector) and cable direction (3X1 vector)
         // output:: drone vel projection that is perpendicular to cable (3X1 vector)
-        Eigen::Vector3d CalVelProjPerpendicularCable(const Eigen::Vector3d mav_vel, const Eigen::Vector3d &cable_direction);
-
+        // Eigen::Vector3d CalVelProjPerpendicularCable(const Eigen::Vector3d mav_vel, const Eigen::Vector3d &cable_direction);
+        Eigen::Vector3d CalVelProjPerpendicularCable();
 
         // compute attach point force that is the force applied by a drone to the payload at its attached point
-        Eigen::Vector3d ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+        // Eigen::Vector3d ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
+        Eigen::Vector3d ComputeAttachPointForce(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
         // compute attach point torque that is the torque applied by a drone to the payload at its attached point
-        Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
-  
+        // Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
+        Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
         
         UAVCable() = delete ;
     public:
@@ -65,28 +73,39 @@ class UAVCable{
     // constrcuster for quadrotor and cable
     // UAVCable(const double &mass, const Eigen::Matrix3d &m_inertia, const double & cable_length, const double &step_size);   
     UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const double &step_size);  
+
+    UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const std::shared_ptr<const AttachPoint> &ptr_attach_point, const double &step_size);  
     
     // call one step dynamic simulation
     virtual void DoOneStepInt() final;
 
+    void UpdateCable();
+
     // check if collision happens for a UAV cable object with its attach point
-    bool IsCollided(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel);
+    // bool IsCollided(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel);
 
     // update vel of UAV if collision happend
-    void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
+    // void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
+    void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
+
 
     // compute force and torque applied by MAV to payload at attach point position
-    void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+    // void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+    void ComputeAttachPointWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+
+
 
     // compute term m_D (m means matrix) and m_D is to compute payload translational dynamic equation
-    void ComputeMatrixMDiMCiMEi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post);
+    // void ComputeMatrixMDiMCiMEi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_post);
+    void ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude);
 
     // compute control inputs for mav for both slack and taut status
-    void ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc);
+    // void ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc);
+    void ComputeControlInputs4MAV();
 
     // import control input from controller
     // void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
-    void InputControllerInput(const Wrench &mav_input_wrench_);
+    void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);
     
 
     // set initial post of MAV
@@ -102,7 +121,8 @@ class UAVCable{
 
     // // obtain attach point torque
     // void GetAttachPointTorque(Eigen::Vector3d &mav_attach_point_torque){ mav_attach_point_torque = mav_attach_point_torque_;};
-    inline Wrench attach_point_wrench() const (return mav_attach_point_wrench_);
+    inline Wrench attach_point_wrench() const {return mav_attach_point_wrench_;};
+
     // obtain m_D_i
     void GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const;
 
