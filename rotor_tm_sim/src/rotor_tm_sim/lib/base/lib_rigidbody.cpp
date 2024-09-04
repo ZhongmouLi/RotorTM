@@ -1,4 +1,4 @@
-#include "rotor_tm_sim/lib_rigidbody.hpp"
+#include "rotor_tm_sim/base/lib_rigidbody.hpp"
 
 
 

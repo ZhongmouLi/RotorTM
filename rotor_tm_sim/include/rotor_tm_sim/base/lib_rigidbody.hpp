@@ -7,7 +7,7 @@
 #include <boost/numeric/odeint/external/eigen/eigen.hpp>
 #include <cmath>
 #include <vector>
-#include "rotor_tm_sim/lib_base.hpp"
+#include "rotor_tm_sim/base/lib_base.hpp"
 
 using namespace boost::numeric::odeint;
 

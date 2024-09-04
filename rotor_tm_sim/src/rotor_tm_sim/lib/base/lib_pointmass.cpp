@@ -1,4 +1,4 @@
-#include "rotor_tm_sim/lib_pointmass.hpp"
+#include "rotor_tm_sim/base/lib_pointmass.hpp"
 
 
 PointMass::PointMass(const double &mass, const double &step_size): mass_(mass), step_size_(step_size)

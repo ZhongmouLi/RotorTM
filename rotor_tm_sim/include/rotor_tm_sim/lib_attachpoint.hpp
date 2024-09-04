@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <Eigen/Dense>
-#include "rotor_tm_sim/lib_base.hpp"
+#include "rotor_tm_sim/base/lib_base.hpp"
 
 class AttachPoint
 {

@@ -53,8 +53,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## 3.1 base class/lib : rigid body, cable, point mass
 ## (1) rigid body
 add_library(lib_rigidbody SHARED
-            include/rotor_tm_sim/lib_rigidbody.hpp
-            src/rotor_tm_sim/lib/lib_rigidbody.cpp)
+            include/rotor_tm_sim/base/lib_rigidbody.hpp
+            src/rotor_tm_sim/lib/base/lib_rigidbody.cpp)
 
 # use this options in the future that specify c++ 17 for  library            
 target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
@@ -76,8 +76,8 @@ target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
 
 # (4) cable
 add_library(lib_cable SHARED
-            include/rotor_tm_sim/lib_cable.hpp
-            src/rotor_tm_sim/lib/lib_cable.cpp)
+            include/rotor_tm_sim/base/lib_cable.hpp
+            src/rotor_tm_sim/lib/base/lib_cable.cpp)
 
 target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
@@ -172,15 +172,15 @@ target_link_libraries(lib_uav_cable lib_attachpoint lib_cable lib_quadrotor lib_
 ## Test ##
 ###########
 
-# # test for rigid body class
-# catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
+# test for rigid body class
+catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 
-# target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
-# # # # test for quadrotor class
-# catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
+# # # test for quadrotor class
+catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
-# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for cable class
 catkin_add_gtest(cable_test gtest/testCable.cpp)

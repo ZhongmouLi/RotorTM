@@ -8,7 +8,7 @@
 #include <boost/numeric/odeint/external/eigen/eigen.hpp>
 #include <cmath>
 #include <vector>
-#include "lib_rigidbody.hpp"
+#include "rotor_tm_sim/base/lib_rigidbody.hpp"
 
 
 using namespace boost::numeric::odeint;

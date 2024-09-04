@@ -8,10 +8,11 @@
 #include <utility>
 #include <vector>
 
-#include "lib_cable.hpp"
-#include "lib_quadrotor.hpp"
-#include "lib_attachpoint.hpp"
-#include "lib_base.hpp"
+#include "rotor_tm_sim/base/lib_cable.hpp"
+#include "rotor_tm_sim/base/lib_base.hpp"
+#include "rotor_tm_sim/lib_quadrotor.hpp"
+#include "rotor_tm_sim/lib_attachpoint.hpp"
+
 // typedef Eigen::Matrix<double, 12, 1> object_state;
 
 
@@ -61,13 +62,14 @@ class UAVCable{
         // compute attach point force that is the force applied by a drone to the payload at its attached point
         // Eigen::Vector3d ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
-        Eigen::Vector3d ComputeAttachPointForce(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+        Eigen::Vector3d ComputeNetForceApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
         // compute attach point torque that is the torque applied by a drone to the payload at its attached point
         // Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
-        Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
+        Eigen::Vector3d ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
         
         UAVCable() = delete ;
+        
     public:
 
     // constrcuster for quadrotor and cable
@@ -91,8 +93,7 @@ class UAVCable{
 
     // compute force and torque applied by MAV to payload at attach point position
     // void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
-    void ComputeAttachPointWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
-
+    void ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
 
     // compute term m_D (m means matrix) and m_D is to compute payload translational dynamic equation
@@ -116,8 +117,6 @@ class UAVCable{
     void SetMAVInitPostCableTautWithAttachPointPost(const Eigen::Vector3d &attach_point_init_post);
 
     // obtain class member variables
-    // obtain attach point force
-    // void GetAttachPointForce(Eigen::Vector3d &mav_attach_point_force){ mav_attach_point_force = mav_attach_point_force_;};
 
     // // obtain attach point torque
     // void GetAttachPointTorque(Eigen::Vector3d &mav_attach_point_torque){ mav_attach_point_torque = mav_attach_point_torque_;};

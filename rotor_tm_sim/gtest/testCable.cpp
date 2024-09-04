@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <random>
-#include "rotor_tm_sim/lib_cable.hpp"
+#include "rotor_tm_sim/base/lib_cable.hpp"
 
 double RandomGenerate(const double &minValue, const double &maxValue);
 

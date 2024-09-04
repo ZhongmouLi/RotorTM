@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <random>
-#include "rotor_tm_sim/lib_rigidbody.hpp"
+#include "rotor_tm_sim/base/lib_rigidbody.hpp"
 
 
 class rotorTMRigidBodyTest : public ::testing::Test

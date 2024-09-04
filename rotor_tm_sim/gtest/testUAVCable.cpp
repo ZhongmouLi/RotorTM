@@ -569,12 +569,12 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         
 
         // 5. compute wrenches at attach point when whole system is at static equilibrium
-        // ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+        // ComputeInteractionWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
         Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
         Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();
 
-        // ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
-        ptr_UAVCable->ComputeAttachPointWrenches(identityQuat, zeroVector);
+        // ComputeInteractionWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+        ptr_UAVCable->ComputeInteractionWrenches(identityQuat, zeroVector);
 
         // 6. one step dynamic simulation
         ptr_UAVCable->DoOneStepInt();
@@ -676,12 +676,12 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         
 
         // 5. compute wrenches at attach point when whole system is at static equilibrium
-        // ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+        // ComputeInteractionWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
         Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
         Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();
 
-        // ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
-        ptr_UAVCable->ComputeAttachPointWrenches(identityQuat, zeroVector);
+        // ComputeInteractionWrenches(const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+        ptr_UAVCable->ComputeInteractionWrenches(identityQuat, zeroVector);
 
         // 6. 100 step dynamic simulation
         const double dt = 0.01;
@@ -787,7 +787,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
         Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
         Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();
 
-        ptr_UAVCable->ComputeAttachPointWrenches(identityQuat, zeroVector);
+        ptr_UAVCable->ComputeInteractionWrenches(identityQuat, zeroVector);
 
         // 6. 1 step dynamic simulation
         ptr_UAVCable->DoOneStepInt();;
@@ -889,7 +889,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
                 // 5. compute wrenches at attach point 
                 Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
                 Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();            
-                ptr_UAVCable->ComputeAttachPointWrenches(identityQuat, zeroVector);
+                ptr_UAVCable->ComputeInteractionWrenches(identityQuat, zeroVector);
 
                 ptr_UAVCable->DoOneStepInt();;
                 // printf("current step is %.3f \n", t);
@@ -986,7 +986,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
                 // 5. compute wrenches at attach point 
                 Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
                 Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();            
-                ptr_UAVCable->ComputeAttachPointWrenches(identityQuat, zeroVector);
+                ptr_UAVCable->ComputeInteractionWrenches(identityQuat, zeroVector);
 
                 ptr_UAVCable->DoOneStepInt();;
                 // printf("current step is %.3f \n", t);
