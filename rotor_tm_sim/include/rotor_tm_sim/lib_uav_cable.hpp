@@ -25,7 +25,7 @@ class UAVCable{
         Cable cable_; 
 
         // attach point is a shared property between payload and UAVCable
-        std::shared_ptr<const AttachPoint> ptr_attach_point_;
+        const std::shared_ptr<const AttachPoint> ptr_attach_point_;
 
         //
         // std::shared_ptr<const Payload> ptr_payload_;
@@ -86,7 +86,7 @@ class UAVCable{
 
     // update vel of UAV if collision happend
     // void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
-    void UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
+    void UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided);
 
 
     // compute force and torque applied by MAV to payload at attach point position
@@ -100,8 +100,8 @@ class UAVCable{
     void ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude);
 
     // compute control inputs for mav for both slack and taut status
-    // void ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc);
-    void ComputeControlInputs4MAV();
+    // void ComputeNetWrenchApplied2MAV(const Eigen::Vector3d &attach_point_acc);
+    void ComputeNetWrenchApplied2MAV();
 
     // import control input from controller
     // void InputControllerInput(const double &mav_thrust, const Eigen::Vector3d &mav_torque);

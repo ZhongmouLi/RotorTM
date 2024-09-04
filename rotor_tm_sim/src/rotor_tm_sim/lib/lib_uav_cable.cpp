@@ -24,44 +24,19 @@ void UAVCable::UpdateCable()
     // update cable direction
     cable_.ComputeCableDirection(ptr_attach_point_->pose().post, mav_.pose().post); //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post
 
-    cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_attach_point_->accs().linear_acc); //const double &robot_mass, const Eigen::Vector3d &mav_thrust_force, const Eigen::Vector3d &attach_point_acc
-
 
     cable_.CheckTaut(ptr_attach_point_->pose().post, mav_.pose().post, ptr_attach_point_->vels().linear_vel, mav_.vels().linear_vel); 
-    //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post, const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel
 
 
-    cable_.ComputeCableBodyrate(mav_.vels().linear_vel, ptr_attach_point_->vels().linear_vel);
+    cable_.ComputeCableBodyrate(mav_.vels().linear_vel, ptr_attach_point_->vels().linear_vel);    
 }
 
 /*---------------------------- Collision----------------------------*/
-// CheckCollision first computes the cable direction and then check if it is taut or not
-// bool UAVCable::IsCollided(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel)
-// {
-
-//     // // compute cable direction
-//     // Eigen::Vector3d mav_vel;
-//     // Eigen::Vector3d mav_post;
-
-//     // mav_.GetVel(mav_vel);
-//     // mav_.GetPosition(mav_post);
-
-//     cable_.ComputeCableDirection(attachpoint_post, mav_post);
-
-//     // check taut condition
-//     cable_.CheckTaut(attachpoint_post, mav_post, attachpoint_vel, mav_vel);
-
-//     // obtain cable status
-//     bool cable_taut = false;
-//     cable_.GetCableTautStatus(cable_taut);
-
-//     return cable_taut;
-// }
 
 
 // compute and set new vel after collision for mav
-// void UAVCable::UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided)
-void UAVCable::UpdateVelCollidedMAVVel(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided)
+// void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided)
+void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_vel_collided, const Eigen::Vector3d &payload_bodyrate_collided)
 {
     // 1.obtain cable's taut status
     // bool cable_taut_status = false;
@@ -146,6 +121,15 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable()
 // void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
 void UAVCable::ComputeAttachPointWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
 {
+
+    // compute tension force of cable
+    cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_attach_point_->accs().linear_acc); 
+    
+    // std::cout<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
+
+    // compute net wrench applied to mav
+    ComputeNetWrenchApplied2MAV();
+
     // NOTE: only cable is taut can apply wrenches to attach point
     // obtain cable direction and cable body rate
     // Eigen::Vector3d mav_post;
@@ -236,7 +220,7 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Quaterniond &pay
 
     mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(ptr_attach_point_->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_force is " << attach_point_force.transpose() << std::endl;
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque TransVector3d2SkewSymMatrix(attach_point_post) is "<< mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf)<<std::endl;
 
@@ -244,7 +228,7 @@ Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Quaterniond &pay
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque payload_attitude.toRotationMatrix().transpose() * attach_point_force is " << payload_attitude.toRotationMatrix().transpose() * attach_point_force << std::endl;
 
-    std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
+    // std::cout<<"[----------] UAVCable::ComputeAttachPointTorque mav_attach_point_torque is "<<mav_attach_point_torque.transpose()<<std::endl;    
 
     return mav_attach_point_torque;
 }
@@ -288,11 +272,11 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
 
 /*-------------------------Control interface-------------------------*/
 
-// ComputeControlInputs4MAV computes the control input for MAV based on the cable' status
+// ComputeNetWrenchApplied2MAV computes the net wrench applied to MAV based on the cable' status
 // cable is taut  --> no tension force of cable
 // cable is slack --> compute tension force of cable and caculate net force for MAV
-// void UAVCable::ComputeControlInputs4MAV(const Eigen::Vector3d &attach_point_acc)
-void UAVCable::ComputeControlInputs4MAV()
+// void UAVCable::ComputeNetWrenchApplied2MAV(const Eigen::Vector3d &attach_point_acc)
+void UAVCable::ComputeNetWrenchApplied2MAV()
 {
     // 1 obtain cable's taut status
     // bool cable_taut_status;
@@ -310,7 +294,7 @@ void UAVCable::ComputeControlInputs4MAV()
     if (cable_.tautStatus() == true)
         {
             // cable is taut and there is a tension force
-            Eigen::Vector3d tension_force;
+            // Eigen::Vector3d tension_force;
 
             // compute tension force
             // double mav_mass;
@@ -327,8 +311,8 @@ void UAVCable::ComputeControlInputs4MAV()
 
             // Eigen::Vector3d mav_thrust_force =  mav_rot_matrix * (Eigen::Vector3d::UnitZ() * mav_thrust_input_);
 
-            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_input_ is " << mav_thrust_input_<< std::endl;
-            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeNetWrenchApplied2MAV mav_thrust_input_ is " << mav_thrust_input_<< std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeNetWrenchApplied2MAV mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
 
             // Eigen::Vector3d cable_direction;
             
@@ -349,9 +333,9 @@ void UAVCable::ComputeControlInputs4MAV()
             // mav_.InputForce(mav_net_input_force);
             // mav_net_input_wrench.force = mav_net_input_force;
 
-            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable is taut"  << std::endl;
-            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV mav_net_input_force is"  << mav_net_input_force.transpose() <<  std::endl;
-            // std::cout<<"[----------] UAVCable::ComputeControlInputs4MAV cable_tension_force is"  << cable_tension_force.transpose() <<  std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeNetWrenchApplied2MAV cable is taut"  << std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeNetWrenchApplied2MAV mav_net_input_force is"  << mav_net_input_force.transpose() <<  std::endl;
+            // std::cout<<"[----------] UAVCable::ComputeNetWrenchApplied2MAV cable_tension_force is"  << cable_tension_force.transpose() <<  std::endl;
         }
     else
         {

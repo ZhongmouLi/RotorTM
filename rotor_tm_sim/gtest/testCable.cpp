@@ -160,7 +160,7 @@ TEST_F(rotorTMCableTest, calTautVeriticalNoMotion){
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
     ptr_cable->CheckTaut(attachpoint_post, robot_post, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
 
-    ASSERT_TRUE(!ptr_cable->tautStatus());
+    ASSERT_TRUE(ptr_cable->tautStatus());
  
 }
 
@@ -256,7 +256,7 @@ TEST_F(rotorTMCableTest, calTautVeriticalRobotAttachPointMotionStatic){
     ptr_cable->CheckTaut(attachpoint_post, robot_post, attachpoint_vel, robot_vel);
 
 
-    ASSERT_TRUE(!ptr_cable->tautStatus());
+    ASSERT_TRUE(ptr_cable->tautStatus());
 }
 
 

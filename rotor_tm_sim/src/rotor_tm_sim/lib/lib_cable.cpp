@@ -30,7 +30,9 @@ void Cable::CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vect
 
     // std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
     
-    bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction > k_threshold);
+    // bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction > k_threshold);
+
+    bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction >= 0);
 
     // 2. compute the distance between attach point and robot
     double distance = (attachpoint_post - robot_post).norm();
@@ -43,7 +45,6 @@ void Cable::CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vect
 
     // std::cout<<"flag_relative_vel is " << flag_relative_vel<<std::endl;
     // std::cout<<"flag_distance is " << flag_distance<<std::endl;    
-
 }
 
 

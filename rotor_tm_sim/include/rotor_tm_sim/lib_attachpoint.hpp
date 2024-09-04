@@ -29,6 +29,13 @@ class AttachPoint
         inline Accs accs() const {return accs_;};
 
         AttachPoint(const Eigen::Vector3d &post_body_frame);
+
+        void SetLinearVel(const Eigen::Vector3d & linear_vel) {vels_.linear_vel = linear_vel;};
+
+        void SetInitPost(const Eigen::Vector3d & post) {pose_.post = post;};
+
+        void SetLinearAcc(const Eigen::Vector3d & acc) {accs_.linear_acc = acc;};
+
 };
 
 #endif
