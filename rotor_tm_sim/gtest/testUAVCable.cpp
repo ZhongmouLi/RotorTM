@@ -24,9 +24,9 @@ rotorTMUAVCableTest(){
     double cable_length =1;
     double step_size = 0.01;
 
-    ptr_attach_point = std::make_shared<AttachPoint>(Eigen::Vector3d::Zero());
+    ptr_joint = std::make_shared<Joint>(Eigen::Vector3d::Zero());
 
-    ptr_UAVCable = std::make_shared<UAVCable>(mav_mass_property, cable_length, ptr_attach_point, step_size);
+    ptr_UAVCable = std::make_shared<UAVCable>(mav_mass_property, cable_length, ptr_joint, step_size);
 }
 
 ~rotorTMUAVCableTest(){
@@ -34,7 +34,7 @@ rotorTMUAVCableTest(){
 
 protected:
     std::shared_ptr<UAVCable> ptr_UAVCable;
-    std::shared_ptr<AttachPoint> ptr_attach_point;
+    std::shared_ptr<Joint> ptr_joint;
 };
 
 // test if gTest is well integrated
@@ -90,7 +90,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStatic){
 
     // 2. set post and vel of attach point in vertical direction
     const Eigen::Vector3d attachpoint_vel{0,0,0};
-    ptr_attach_point->SetLinearVel(attachpoint_vel);
+    ptr_joint->SetLinearVel(attachpoint_vel);
 
 
     // 3. update cable status
@@ -114,7 +114,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalCollision){
 
     // 2. set vel of attach point in vertical direction
     const Eigen::Vector3d attachpoint_vel{0,0,RandomGenerate(-0.1,0)};
-    ptr_attach_point->SetLinearVel(attachpoint_vel);
+    ptr_joint->SetLinearVel(attachpoint_vel);
 
 
     // 3. update cable status
@@ -143,8 +143,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistribution){
     const Eigen::Vector3d attachpoint_post{0,0,0};
     
 
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel);
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel);
 
     // 3. check collision
     ptr_UAVCable->UpdateCable();
@@ -192,8 +192,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithPayloadMotion){
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
     const Eigen::Vector3d attachpoint_post{0,0,0};
 
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel);    
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel);    
 
     // assume payload mass payload vel after collision
     double payload_vel_z_collised = 0.2;
@@ -257,8 +257,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithRandomMotion){
 
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
 
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel);       
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel);       
     
     // assume payload mass payload vel after collision
     double payload_vel_z_collised = RandomGenerate(0,4);
@@ -314,8 +314,8 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistribution){
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
     const Eigen::Vector3d attachpoint_post{0,0,0};
     
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel); 
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel); 
 
     // assume payload mass payload vel after collision
     double payload_vel_z_collised = 0.2;
@@ -376,8 +376,8 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistributionRandomMotion){
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
     const Eigen::Vector3d attachpoint_post{0,0,0};
     
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel); 
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel); 
 
     // assume payload mass payload vel after collision
     double payload_vel_z_collised = RandomGenerate(0,2);
@@ -434,8 +434,8 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistribution){
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
     const Eigen::Vector3d attachpoint_post{0,0,0};
 
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel);     
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel);     
     
     // assume payload mass payload vel after collision
     double payload_mass = 1;
@@ -494,8 +494,8 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistributionRandomMotion){
     const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
     const Eigen::Vector3d attachpoint_post{0,0,0};
     
-    ptr_attach_point->SetInitPost(attachpoint_post);
-    ptr_attach_point->SetLinearVel(attachpoint_vel); 
+    ptr_joint->SetInitPost(attachpoint_post);
+    ptr_joint->SetLinearVel(attachpoint_vel); 
 
     // assume payload mass payload vel after collision
     double payload_mass = 1;
@@ -542,8 +542,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
         const Eigen::Vector3d attachpoint_post{0,0,0};
 
-        ptr_attach_point->SetInitPost(attachpoint_post);
-        ptr_attach_point->SetLinearVel(attachpoint_vel); 
+        ptr_joint->SetInitPost(attachpoint_post);
+        ptr_joint->SetLinearVel(attachpoint_vel); 
 
         // 4. set control input for quadrotor
         // given that m_q = 1kg and assume m_p = 1kg
@@ -557,7 +557,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
 
         Eigen::Vector3d attach_point_acc{0,0,9.8};
-        ptr_attach_point->SetLinearAcc(attach_point_acc);
+        ptr_joint->SetLinearAcc(attach_point_acc);
 
         // ptr_UAVCable->ComputeNetWrenchApplied2MAV(attach_point_acc);
 
@@ -649,8 +649,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
         const Eigen::Vector3d attachpoint_post{0,0,0};
 
-        ptr_attach_point->SetInitPost(attachpoint_post);
-        ptr_attach_point->SetLinearVel(attachpoint_vel); 
+        ptr_joint->SetInitPost(attachpoint_post);
+        ptr_joint->SetLinearVel(attachpoint_vel); 
 
         // 4. set control input for quadrotor
         // given that m_q = 1kg and assume m_p = 1kg
@@ -664,7 +664,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
 
         Eigen::Vector3d attach_point_acc{0,0,9.8};
-        ptr_attach_point->SetLinearAcc(attach_point_acc);
+        ptr_joint->SetLinearAcc(attach_point_acc);
 
         // ptr_UAVCable->ComputeNetWrenchApplied2MAV(attach_point_acc);
 
@@ -760,8 +760,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
         const Eigen::Vector3d attachpoint_vel{0,0,payload_vel_z};
         const Eigen::Vector3d attachpoint_post{0,0,0};
 
-        ptr_attach_point->SetInitPost(attachpoint_post);
-        ptr_attach_point->SetLinearVel(attachpoint_vel); 
+        ptr_joint->SetInitPost(attachpoint_post);
+        ptr_joint->SetLinearVel(attachpoint_vel); 
 
 
         // 4. set control input for quadrotor
@@ -775,7 +775,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
 
         // payload's "linear acc" is 9.8+4.9
         Eigen::Vector3d attach_point_acc{0,0,9.8+4.9};
-        ptr_attach_point->SetLinearAcc(attach_point_acc);
+        ptr_joint->SetLinearAcc(attach_point_acc);
 
 
         // update cable status
@@ -858,8 +858,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
         const Eigen::Vector3d attachpoint_init_vel{0,0,payload_vel_z};
         const Eigen::Vector3d attachpoint_init_post{0,0,0};
 
-        ptr_attach_point->SetInitPost(attachpoint_init_post);
-        ptr_attach_point->SetLinearVel(attachpoint_init_vel); 
+        ptr_joint->SetInitPost(attachpoint_init_post);
+        ptr_joint->SetLinearVel(attachpoint_init_vel); 
 
         // 4. set control input for quadrotor
         // given that m_q = 1kg and assume m_p = 1kg
@@ -873,7 +873,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
 
         Eigen::Vector3d attach_point_acc{0,0,9.8+4.9};
-        ptr_attach_point->SetLinearAcc(attach_point_acc);
+        ptr_joint->SetLinearAcc(attach_point_acc);
 
 
         // update cable status
@@ -955,8 +955,8 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
         const Eigen::Vector3d attachpoint_init_vel{0,0,payload_vel_z};
         const Eigen::Vector3d attachpoint_init_post{0,0,0};
 
-        ptr_attach_point->SetInitPost(attachpoint_init_post);
-        ptr_attach_point->SetLinearVel(attachpoint_init_vel); 
+        ptr_joint->SetInitPost(attachpoint_init_post);
+        ptr_joint->SetLinearVel(attachpoint_init_vel); 
 
         // 4. set control input for quadrotor
         // given that m_q = 1kg and assume m_p = 1kg
@@ -970,7 +970,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
 
         Eigen::Vector3d attach_point_acc{0,0,9.8+4.9};
-        ptr_attach_point->SetLinearAcc(attach_point_acc);
+        ptr_joint->SetLinearAcc(attach_point_acc);
 
 
         // update cable status

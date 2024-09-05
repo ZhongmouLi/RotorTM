@@ -6,7 +6,7 @@ UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_l
 
 }
 
-UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const std::shared_ptr<const AttachPoint> &ptr_attach_point, const double &step_size):mav_(mav_mass_property, step_size), cable_(cable_length), ptr_attach_point_(ptr_attach_point)
+UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const std::shared_ptr<const Joint> &ptr_joint, const double &step_size):mav_(mav_mass_property, step_size), cable_(cable_length), ptr_joint_(ptr_joint)
 {
     
 }
@@ -22,13 +22,13 @@ void UAVCable::DoOneStepInt()
 void UAVCable::UpdateCable()
 {
     // update cable direction
-    cable_.ComputeCableDirection(ptr_attach_point_->pose().post, mav_.pose().post); //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post
+    cable_.ComputeCableDirection(ptr_joint()->pose().post, mav_.pose().post); //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post
 
 
-    cable_.CheckTaut(ptr_attach_point_->pose().post, mav_.pose().post, ptr_attach_point_->vels().linear_vel, mav_.vels().linear_vel); 
+    cable_.CheckTaut(ptr_joint()->pose().post, mav_.pose().post, ptr_joint()->vels().linear_vel, mav_.vels().linear_vel); 
 
 
-    cable_.ComputeCableBodyrate(mav_.vels().linear_vel, ptr_attach_point_->vels().linear_vel);    
+    cable_.ComputeCableBodyrate(mav_.vels().linear_vel, ptr_joint()->vels().linear_vel);    
 }
 
 /*---------------------------- Collision----------------------------*/
@@ -62,7 +62,7 @@ void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, 
     // ̇ Eq.56
     // 
     // Eigen::Matrix3d attach_point_post_asym = mav_.TransVector3d2SkewSymMatrix(attach_point_body_frame);
-    Eigen::Matrix3d attach_point_post_asym = mav_.TransVector3d2SkewSymMatrix(ptr_attach_point_->post_body_frame());
+    Eigen::Matrix3d attach_point_post_asym = mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame());
     
 
     // python code collided_robot_vel_proj = xi * sum(xi * (collided_pl_vel + pl_rot @ utilslib.vec2asym(collided_pl_omg) @ rho_vec_list), 0)
@@ -111,7 +111,7 @@ void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_atti
 {
 
     // compute tension force of cable
-    cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_attach_point_->accs().linear_acc); 
+    cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_joint()->accs().linear_acc); 
     
     // std::cout<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
 
@@ -163,7 +163,7 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
     // 2. compute attach point centrifugal acc
     Eigen::Vector3d attach_point_centri_acc{0,0,0};
 
-    attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_attach_point_->post_body_frame()) );
+    attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_joint()->post_body_frame()) );
 
 
     // 3. compute the force applied by drone to the attach point
@@ -184,7 +184,7 @@ Eigen::Vector3d UAVCable::ComputeNetTorqueApplied2AttachPoint(const Eigen::Quate
 
     Eigen::Vector3d mav_attach_point_torque(0,0,0);
 
-    mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(ptr_attach_point_->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
+    mav_attach_point_torque = mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * attach_point_force);
 
 
     return mav_attach_point_torque;
@@ -203,7 +203,7 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
 
     // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
     // m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * (cable_direction * cable_direction.transpose()) );
-    m_C_i_ = mav_.mass() * mav_.TransVector3d2SkewSymMatrix(ptr_attach_point_->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * (cable_.direction() * cable_.direction().transpose()) );
+    m_C_i_ = mav_.mass() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * (cable_.direction() * cable_.direction().transpose()) );
 
 
     // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
@@ -214,7 +214,7 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
     // compute m_E_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T *  0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
     // m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
     // m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf));   
-    m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_attach_point_->post_body_frame()));   
+    m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()));   
     // auto fuck1 = m_C_i_;
     // auto fuck2 = payload_attitude.toRotationMatrix();
     // auto fuck3 =attach_point_post_bf;

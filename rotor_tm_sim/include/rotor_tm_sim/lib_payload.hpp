@@ -16,12 +16,7 @@ class Payload: public RigidBody{
 
     private:
 
-    struct AttachPoint: public Pose, public Kinematics
-    {
-        Eigen::Vector3d post_bodyframe;
-    };
-
-    std::vector<AttachPoint> v_attach_points_; 
+    std::vector<std::unique<A>> v_attach_points_; 
 
     size_t num_robot_;
         

@@ -1,11 +1,11 @@
-#ifndef ATTACHPOINT_SIMULATOR_H
-#define ATTACHPOINT_SIMULATOR_H
+#ifndef JOINT_SIMULATOR_H
+#define JOINT_SIMULATOR_H
 
 #include <iostream>
 #include <Eigen/Dense>
 #include "rotor_tm_sim/base/lib_base.hpp"
 
-class AttachPoint
+class Joint
 {
     private:
         Pose pose_;
@@ -16,7 +16,7 @@ class AttachPoint
 
         Accs accs_;
 
-        AttachPoint() = delete ;
+        Joint() = delete ;
     
     public:
 
@@ -28,7 +28,7 @@ class AttachPoint
 
         inline Accs accs() const {return accs_;};
 
-        AttachPoint(const Eigen::Vector3d &post_body_frame);
+        Joint(const Eigen::Vector3d &post_body_frame);
 
         void SetLinearVel(const Eigen::Vector3d & linear_vel) {vels_.linear_vel = linear_vel;};
 

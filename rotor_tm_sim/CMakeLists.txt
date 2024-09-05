@@ -96,14 +96,14 @@ target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 # link libs needed for building lib_quadrotor
 target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
 
-# (3) attach point
-add_library(lib_attachpoint SHARED
-            include/rotor_tm_sim/lib_attachpoint.hpp
-            src/rotor_tm_sim/lib/lib_attachpoint.cpp)
+# (3) joint
+add_library(lib_joint SHARED
+            include/rotor_tm_sim/lib_joint.hpp
+            src/rotor_tm_sim/lib/lib_joint.cpp)
 
-target_compile_options(lib_attachpoint PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_joint PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_attachpoint Eigen3::Eigen)
+target_link_libraries(lib_joint Eigen3::Eigen)
 
 # (4) mav + cable
 add_library(lib_uav_cable SHARED
@@ -112,7 +112,7 @@ add_library(lib_uav_cable SHARED
 
 target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_uav_cable lib_attachpoint lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+target_link_libraries(lib_uav_cable lib_joint lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
 
 
 
