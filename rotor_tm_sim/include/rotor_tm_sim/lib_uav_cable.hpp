@@ -11,10 +11,10 @@
 #include "rotor_tm_sim/base/lib_cable.hpp"
 #include "rotor_tm_sim/base/lib_base.hpp"
 #include "rotor_tm_sim/lib_quadrotor.hpp"
-#include "rotor_tm_sim/lib_joint.hpp"
+// #include "rotor_tm_sim/lib_joint.hpp"
 
 // typedef Eigen::Matrix<double, 12, 1> object_state;
-
+class Joint;
 
 class UAVCable{
 
@@ -68,7 +68,7 @@ class UAVCable{
         // Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
         Eigen::Vector3d ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
         
-        std::shared_ptr<const Joint> ptr_joint() const {return ptr_joint_.lock();}
+        std::shared_ptr<const Joint> ptr_joint();
 
         UAVCable() = delete ;
         

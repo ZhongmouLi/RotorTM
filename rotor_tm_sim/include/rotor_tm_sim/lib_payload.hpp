@@ -7,7 +7,7 @@
 #include <cmath>
 #include <vector>
 #include "lib_rigidbody.hpp"
-#include "lib_uav_cable.hpp"
+#include "lib_joint.hpp"
 
 
 using namespace boost::numeric::odeint;
@@ -16,36 +16,23 @@ class Payload: public RigidBody{
 
     private:
 
-    std::vector<std::unique<A>> v_attach_points_; 
-
     size_t num_robot_;
         
-        // vector of attach point positions in body frame
-    //     // it is fixed during initilisation
-    //    std::vector<Eigen::Vector3d> v_attach_points_posts_body_frame_; 
+    // a vector of unique pointers
+    // each pointer points to a joint
+    std::vector<std::unique<Joint>> v_ptr_joints_; 
 
-    //    // vector of attach point positions in world frame
-    //    // a vector of 3d vectors and each of them represent an attach point's post
-    //    std::vector<Eigen::Vector3d> v_attach_points_posts_;
-
-    //    // vector of attach point vels     
-    //    std::vector<Eigen::Vector3d> v_attach_points_vels_; 
-
-    //     // vector of attach point accs     
-    //    std::vector<Eigen::Vector3d> v_attach_points_accs_; 
-    std::vector<AttachPoint> v_attach_points_; 
-
-       // net force applied by drones
+    // net force applied by drones
     //    Eigen::Vector3d drones_net_force_;
 
     //    // net torque applied by drones
     //    Eigen::Vector3d drones_net_torque_;
 
-       Wrench mavs_net_wrench_;
+    Wrench mavs_net_wrench_;
 
     //    Eigen::Matrix3d m_mass_matrix_;
 
-       struct CooperIntertPara{
+    struct CooperIntertPara{
                 
                 Eigen::Matrix3d m_C;
 
@@ -86,7 +73,7 @@ class Payload: public RigidBody{
         
 
 
-        Payload();
+        Payload() = delete;
 
         double gravity_ = 9.8;
 
@@ -104,7 +91,10 @@ class Payload: public RigidBody{
     public:
 
 
-    Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const MassProperty &mass_property, const double &step_size);
+    Payload(const MassProperty &mass_property, const double &step_size);
+
+
+    Payload(const MassProperty &mass_property, std::vector<std::unique<Joint>> v_ptr_joints, const double &step_size);
 
     // void CalVel4AttachPoint();      
 
@@ -136,19 +126,7 @@ class Payload: public RigidBody{
 
     void GetOneAttachPoint(const size_t &i, AttachPoint &attach_point) const;
 
-    // // GetAttachPointsPos obtain (i+1)th attach points post
-    // void GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_point_post) const;
-
-    // // GetAttachPointsPos obtain (i+1)th attach points post in body frame
-    // void GetOneAttachPointPostBodyFrame(const size_t &i, Eigen::Vector3d &attach_point_post_bodyframe) const; 
-
-    // // GetAttachPointsVel obtain (i+1)th attach points vel
-    // void GetOneAttachPointVel(const size_t &i, Eigen::Vector3d &attach_point_vel) const;    
-
-    // // GetAttachPointsVel obtain (i+1)th attach points acc
-    // void GetOneAttachPointAcc(const size_t &i, Eigen::Vector3d &attach_point_acc) const;    
-
-
+  
     // void doOneStepInt();
 
     virtual void DoPayloadOneStepInt() final;

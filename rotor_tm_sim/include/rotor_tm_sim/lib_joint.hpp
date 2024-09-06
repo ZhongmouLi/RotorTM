@@ -3,7 +3,11 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <memory>
 #include "rotor_tm_sim/base/lib_base.hpp"
+
+class UAVCable; //forward declaration
+
 
 class Joint
 {
@@ -16,7 +20,9 @@ class Joint
 
         Accs accs_;
 
-        Joint() = delete ;
+        Joint() = delete;
+
+        std::shared_ptr<const UAVCable> ptr_UAVCable_;
     
     public:
 
@@ -35,6 +41,8 @@ class Joint
         void SetInitPost(const Eigen::Vector3d & post) {pose_.post = post;};
 
         void SetLinearAcc(const Eigen::Vector3d & acc) {accs_.linear_acc = acc;};
+
+        std::shared_ptr<const UAVCable> ptr_UAVCable() const {return ptr_UAVCable_;};
 
 };
 

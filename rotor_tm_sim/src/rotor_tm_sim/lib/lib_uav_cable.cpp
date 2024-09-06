@@ -1,5 +1,5 @@
 #include "rotor_tm_sim/lib_uav_cable.hpp"
-
+#include "rotor_tm_sim/lib_joint.hpp"
 
 UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const double &step_size):mav_(mav_mass_property, step_size), cable_(cable_length)
 {
@@ -10,6 +10,24 @@ UAVCable::UAVCable(const MassProperty &mav_mass_property, const double & cable_l
 {
     
 }
+
+
+std::shared_ptr<const Joint> UAVCable::ptr_joint()
+{
+    // auto ptr_joint = ptr_joint_.lock(); 
+    
+    // if (ptr_joint)
+    // {
+    //     return ptr_joint;
+    // }
+    // else 
+    // {
+    //     std::cout<< "shared_ptr expired"<<std::endl;
+    // };
+    return ptr_joint_.lock();
+};
+
+
 
 void UAVCable::DoOneStepInt()
 {

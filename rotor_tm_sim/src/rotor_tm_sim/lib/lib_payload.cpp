@@ -1,11 +1,11 @@
 #include "rotor_tm_sim/lib_payload.hpp"
 
 
-Payload::Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const double &mass, const Eigen::Matrix3d &m_inertia, const double &step_size): RigidBody(mass, m_inertia, step_size), v_attach_points_posts_body_frame_(v_attach_point_post_bf), v_attach_points_posts_(v_attach_point_post_bf.begin(), v_attach_point_post_bf.end()), v_attach_points_vels_(v_attach_point_post_bf.size(), Eigen::Vector3d::Zero()), v_attach_points_accs_(v_attach_point_post_bf.size(), Eigen::Vector3d::Zero())
+Payload::Payload(const MassProperty &mass_property, const double &step_size): RigidBody(mass_property, step_size)
 {
     
     // obtain numnber of attach points that equals to number of robots
-    num_robot_ = v_attach_points_posts_body_frame_.size();
+    // num_robot_ = v_attach_points_posts_body_frame_.size();
 
     // std::cout<< "v_attach_points_posts_body_frame_.size()" << v_attach_points_posts_body_frame_.size() <<std::endl; 
 
@@ -22,6 +22,13 @@ Payload::Payload(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, con
     // v_attach_points_accs_.reserve(num_robot_);
 }
 
+
+
+Payload(const MassProperty &mass_property, std::vector<std::unique<Joint>> v_ptr_joints, const double &step_size):RigidBody(mass_property, step_size)
+{
+    num_robot_ = v_ptr_joints.size();
+
+};
 
 
 
@@ -157,47 +164,9 @@ void Payload::GetOneAttachPointPost(const size_t &i, Eigen::Vector3d &attach_poi
 
 }
 
-void Payload::GetOneAttachPointPostBodyFrame(const size_t &i, Eigen::Vector3d &attach_point_post_bodyframe) const
-{
-
-    attach_point_post_bodyframe = v_attach_points_posts_body_frame_.at(i);
-} 
 
 
-
-
-void Payload::GetOneAttachPointVel(const size_t &i, Eigen::Vector3d &attach_point_vel) const
-{
-
-    try 
-    {
-        if (i < num_robot_  ) 
-        {
-            attach_point_vel = v_attach_points_vels_[i];
-            // std::cout<<"[----------]" << i << "th attach point vel is" << attach_point_vel.transpose()<<std::endl;
-        } 
-        else {
-        throw (i);
-        }
-    }
-    
-    catch (size_t myNum) 
-    {
-    std::cout << "index is beyong the size of vector attach_point_vel";
-    std::cout << "index is: " << myNum;  
-    }
-
-}
-
-
-void Payload::GetOneAttachPointAcc(const size_t &i, Eigen::Vector3d &attach_point_acc) const
-{
-    attach_point_acc =v_attach_points_accs_.at(i);
-
-}
-
-
-
+/*----------------------------Collision--------------------------------------*/
 // UpdateVelCollided computs updated vel of payload after collision
 void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_mav_cable)
 {
@@ -206,45 +175,49 @@ void Payload::UpdateVelCollided(const std::vector<UAVCable> &v_mav_cable)
     Eigen::VectorXd b = Eigen::MatrixXd::Identity(6,1);
 
     // 2. initialisation of J and b
-    // 2.1 obtain payload mass and inerita
-    double payload_mass;
-    GetMass(payload_mass);
+    // // 2.1 obtain payload mass and inerita
+    // double payload_mass;
+    // GetMass(payload_mass);
 
-    Eigen::Matrix3d payload_inertia;
-    GetInertia(payload_inertia);    
+    // Eigen::Matrix3d payload_inertia;
+    // GetInertia(payload_inertia);    
 
-    Eigen::Quaterniond payload_attitude;
-    GetAttitude(payload_attitude);
+    // Eigen::Quaterniond payload_attitude;
+    // GetAttitude(payload_attitude);
 
-    // Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
+    // // Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
 
-    Eigen::Vector3d payload_vel;
-    GetVel(payload_vel);
+    // Eigen::Vector3d payload_vel;
+    // GetVel(payload_vel);
 
-    Eigen::Vector3d payload_bodyrate;
-    GetBodyrate(payload_bodyrate);
+    // Eigen::Vector3d payload_bodyrate;
+    // GetBodyrate(payload_bodyrate);
 
     // 2.2 initialisation of J
     // . J[1:3, 1:3] = mL * I3
-    J.block<3,3>(0,0) = Eigen::MatrixXd::Identity(3,3) * payload_mass;
+    J.block<3,3>(0,0) = Eigen::MatrixXd::Identity(3,3) * mass();
     // J[4:6, 4:6] = IL
-    J.block<3,3>(3,3) = payload_inertia;
+    // J.block<3,3>(3,3) = payload_inertia;
+    J.block<3,3>(3,3) = inertia();
 
     // 2.3 initialisation of b
     // left variable of b in Eq 42 that depend on payload
-    b.head<3>() = payload_vel * payload_mass;
-    b.tail<3>() = payload_inertia * payload_bodyrate;
+    // b.head<3>() = payload_vel * payload_mass;
+    // b.tail<3>() = payload_inertia * payload_bodyrate;
+    b.head<3>() = mass() * vels().linear_vel;
+    b.tail<3>() = inertia() * vels().bodyrate;
+
 
     // 3 compute all Ji in Eq45 and Eq46 for every drone that is collided
-    // check the numner of UAVCable equals to the number of attachment points
-    if (v_mav_cable.size() != v_attach_points_posts_body_frame_.size())
-    {
-        std::cout<<"number of cable-drone != number of attach point"<<std::endl;
-        return;
-    }
+    // // check the numner of UAVCable equals to the number of attachment points
+    // if (v_mav_cable.size() != v_attach_points_posts_body_frame_.size())
+    // {
+    //     std::cout<<"number of cable-drone != number of attach point"<<std::endl;
+    //     return;
+    // }
     
     // get number of robots
-    size_t number_robot = v_mav_cable.size();
+    // size_t number_robot = v_mav_cable.size();
 
     // iterate for each drone, cable, attach point
     for (size_t i = 0; i < number_robot; ++i) {

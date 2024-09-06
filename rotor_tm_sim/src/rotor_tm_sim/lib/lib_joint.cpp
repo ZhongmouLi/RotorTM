@@ -1,5 +1,5 @@
 #include "rotor_tm_sim/lib_joint.hpp"
-
+#include "rotor_tm_sim/lib_uav_cable.hpp"
 
 Joint::Joint(const Eigen::Vector3d &post_body_frame)://
           pose_(post_body_frame, Eigen::Quaterniond::Identity()), //

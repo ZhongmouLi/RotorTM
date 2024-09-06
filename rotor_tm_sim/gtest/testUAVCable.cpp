@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <random>
 #include "rotor_tm_sim/lib_uav_cable.hpp"
+#include "rotor_tm_sim/lib_joint.hpp"
 
 double RandomGenerate(const double &minValue, const double &maxValue);
 
