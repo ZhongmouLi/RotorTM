@@ -233,14 +233,6 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
     // m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
     // m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf));   
     m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()));   
-    // auto fuck1 = m_C_i_;
-    // auto fuck2 = payload_attitude.toRotationMatrix();
-    // auto fuck3 =attach_point_post_bf;
-
-    // std::cout<<"--------------------------------m_C_i_"<<fuck1<<std::endl;
-    // std::cout<<"--------------------------------payload_attitude.toRotationMatrix()"<<fuck2<<std::endl;
-    // std::cout<<"--------------------------------attach_point_post_bf"<<fuck3<<std::endl;
-    //  std::cout<<"---------------------------------------"<<std::endl << fuck1 * (fuck2 * fuck3) <<std::endl;
 }
 
 
@@ -287,12 +279,12 @@ void UAVCable::InputControllerInput(const double &mav_thrust, const Eigen::Vecto
 
 
 // obtain parameters for payload dynamic equation
-void UAVCable::GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const
-{
-    m_C_i = m_C_i_; 
-    m_D_i = m_D_i_;
-    m_E_i = m_E_i_;
-}
+// void UAVCable::GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const
+// {
+//     m_C_i = m_C_i_; 
+//     m_D_i = m_D_i_;
+//     m_E_i = m_E_i_;
+// }
 
 
 

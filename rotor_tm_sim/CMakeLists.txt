@@ -2,8 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 # 1. configure compliers 
 ## commnet the two lines if you want to use your default compliers
-set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+# set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
+# set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
 enable_language(CXX)
 enable_language(C)
@@ -125,15 +128,15 @@ target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3
 
 
 # (3) payload 
-# add_library(lib_payload SHARED
-#             include/rotor_tm_sim/lib_payload.hpp
-#             src/rotor_tm_sim/lib/lib_payload.cpp)
+add_library(lib_payload SHARED
+            include/rotor_tm_sim/lib_payload.hpp
+            src/rotor_tm_sim/lib/lib_payload.cpp)
 
 # use this options in the future that specify c++ 17 for  library
-# target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-# target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
 
 
 #  (4) cooperative

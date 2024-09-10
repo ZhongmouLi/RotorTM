@@ -44,6 +44,12 @@ class Joint
 
         std::shared_ptr<const UAVCable> ptr_UAVCable() const {return ptr_UAVCable_;};
 
+        void SetVels(const Vels &vels) {vels_ = vels;};
+
+        void SetPose(const Pose &pose) {pose_ = pose;};
+
+        void SetAccs(const Accs &accs) {accs_ = accs;};
+
 };
 
 #endif

@@ -6,11 +6,25 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <vector>
-#include "lib_rigidbody.hpp"
-#include "lib_joint.hpp"
-
+#include <memory>
+#include "rotor_tm_sim/base/lib_rigidbody.hpp"
+#include "rotor_tm_sim/lib_joint.hpp"
+#include "rotor_tm_sim/lib_uav_cable.hpp"
+// #include "rotor_tm_sim/lib_rigidbody.hpp"
 
 using namespace boost::numeric::odeint;
+
+struct CooperIntertPara{
+                
+                Eigen::Matrix3d m_C;
+
+                Eigen::Matrix3d m_D;
+
+                Eigen::Matrix3d m_E;
+
+                Eigen::Matrix3d m_mass_matrix;
+};
+
 
 class Payload: public RigidBody{
 
@@ -20,8 +34,8 @@ class Payload: public RigidBody{
         
     // a vector of unique pointers
     // each pointer points to a joint
-    std::vector<std::unique<Joint>> v_ptr_joints_; 
-
+    std::vector<std::unique_ptr<Joint>> v_ptr_joints_; 
+    // std::unique<Joint> v_ptr_joints_;  
     // net force applied by drones
     //    Eigen::Vector3d drones_net_force_;
 
@@ -32,25 +46,14 @@ class Payload: public RigidBody{
 
     //    Eigen::Matrix3d m_mass_matrix_;
 
-    struct CooperIntertPara{
-                
-                Eigen::Matrix3d m_C;
 
-                Eigen::Matrix3d m_D;
 
-                Eigen::Matrix3d m_E;
+    CooperIntertPara cooper_interact_para_;
 
-                Eigen::Matrix3d m_mass_matrix;
-       };
 
-       CooperIntertPara cooper_interact_para_;
+    Eigen::MatrixXd ComputeMatrixJi(const Cable &cable, const std::unique_ptr<Joint> &ptr_joint);
 
-    //    Eigen::Matrix3d m_C_;
-
-    //    Eigen::Matrix3d m_D_;
-
-    //    Eigen::Matrix3d m_E_;
-
+    Eigen::VectorXd ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::unique_ptr<Joint> &ptr_joint);
 
         // // ComputeMatrixJi is a function for updating vels after collision
         // // compute matrix Ji in Eq46
@@ -63,18 +66,20 @@ class Payload: public RigidBody{
 
         // translational dynamic model
         // Eigen::Vector3d ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_bodyrate_acc);
-       Eigen::Vector3d ComputeTransDynamics(const Wrench &mavs_net_wrench, const CooperIntertPara &cooper_interact_para,  const Kinematics &kinematics);
+        Eigen::Vector3d ComputeTransDynamics();
 
 
         // rotational dynamic model
         // Eigen::Vector3d ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E);
 
-        Eigen::Vector3d ComputeRotDynamics(const Wrench &mavs_net_wrench, const AttachPoint &attach_point, const CooperIntertPara &cooper_interact_para, const Kinematics &kinematics);
+        Eigen::Vector3d ComputeRotDynamics();
         
 
 
         Payload() = delete;
-
+        Payload(const Payload&) = delete;
+        Payload& operator=(const Payload&) = delete;
+        
         double gravity_ = 9.8;
 
         
@@ -94,7 +99,7 @@ class Payload: public RigidBody{
     Payload(const MassProperty &mass_property, const double &step_size);
 
 
-    Payload(const MassProperty &mass_property, std::vector<std::unique<Joint>> v_ptr_joints, const double &step_size);
+    Payload(const MassProperty &mass_property, std::vector<std::unique_ptr<Joint>> v_ptr_joints, const double &step_size);
 
     // void CalVel4AttachPoint();      
 
@@ -102,10 +107,10 @@ class Payload: public RigidBody{
 
 
     // ComputeAttachPointsKinematics computes post, vels and accs of attach points
-    void ComputeAttachPointsKinematics();
+    void ComputeJointKinematics();
 
     // void UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_drone_cable_ptr);
-    void UpdateVelCollided(const std::vector<UAVCable> &v_drone_cable);
+    void UpdateVelCollided();
 
 
     void InputDronesNetWrenches(const Wrench &mavs_net_wrench);
@@ -124,12 +129,12 @@ class Payload: public RigidBody{
 
     void ComputeAccBodyRateAcc();
 
-    void GetOneAttachPoint(const size_t &i, AttachPoint &attach_point) const;
+    // void GetOneAttachPoint(const size_t &i, AttachPoint &attach_point) const;
 
   
     // void doOneStepInt();
 
-    virtual void DoPayloadOneStepInt() final;
+    // virtual void DoPayloadOneStepInt() final;
 
     void operator() (const object_state &x , object_state &dxdt, const double time) override;
 };

@@ -125,7 +125,15 @@ class UAVCable{
     inline Wrench attach_point_wrench() const {return mav_attach_point_wrench_;};
 
     // obtain m_D_i
-    void GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const;
+    // void GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const;
+    // obtain m_D_i with m_D_i()
+    inline Eigen::Matrix3d m_D_i() const {return m_D_i_;};
+
+    // obtain m_C_i with m_C_i()
+    inline Eigen::Matrix3d m_C_i() const {return m_C_i_;};
+
+    // obtain m_E_i with m_E_i()
+    inline Eigen::Matrix3d m_E_i() const {return m_E_i_;};
 
 };
 #endif
