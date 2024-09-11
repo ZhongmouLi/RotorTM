@@ -8,13 +8,25 @@ Payload::Payload(const MassProperty &mass_property, const double &step_size): Ri
 }
 
 
-Payload::Payload(const MassProperty &mass_property, std::vector<std::unique_ptr<Joint>> v_ptr_joints, const double &step_size): RigidBody(mass_property, step_size), v_ptr_joints_(std::move(v_ptr_joints))
+// Payload::Payload(const MassProperty &mass_property, std::vector<std::unique_ptr<Joint>> v_ptr_joints, const double &step_size): RigidBody(mass_property, step_size), v_ptr_joints_(std::move(v_ptr_joints))
+// {
+//     num_robot_ = v_ptr_joints_.size();
+
+// };
+
+
+Payload::Payload(const MassProperty &mass_property, std::shared_ptr<Joint> v_ptr_joint, const double &step_size): RigidBody(mass_property, step_size)
+{
+    num_robot_ =1;
+    v_ptr_joints_ = {v_ptr_joint};
+};
+
+
+Payload::Payload(const MassProperty &mass_property, std::vector<std::shared_ptr<Joint>> v_ptr_joints, const double &step_size): RigidBody(mass_property, step_size), v_ptr_joints_(v_ptr_joints)
 {
     num_robot_ = v_ptr_joints_.size();
 
 };
-
-
 
 void Payload::ComputeJointKinematics()
 {
@@ -133,6 +145,7 @@ void Payload::ComputeJointKinematics()
 
 /*----------------------------Collision--------------------------------------*/
 // UpdateVelCollided computs updated vel of payload after collision
+//write a unit test for this function
 void Payload::UpdateVelCollided()
 {
     // 1. define matrix J and b in J [xL+, omegaL+] = b
@@ -219,7 +232,7 @@ void Payload::UpdateVelCollided()
 // add explain of function ComputeMatrixJi  
 // ComputeMatrixJi computes matrix Ji in Eq45
 // Ji = ai * ai^T + bi * bi^T
-Eigen::MatrixXd Payload::ComputeMatrixJi(const Cable &cable, const std::unique_ptr<Joint> &ptr_joint)
+Eigen::MatrixXd Payload::ComputeMatrixJi(const Cable &cable, const std::shared_ptr<Joint> &ptr_joint)
 {
     // define matrix Ji in Eq45    
     Eigen::MatrixXd Ji = Eigen::MatrixXd::Identity(6,6);
@@ -258,7 +271,7 @@ Eigen::MatrixXd Payload::ComputeMatrixJi(const Cable &cable, const std::unique_p
 
 // add explaination of function ComputeVectorbi
 // ComputeVectorbi computes vector bi in Eq 42
-Eigen::VectorXd Payload::ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::unique_ptr<Joint> &ptr_joint)
+Eigen::VectorXd Payload::ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::shared_ptr<Joint> &ptr_joint)
 {
     Eigen::VectorXd bi = Eigen::MatrixXd::Identity(6,1);
 
@@ -488,6 +501,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // std::cout<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
 
     is_recursing = false;
+
+    // current_step_ = current_step_ + 
 }
 
 

@@ -34,7 +34,7 @@ class Payload: public RigidBody{
         
     // a vector of unique pointers
     // each pointer points to a joint
-    std::vector<std::unique_ptr<Joint>> v_ptr_joints_; 
+    std::vector<std::shared_ptr<Joint>> v_ptr_joints_; 
     // std::unique<Joint> v_ptr_joints_;  
     // net force applied by drones
     //    Eigen::Vector3d drones_net_force_;
@@ -51,9 +51,9 @@ class Payload: public RigidBody{
     CooperIntertPara cooper_interact_para_;
 
 
-    Eigen::MatrixXd ComputeMatrixJi(const Cable &cable, const std::unique_ptr<Joint> &ptr_joint);
+    Eigen::MatrixXd ComputeMatrixJi(const Cable &cable, const std::shared_ptr<Joint> &ptr_joint);
 
-    Eigen::VectorXd ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::unique_ptr<Joint> &ptr_joint);
+    Eigen::VectorXd ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::shared_ptr<Joint> &ptr_joint);
 
         // // ComputeMatrixJi is a function for updating vels after collision
         // // compute matrix Ji in Eq46
@@ -89,7 +89,7 @@ class Payload: public RigidBody{
         // solver ruge_kutta
         runge_kutta4<Eigen::Matrix<double, 12, 1>> stepper_;
 
-        double current_step_ = 0;
+        // double current_step_ = 0;
 
         bool intial_acc_set_ = false;
 
@@ -99,7 +99,9 @@ class Payload: public RigidBody{
     Payload(const MassProperty &mass_property, const double &step_size);
 
 
-    Payload(const MassProperty &mass_property, std::vector<std::unique_ptr<Joint>> v_ptr_joints, const double &step_size);
+    Payload(const MassProperty &mass_property, std::vector<std::shared_ptr<Joint>> v_ptr_joints, const double &step_size);
+
+    Payload(const MassProperty &mass_property, std::shared_ptr<Joint> v_ptr_joint, const double &step_size);
 
     // void CalVel4AttachPoint();      
 

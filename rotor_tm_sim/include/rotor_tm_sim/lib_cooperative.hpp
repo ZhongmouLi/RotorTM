@@ -26,23 +26,6 @@ class Cooperative{
 
         // compute the projection of robot vel perpendicular to the cable
         // input: drone vel (3X1 vector) and cable direction (3X1 vector)
-        // output:: drone vel projection that is perpendicular to cable (3X1 vector)
-        Eigen::Vector3d CalVelProjPerpendicularCable(const Eigen::Vector3d drone_vel, const Eigen::Vector3d &cable_direction);
-
-        // ComputeMatrixJi is a function for updating vels after collision
-        // compute matrix Ji in Eq46
-        Eigen::MatrixXd ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
-
-        // ComputeVectorbi is a function for updating vels after collision    
-        // compute vector bi in Eq46
-        // Eigen::VectorXd ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
-        Eigen::VectorXd ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
-        Cooperative();
-
-        const double gravity_ = 9.8;
-
-        bool intial_payload_acc_set = false;
-
     public:
 
     // put them in private LATER

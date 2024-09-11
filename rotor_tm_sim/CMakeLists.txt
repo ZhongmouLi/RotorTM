@@ -205,9 +205,9 @@ target_link_libraries(UAVcable_test lib_uav_cable ${catkin_LIBRARIES} Eigen3::Ei
 
 
 # # # test for payload class
-# catkin_add_gtest(payload_test gtest/testPayloadClass.cpp)
+catkin_add_gtest(payload_test gtest/testPayload.cpp)
 
-# target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
 # # test for cooperative class
