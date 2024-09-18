@@ -31,14 +31,14 @@ void RigidBody::InputWrench(const Wrench &input_wrench)
     input_wrench_ = input_wrench;
 
     // object_acc_ = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
-    accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    // accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
 
     // obtain bodyrate from state
     Eigen::Vector3d bodyrate = state_.tail(3);
 
     // compute dp, dq ,dr
     // object_bodyrate_acc_ = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
-    accs_.angular_acc = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    // accs_.angular_acc = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
 }
 
 
@@ -70,9 +70,9 @@ Eigen::Vector3d RigidBody::TransDynac(const Eigen::Vector3d &force_applied, cons
 void RigidBody::operator() (const object_state &x , object_state &dxdt, const double time)
 {
 
-    static bool is_recursing = false;
-    if (is_recursing) return;  // Prevent recursion
-    is_recursing = true;
+    // static bool is_recursing = false;
+    // if (is_recursing) return;  // Prevent recursion
+    // is_recursing = true;
     
 
     // std::cout << "state " << x.transpose()<<std::endl; 
@@ -114,8 +114,15 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // std::cout<<"fuck uav post" << x.head(3).transpose() <<std::endl;
     // std::cout<<"fuck uav acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
     // std::cout<<"fuck uav input force" <<  force_.transpose() <<std::endl;
+    // update linear acc and angular acc
+   
     
-    is_recursing = false;
+
+    // is_recursing = false;
+
+    accs_.linear_acc = dxdt.segment<3>(3);
+    accs_.angular_acc = dxdt.tail(3);
+    // std::cout<<"accs_.linear_acc is " <<  accs_.linear_acc.transpose() <<std::endl;
 }
 
 
@@ -124,7 +131,8 @@ void RigidBody::DoOneStepInt()
 {
 
     // call one step integration for quadrotor dynamics
-    this->stepper_.do_step(*this, state_, current_step_, step_size_);
+    // this->stepper_.do_step(*this, state_, current_step_, step_size_);
+    this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
 
     // update current step
     current_step_ = current_step_ + step_size_;
