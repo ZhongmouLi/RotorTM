@@ -37,16 +37,32 @@ void UAVCable::DoOneStepInt()
 
 };
 
-void UAVCable::UpdateCable()
+void UAVCable::CheckInelasticCollision()
 {
     // update cable direction
     cable_.ComputeCableDirection(ptr_joint()->pose().post, mav_.pose().post); //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post
 
-
-    cable_.CheckTaut(ptr_joint()->pose().post, mav_.pose().post, ptr_joint()->vels().linear_vel, mav_.vels().linear_vel); 
-
-
     cable_.ComputeCableBodyrate(mav_.vels().linear_vel, ptr_joint()->vels().linear_vel);    
+
+    // cable_.CheckCollision(ptr_joint()->pose().post, mav_.pose().post, ptr_joint()->vels().linear_vel, mav_.vels().linear_vel); 
+    // 1. compute the projection of relative vel of robot to attach point on cable  whose direction is represented by xi
+    double vel_robot2attachpoint_projected_xi_direction;
+
+    Eigen::Vector3d vel_robot2attachpoint = ptr_joint()->vels().linear_vel - mav_.vels().linear_vel;
+
+    vel_robot2attachpoint_projected_xi_direction = cable_.direction().dot(vel_robot2attachpoint);
+
+    // std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
+    
+    bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction >= 0);
+
+    // 2. check taut condition
+    cable_.CheckTaut(ptr_joint()->pose().post, mav_.pose().post);
+
+    // 3. final taut is true if relative vel is positive and distance = cable length
+    // i.e. both of flag_relative_vel and flag_distance must be true
+
+    inelastic_collision_ = flag_relative_vel && cable_.tautStatus();    
 }
 
 /*---------------------------- Collision----------------------------*/
@@ -219,20 +235,33 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
     // Dk = - np.transpose(Ck)
     // Ek = np.matmul(Ck, np.matmul(pl_rot, rho_qn_asym))
 
-    // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
-    // m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * (cable_direction * cable_direction.transpose()) );
-    m_C_i_ = mav_.mass() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * (cable_.direction() * cable_.direction().transpose()) );
+    // compute interaction parameters only if cable is in taut
+    if (cable_->tautStatus())
+    {
+        // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
+        // m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * (cable_direction * cable_direction.transpose()) );
+        m_C_i_ = mav_.mass() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()) * (payload_attitude.toRotationMatrix().transpose() * (cable_.direction() * cable_.direction().transpose()) );
 
 
-    // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    // m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf);
-    m_D_i_ = - m_C_i_.transpose();
+        // compute m_D_i = m_i * xi * xi^T * 0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
+        // m_D_i_ = mav_mass * cable_direction * cable_direction.transpose()* payload_attitude.toRotationMatrix()* mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf);
+        m_D_i_ = - m_C_i_.transpose();
 
 
-    // compute m_E_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T *  0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
-    // m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
-    // m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf));   
-    m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()));   
+        // compute m_E_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T *  0^R_{payload} * skew_matrix ( {payload}^p_{attach_point} )
+        // m_E_i_ = mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * payload_attitude.toRotationMatrix().transpose() * m_D_i_;
+        // m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf));   
+        m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()));  
+    }
+    else // for cable is slcak, m_C_i_,  m_D_i_ and m_E_i_ at set to be zeros.
+        m_C_i_ = Eigen::Matrix3d::Zero();
+        m_D_i_ = Eigen::Matrix3d::Zero();
+        m_E_i_ = Eigen::Matrix3d::Zero();
+
+    }
+    
+
+ 
 }
 
 
@@ -301,4 +330,10 @@ void UAVCable::SetMAVInitPostCableTautWithAttachPointPost(const Eigen::Vector3d 
 
     //
     mav_.SetInitialPost(mav_init_post);
+}
+
+
+void UAVCable::SetCollisionStatus(const bool &collision_status)
+{
+    inelastic_collision_ = collision_status;
 }
