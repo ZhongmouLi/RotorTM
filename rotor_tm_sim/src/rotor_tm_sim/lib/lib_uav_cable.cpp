@@ -144,23 +144,32 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable()
 void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
 {
 
-    // compute tension force of cable
-    cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_joint()->accs().linear_acc); 
-    
-    // std::cout<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
+    if (cable_.tautStatus())
+    {
+        // compute tension force of cable
+        cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_joint()->accs().linear_acc); 
+        
+        // std::cout<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
 
-    // compute net wrench applied to mav
-    ComputeNetWrenchApplied2MAV();
+        // compute net wrench applied to mav
+        ComputeNetWrenchApplied2MAV();
 
-    // NOTE: only cable is taut can apply wrenches to attach point
-    // compute force applied by MAV to payload at attach point    
-    // mav_attach_point_force_ = ComputeAttachPointForce(cable_direction, cable_bodyrate, attach_point_post_bf, payload_attitude, payload_bodyrate);
-    mav_attach_point_wrench_.force = ComputeNetForceApplied2AttachPoint(payload_attitude, payload_bodyrate);
+        // NOTE: only cable is taut can apply wrenches to attach point
+        // compute force applied by MAV to payload at attach point    
+        // mav_attach_point_force_ = ComputeAttachPointForce(cable_direction, cable_bodyrate, attach_point_post_bf, payload_attitude, payload_bodyrate);
+        mav_attach_point_wrench_.force = ComputeNetForceApplied2AttachPoint(payload_attitude, payload_bodyrate);
 
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
-    // compute torque applied by MAV to payload at attach point    
-    // mav_attach_point_torque_ = ComputeAttachPointTorque(attach_point_post_bf, payload_attitude, mav_attach_point_force_);
-    mav_attach_point_wrench_.torque = ComputeNetTorqueApplied2AttachPoint(payload_attitude, mav_attach_point_wrench_.force);
+        // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
+        // compute torque applied by MAV to payload at attach point    
+        // mav_attach_point_torque_ = ComputeAttachPointTorque(attach_point_post_bf, payload_attitude, mav_attach_point_force_);
+        mav_attach_point_wrench_.torque = ComputeNetTorqueApplied2AttachPoint(payload_attitude, mav_attach_point_wrench_.force);
+    }
+    else    // if cable is slack, the wrench applied is zero
+    {
+            mav_attach_point_wrench_.force = Eigen::Vector3d::Zero();
+            mav_attach_point_wrench_.torque = Eigen::Vector3d::Zero();
+    }
+
 
 
     // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque end" << std::endl;
@@ -264,6 +273,22 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
  
 }
 
+Eigen::Matrix3d UAVCable::m_mass_matrix() const
+{
+    Eigen::Matrix3d m_mass_matrix; 
+
+    if (cable_.tautStatus())
+    {
+        m_mass_matrix = Eigen::Matrix3d::Identity() * mav_.mass();
+    }
+    else
+    {
+        m_mass_matrix = Eigen::Matrix3d::Zero();
+    }
+    
+    return m_mass_matrix;
+
+    }
 
 
 /*-------------------------Control interface-------------------------*/
