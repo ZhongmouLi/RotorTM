@@ -236,7 +236,7 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
     // Ek = np.matmul(Ck, np.matmul(pl_rot, rho_qn_asym))
 
     // compute interaction parameters only if cable is in taut
-    if (cable_->tautStatus())
+    if (cable_.tautStatus())
     {
         // compute m_C_i = m_i * skew_matrix({payload}^p_{attach_point}) * 0^R_{payload}^T * xi * xi^T 
         // m_C_i_ = mav_mass * mav_.TransVector3d2SkewSymMatrix(attach_point_post_bf) * (payload_attitude.toRotationMatrix().transpose() * (cable_direction * cable_direction.transpose()) );
@@ -254,10 +254,10 @@ void UAVCable::ComputeMatrixMDiMCiMEi(const Eigen::Quaterniond &payload_attitude
         m_E_i_ =  m_C_i_ * (payload_attitude.toRotationMatrix() * mav_.TransVector3d2SkewSymMatrix(ptr_joint()->post_body_frame()));  
     }
     else // for cable is slcak, m_C_i_,  m_D_i_ and m_E_i_ at set to be zeros.
+    {
         m_C_i_ = Eigen::Matrix3d::Zero();
         m_D_i_ = Eigen::Matrix3d::Zero();
         m_E_i_ = Eigen::Matrix3d::Zero();
-
     }
     
 
