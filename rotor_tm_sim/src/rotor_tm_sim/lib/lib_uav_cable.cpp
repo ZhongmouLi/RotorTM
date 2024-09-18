@@ -50,11 +50,17 @@ void UAVCable::CheckInelasticCollision()
 
     Eigen::Vector3d vel_robot2attachpoint = ptr_joint()->vels().linear_vel - mav_.vels().linear_vel;
 
+    std::cout<<"ptr_joint()->vels().linear_vel vel is " << ptr_joint()->vels().linear_vel.transpose()<<std::endl;
+
+    std::cout<<"mav_.vels().linear_vel is " << mav_.vels().linear_vel.transpose()<<std::endl;
+
+    std::cout<<"vel_robot2attachpoint vel is " << vel_robot2attachpoint.transpose()<<std::endl;
+
     vel_robot2attachpoint_projected_xi_direction = cable_.direction().dot(vel_robot2attachpoint);
 
-    // std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
+    std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
     
-    bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction >= 0);
+    bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction >= 1e-3);
 
     // 2. check taut condition
     cable_.CheckTaut(ptr_joint()->pose().post, mav_.pose().post);

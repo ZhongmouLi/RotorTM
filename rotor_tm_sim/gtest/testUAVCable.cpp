@@ -95,12 +95,12 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStatic){
 
 
     // 3. update cable status
-    // ptr_UAVCable->UpdateCable();
-    ptr_UAVCable->UpdateCable();
+    // ptr_UAVCable->CheckInelasticCollision();
+    ptr_UAVCable->CheckInelasticCollision();
 
-
+    std::cout<<"ptr_UAVCable->inelasticCollisionStauts() is " <<ptr_UAVCable->inelasticCollisionStauts() <<std::endl;
     // 4. cable should be slack or there is no collision
-    ASSERT_TRUE(!ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(!ptr_UAVCable->inelasticCollisionStauts());
 }
 
 // test vertical collision
@@ -119,10 +119,10 @@ TEST_F(rotorTMUAVCableTest, checkVerticalCollision){
 
 
     // 3. update cable status
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
     // 4. cable should be taut or there is collision
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 }
 
 
@@ -148,9 +148,9 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistribution){
     ptr_joint->SetLinearVel(attachpoint_vel);
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero(),  Eigen::Vector3d::Zero());
@@ -202,10 +202,10 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithPayloadMotion){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    // ptr_UAVCable->UpdateCable();
-    ptr_UAVCable->UpdateCable();
+    // ptr_UAVCable->CheckInelasticCollision();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     //  ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());;
@@ -267,9 +267,9 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithRandomMotion){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());
@@ -324,9 +324,9 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistribution){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());
@@ -386,9 +386,9 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistributionRandomMotion){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());
@@ -445,9 +445,9 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistribution){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());
@@ -505,9 +505,9 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistributionRandomMotion){
     const Eigen::Vector3d payload_vel_collided{0,0,payload_vel_z_collised};
 
     // 3. check collision
-    ptr_UAVCable->UpdateCable();
+    ptr_UAVCable->CheckInelasticCollision();
 
-    ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
+    ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
 
     // 4. compute vels after collision
     ptr_UAVCable->UpdateMAVVelCollided(Eigen::Quaterniond::Identity(), payload_vel_collided,  Eigen::Vector3d::Zero());;
@@ -563,10 +563,10 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         // ptr_UAVCable->ComputeNetWrenchApplied2MAV(attach_point_acc);
 
         // updae cable 
-        ptr_UAVCable->UpdateCable();
+        ptr_UAVCable->CheckInelasticCollision();
 
+        // ASSERT_TRUE(ptr_UAVCable->inelasticCollisionStauts());
         ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
-
         
 
         // 5. compute wrenches at attach point when whole system is at static equilibrium
@@ -670,7 +670,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         // ptr_UAVCable->ComputeNetWrenchApplied2MAV(attach_point_acc);
 
         // updae cable 
-        ptr_UAVCable->UpdateCable();
+        ptr_UAVCable->CheckInelasticCollision();
 
         ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
 
@@ -780,7 +780,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
 
 
         // update cable status
-        ptr_UAVCable->UpdateCable();
+        ptr_UAVCable->CheckInelasticCollision();
 
         ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());
 
@@ -878,9 +878,9 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
 
 
         // update cable status
-        ptr_UAVCable->UpdateCable();
+        ptr_UAVCable->CheckInelasticCollision();
 
-        ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());        
+        ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());    
 
 
         // 6. dynamic simulation
@@ -975,9 +975,9 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
 
 
         // update cable status
-        ptr_UAVCable->UpdateCable();
+        ptr_UAVCable->CheckInelasticCollision();
 
-        ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());        
+        ASSERT_TRUE(ptr_UAVCable->cable_.tautStatus());       
 
 
         // 6. dynamic simulation
