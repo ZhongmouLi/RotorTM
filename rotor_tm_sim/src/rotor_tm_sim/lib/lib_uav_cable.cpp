@@ -141,7 +141,7 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable()
 
 
 // void UAVCable::ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
-void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_bodyrate)
 {
 
     if (cable_.tautStatus())
@@ -182,7 +182,7 @@ void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_atti
 
 // ComputeAttachPointTorque computes the force applied by MAV at the attach point
 // Eigen::Vector3d UAVCable::ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
-Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate)
+Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_bodyrate)
 {
 
     // 1. cal uav thrust force along cable direction in world frame
@@ -222,7 +222,7 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
 
 // ComputeAttachPointTorque computes the torque applied by MAV at the attach point
 // Eigen::Vector3d UAVCable::ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force)
-Eigen::Vector3d UAVCable::ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force)
+Eigen::Vector3d UAVCable::ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_force)
 {
 
     Eigen::Vector3d mav_attach_point_torque(0,0,0);
