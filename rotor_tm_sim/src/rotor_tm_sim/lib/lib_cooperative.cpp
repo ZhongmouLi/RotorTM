@@ -219,7 +219,7 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
 
               total_mass = total_mass + v_ptr_uavcables_.at(i)->mav_.mass();
 
-              total_force = v_mavs_thrust.at(i);
+              total_force = total_force + v_mavs_thrust.at(i);
         };
 
         // compute intial accleration with total mass and total force
