@@ -887,6 +887,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
         const double dt = 0.01;
         for(double t=dt ; t - 1e-10<=100*dt ; t+= dt)
         {
+               
                 // 5. compute wrenches at attach point 
                 Eigen::Vector3d zeroVector = Eigen::Vector3d::Zero();
                 Eigen::Quaterniond identityQuat = Eigen::Quaterniond::Identity();            
@@ -894,6 +895,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
 
                 ptr_UAVCable->DoOneStepInt();;
                 // printf("current step is %.3f \n", t);
+  
         }
 
 

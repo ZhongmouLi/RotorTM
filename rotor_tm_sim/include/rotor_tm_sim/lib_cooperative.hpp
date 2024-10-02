@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <string> 
+#include <iomanip> // For std::setprecision
 #include "lib_uav_cable.hpp"
 #include "lib_payload.hpp"
 
@@ -31,6 +32,8 @@ class Cooperative{
         CooperIntertPara interaction_parameters_;
 
         void ClearNetWrenches2Payload();
+
+        bool flag_first_iteration_ = true;
 
     public:
 

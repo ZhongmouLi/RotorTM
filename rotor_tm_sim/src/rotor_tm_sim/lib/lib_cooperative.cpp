@@ -208,6 +208,42 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
         // // std::cout<<"mav "<<i<< " input thrust is " << v_mavs_thrust[i] << " input torque is " << v_mavs_torque.at(i).transpose() << std::endl;
      }
     
+    // set accs of mavs and payload for 1st iteration
+    if (flag_first_iteration_ == true)
+    {
+        double total_mass = ptr_payload_->mass();
+        double total_force = 0;
+
+        for (size_t i = 0; i < number_robots_; i++)
+        {
+
+              total_mass = total_mass + v_ptr_uavcables_.at(i)->mav_.mass();
+
+              total_force = v_mavs_thrust.at(i);
+        };
+
+        // compute intial accleration with total mass and total force
+        Eigen::Vector3d total_acc = total_force * Eigen::Vector3d(0, 0, 1) /total_mass - ptr_payload_->gravity_ * Eigen::Vector3d(0, 0, 1);
+
+        std::cout<<"total_mass is "<<total_mass<<std::endl;
+        std::cout<<"total_force is "<<total_force<<std::endl;
+        std::cout<<"total_acc is "<<total_acc.transpose()<<std::endl;
+
+        // set accs of mavs
+        for (size_t i = 0; i < number_robots_; i++)
+        {
+
+               v_ptr_uavcables_[i]->mav_.SetLinearAcc(total_acc);
+        };
+
+        // set acc of payload
+        ptr_payload_->SetLinearAcc(total_acc);
+
+
+        // change flag to be false then next iteration will never enter this block
+        flag_first_iteration_ =  false;
+    }
+    
 
 }
 
@@ -286,13 +322,16 @@ void Cooperative::ComputeInteractWrenches()
 void Cooperative::DoOneStepInt4Robots()
 {
 
+    std::cout<<"Entre Cooperative::DoOneStepInt4Robots()"<<std::endl;    
         std::cout<<"integration for payload"<<std::endl;
         ptr_payload_->InputDronesNetWrenches(net_mavs_wrench_to_payload_);
 
 
         ptr_payload_->DoOneStepInt();
 
-        std::cout<<"payload post is " << ptr_payload_->pose().post.transpose()<<std::endl;
+        // std::cout << std::fixed << std::setprecision(6);
+
+        std::cout<<"payload post is " << std::fixed << std::setprecision(5) <<  ptr_payload_->pose().post.transpose()<<std::endl;
 
         std::cout<<"integration for mav"<<std::endl;
         for (size_t i = 0; i < number_robots_; i++)
@@ -300,14 +339,16 @@ void Cooperative::DoOneStepInt4Robots()
                // compute MDi, MCi and MEi for each mav     
                 v_ptr_uavcables_.at(i)->ComputeNetWrenchApplied2MAV();
                 v_ptr_uavcables_.at(i)->DoOneStepInt();
-                std::cout<<"mav post is " << v_ptr_uavcables_.at(i)->mav_.pose().post.transpose()<<std::endl;
+                std::cout<<"mav post is " << std::fixed << std::setprecision(5) <<  v_ptr_uavcables_.at(i)->mav_.pose().post.transpose()<<std::endl;
         };
 
 
         // clear accumulated net wrenches for next iteration
         ClearNetWrenches2Payload();
 
+    std::cout<<"Leave Cooperative::DoOneStepInt4Robots()"<<std::endl; 
 
+    std::cout.unsetf(std::ios::fixed); // Reset fixed format
 }  
     
 

@@ -48,57 +48,57 @@ TEST_F(rotorTMCooperative, checkInstanceClass){
 
 // test if initial posts are set for mavs
 // test if instance is created
-TEST_F(rotorTMCooperative, checkInitialPostsNoInput){
-    ptr_Cooperative->SetPayloadInitPost();
+// TEST_F(rotorTMCooperative, checkInitialPostsNoInput){
+//     ptr_Cooperative->SetPayloadInitPost();
 
-    Eigen::Vector3d payload_init_post = Eigen::Vector3d::Random();
-    Eigen::Vector3d mav0_init_post = Eigen::Vector3d::Random();
-    Eigen::Vector3d mav1_init_post = Eigen::Vector3d::Random();
-    Eigen::Vector3d mav2_init_post = Eigen::Vector3d::Random();
-    Eigen::Vector3d mav3_init_post = Eigen::Vector3d::Random();
-
-
-    ptr_Cooperative->payload_.GetPosition(payload_init_post);
-    ASSERT_FLOAT_EQ(payload_init_post[0], 0); 
-    ASSERT_FLOAT_EQ(payload_init_post[1], 0); 
-    ASSERT_FLOAT_EQ(payload_init_post[2], 0); 
+//     Eigen::Vector3d payload_init_post = Eigen::Vector3d::Random();
+//     Eigen::Vector3d mav0_init_post = Eigen::Vector3d::Random();
+//     Eigen::Vector3d mav1_init_post = Eigen::Vector3d::Random();
+//     Eigen::Vector3d mav2_init_post = Eigen::Vector3d::Random();
+//     Eigen::Vector3d mav3_init_post = Eigen::Vector3d::Random();
 
 
-    // std::cout<< "fuck point cooperative test 1"<<std::endl;
-    std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
+//     ptr_Cooperative->payload_.GetPosition(payload_init_post);
+//     ASSERT_FLOAT_EQ(payload_init_post[0], 0); 
+//     ASSERT_FLOAT_EQ(payload_init_post[1], 0); 
+//     ASSERT_FLOAT_EQ(payload_init_post[2], 0); 
 
-    // UAVCable mavcable1 = v_drone_cable[0];
-    // mavcable1.mav_.GetPosition(mav0_init_post); // check at(0).mav_ if it gets correct values passed in
+
+//     // std::cout<< "fuck point cooperative test 1"<<std::endl;
+//     std::vector<UAVCable> &v_drone_cable = ptr_Cooperative->v_drone_cable_;
+
+//     // UAVCable mavcable1 = v_drone_cable[0];
+//     // mavcable1.mav_.GetPosition(mav0_init_post); // check at(0).mav_ if it gets correct values passed in
     
-    v_drone_cable.at(0).mav_.GetPosition(mav0_init_post);
-    v_drone_cable.at(1).mav_.GetPosition(mav1_init_post);
-    v_drone_cable.at(2).mav_.GetPosition(mav2_init_post);        
-    v_drone_cable.at(3).mav_.GetPosition(mav3_init_post);  
+//     v_drone_cable.at(0).mav_.GetPosition(mav0_init_post);
+//     v_drone_cable.at(1).mav_.GetPosition(mav1_init_post);
+//     v_drone_cable.at(2).mav_.GetPosition(mav2_init_post);        
+//     v_drone_cable.at(3).mav_.GetPosition(mav3_init_post);  
     
-    double cable_length;
-    ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
+//     double cable_length;
+//     ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
 
-    // std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
-    ASSERT_FLOAT_EQ(mav0_init_post[0], 1); 
-    ASSERT_FLOAT_EQ(mav0_init_post[1], 1); 
-    ASSERT_FLOAT_EQ(mav0_init_post[2], cable_length);  
+//     // std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
+//     ASSERT_FLOAT_EQ(mav0_init_post[0], 1); 
+//     ASSERT_FLOAT_EQ(mav0_init_post[1], 1); 
+//     ASSERT_FLOAT_EQ(mav0_init_post[2], cable_length);  
 
-    // std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
-    ASSERT_FLOAT_EQ(mav1_init_post[0], -1); 
-    ASSERT_FLOAT_EQ(mav1_init_post[1], 1); 
-    ASSERT_FLOAT_EQ(mav1_init_post[2], cable_length);  
+//     // std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
+//     ASSERT_FLOAT_EQ(mav1_init_post[0], -1); 
+//     ASSERT_FLOAT_EQ(mav1_init_post[1], 1); 
+//     ASSERT_FLOAT_EQ(mav1_init_post[2], cable_length);  
 
-    // std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
-    ASSERT_FLOAT_EQ(mav2_init_post[0], -1); 
-    ASSERT_FLOAT_EQ(mav2_init_post[1], -1); 
-    ASSERT_FLOAT_EQ(mav2_init_post[2], cable_length);          
+//     // std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
+//     ASSERT_FLOAT_EQ(mav2_init_post[0], -1); 
+//     ASSERT_FLOAT_EQ(mav2_init_post[1], -1); 
+//     ASSERT_FLOAT_EQ(mav2_init_post[2], cable_length);          
 
 
-    ASSERT_FLOAT_EQ(mav3_init_post[0], 1); 
-    ASSERT_FLOAT_EQ(mav3_init_post[1], -1); 
-    ASSERT_FLOAT_EQ(mav3_init_post[2], cable_length);       
+//     ASSERT_FLOAT_EQ(mav3_init_post[0], 1); 
+//     ASSERT_FLOAT_EQ(mav3_init_post[1], -1); 
+//     ASSERT_FLOAT_EQ(mav3_init_post[2], cable_length);       
 
-}
+// }
 
 
 

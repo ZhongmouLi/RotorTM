@@ -153,6 +153,7 @@ TEST_F(rotorTMRigidBodyTest, applyForce4Zdirection){
 
 
     // check acc = a
+    std::cout << "linear_acc is " << accs.linear_acc.transpose() <<std::endl;
     EXPECT_FLOAT_EQ(accs.linear_acc[0], 0); 
     EXPECT_FLOAT_EQ(accs.linear_acc[1], 0); 
     EXPECT_FLOAT_EQ(accs.linear_acc[2], 5.2);  
