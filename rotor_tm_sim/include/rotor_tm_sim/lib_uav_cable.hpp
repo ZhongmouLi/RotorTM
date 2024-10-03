@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <iomanip>
 #include <cmath>
 #include <memory>
 #include <utility>
@@ -29,6 +30,9 @@ class UAVCable{
         // std::weak_ptr<const Payload> ptr_payload_;
 
     private:
+
+        // var indicates inelastic collision
+        bool inelastic_collision_ = false;
 
         // attach point is a shared property between payload and UAVCable
         mutable std::weak_ptr<const Joint> ptr_joint_;
@@ -62,11 +66,11 @@ class UAVCable{
         // compute attach point force that is the force applied by a drone to the payload at its attached point
         // Eigen::Vector3d ComputeAttachPointForce(const Eigen::Vector3d &cable_direction, const Eigen::Vector3d &cable_bodyrate, const Eigen::Vector3d &attach_point_post, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
 
-        Eigen::Vector3d ComputeNetForceApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+        Eigen::Vector3d ComputeNetForceApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_bodyrate);
 
         // compute attach point torque that is the torque applied by a drone to the payload at its attached point
         // Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
-        Eigen::Vector3d ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
+        Eigen::Vector3d ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_force);
         
         std::shared_ptr<const Joint> ptr_joint();
 
@@ -83,7 +87,9 @@ class UAVCable{
     // call one step dynamic simulation
     virtual void DoOneStepInt() final;
 
-    void UpdateCable();
+    void CheckInelasticCollision();
+
+    void UpdateCableTautStatus();
 
     // check if collision happens for a UAV cable object with its attach point
     // bool IsCollided(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &attachpoint_vel);
@@ -95,7 +101,7 @@ class UAVCable{
 
     // compute force and torque applied by MAV to payload at attach point position
     // void ComputeAttachPointWrenches(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Vector3d &attach_point_post, const Eigen::Vector3d &attach_point_vel, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
-    void ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &payload_bodyrate);
+    void ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_bodyrate);
 
 
     // compute term m_D (m means matrix) and m_D is to compute payload translational dynamic equation
@@ -134,6 +140,14 @@ class UAVCable{
 
     // obtain m_E_i with m_E_i()
     inline Eigen::Matrix3d m_E_i() const {return m_E_i_;};
+
+    // obtain mass matrix
+    Eigen::Matrix3d m_mass_matrix() const;    
+
+    // obtain cable collision status
+    inline bool inelasticCollisionStauts() const {return inelastic_collision_;};    
+
+    void SetCollisionStatus(const bool &collision_status);
 
 };
 #endif

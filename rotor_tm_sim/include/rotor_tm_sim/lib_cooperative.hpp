@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <iomanip>
 #include <cmath>
 #include <memory>
 #include <utility>
@@ -59,6 +60,8 @@ class Cooperative{
 
         void SetPayloadInitPost(const Eigen::Vector3d &payload_init_post);    
 
+        void SetPayloadInitPost(const Eigen::Vector3d &payload_init_post, const double& tilt_angle);
+
         // void SetPayloadInitialAccAndBodyrateACC();
         void UpdateJointAndCableStatus();
 
@@ -73,6 +76,8 @@ class Cooperative{
 
         // call one step dynamic simulation for MAVs and payload
         void DoOneStepInt4Robots();
+
+        Wrench NetMavsWrenchToPayload() const {return net_mavs_wrench_to_payload_;};
 };
 
 

@@ -18,6 +18,8 @@ class Cable
         // var indicates taut of slack of cable
         bool taut_ = true;
 
+
+
         // tention force in world frame
         // tension force applied at "robot" by cable
         // direction Z up
@@ -57,10 +59,10 @@ class Cable
 
         // change taut status of cable
         // input:   (1) posts of attach points and drones
-        //          (2) vels of attach points and drones
         // methods: equation (34)-(38)
         // output: change boolen var taut_
-        void CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post, const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel);
+        void CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post);
+
 
 
         // compute bodyrate of cable
@@ -88,6 +90,8 @@ class Cable
 
         // inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
         inline Eigen::Vector3d bodyrate() const {return body_rate_;};
+
+        void SetCollisionStatus(const bool &collision_status);
 };
 
 

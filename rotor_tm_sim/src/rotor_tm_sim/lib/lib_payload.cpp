@@ -28,9 +28,46 @@ Payload::Payload(const MassProperty &mass_property, std::vector<std::shared_ptr<
 
 };
 
+
+void Payload::SetJointInitPostBasedOnPayload()
+{
+    // obtain payload pose: post and attitude
+    Eigen::Vector3d payload_position = pose().post;
+    Eigen::Quaterniond payload_attitude = pose().att;
+
+    Eigen::Matrix3d m_payload_rotation = payload_attitude.toRotationMatrix();
+
+    // compute post, vel and acc of each attach point
+    for (size_t i = 0; i < num_robot_; i++)    
+    {
+        Eigen::Vector3d joint_post_bodyframe = v_ptr_joints_.at(i)->post_body_frame();
+
+        Pose joint_pose;
+        joint_pose.post = payload_position + m_payload_rotation * joint_post_bodyframe;
+        joint_pose.att = payload_attitude;
+        v_ptr_joints_.at(i)->SetPose(joint_pose);
+    }
+}
+
+void Payload::AddJointsLinkedWithUAVCable(const std::vector<std::shared_ptr<Joint>>& v_ptr_joints)
+{
+
+    // copy shared pointers of v_ptr_joints to v_ptr_joints_
+    num_robot_ = v_ptr_joints.size();
+    v_ptr_joints_.reserve(num_robot_);
+
+    for (size_t i = 0; i < num_robot_; i++)
+    {
+        v_ptr_joints_.push_back(v_ptr_joints.at(i));
+    }
+    
+
+}
+
 void Payload::ComputeJointKinematics()
 {
 
+    std::cout<<std::string(4, ' ') <<"Enter Payload::ComputeJointKinematics()"<<std::endl;
     // obtain payload pose: post and attitude
     Eigen::Vector3d payload_position = pose().post;
     Eigen::Quaterniond payload_attitude = pose().att;
@@ -45,8 +82,6 @@ void Payload::ComputeJointKinematics()
 
     Eigen::Matrix3d m_skewsym_payload_bodyrate = TransVector3d2SkewSymMatrix(payload_bodyrate);
 
-    
-
     // obtain payload acc
     Eigen::Vector3d payload_acc = accs().linear_acc;
 
@@ -55,27 +90,27 @@ void Payload::ComputeJointKinematics()
     Eigen::Vector3d payload_angular_acc = accs().angular_acc;  
     Eigen::Matrix3d m_skewsym_payload_bodyrate_acc = TransVector3d2SkewSymMatrix(payload_angular_acc);
     
-    // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 1"<<std::endl;
+    // std::cout<<std::string(4, ' ')<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 1"<<std::endl;
     // compute post, vel and acc of each attach point
 
-    for (auto it = v_ptr_joints_.begin(); it != v_ptr_joints_.end(); ++it) 
+    // for (auto it = v_ptr_joints_.begin(); it != v_ptr_joints_.end(); ++it) 
+    for (size_t i = 0; i < num_robot_; i++)    
     {
     // Access the member of the unique_ptr<Joint> using *it
     // Example: (*it)->someMethod();
 
-        Eigen::Vector3d joint_post_bodyframe = (*it)->post_body_frame();
+        Eigen::Vector3d joint_post_bodyframe = v_ptr_joints_.at(i)->post_body_frame();
 
         Pose joint_pose;
         joint_pose.post = payload_position + m_payload_rotation * joint_post_bodyframe;
         joint_pose.att = payload_attitude;
-
-        (*it)->SetPose(joint_pose);
+        v_ptr_joints_.at(i)->SetPose(joint_pose);
 
         // vels
         Vels joint_vels;
         joint_vels.linear_vel = payload_vel +  m_payload_rotation * m_skewsym_payload_bodyrate * joint_post_bodyframe;
         joint_vels.bodyrate = payload_bodyrate;
-        (*it)->SetVels(joint_vels);
+        v_ptr_joints_.at(i)->SetVels(joint_vels);
 
         // accs
         Accs joint_accs;
@@ -88,52 +123,45 @@ void Payload::ComputeJointKinematics()
         joint_accs.linear_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * joint_post_bodyframe)) + (m_payload_rotation * joint_centri_acc);      
           
         joint_accs.angular_acc = payload_angular_acc;
-        (*it)->SetAccs(joint_accs);
+        v_ptr_joints_.at(i)->SetAccs(joint_accs);
+
+
+        std::cout<<std::string(4, ' ')<<"joint " << i <<std::endl;
+        std::cout<<std::string(4, ' ') <<"payload_position is "<< payload_position.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation.transpose().reshaped().transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"joint_pose.post is "<< joint_pose.post.transpose()<<std::endl;
+        
+        
+        
+        // std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
+
+        std::cout<<std::string(4, ' ') <<"payload_acc is "<< payload_acc.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"payload_angular_acc is "<< payload_angular_acc.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc.transpose().reshaped().transpose()<<std::endl;
+
+
+        auto term1 = m_payload_rotation * (m_skewsym_payload_bodyrate_acc * joint_post_bodyframe);
+        std::cout<<std::string(4, ' ') <<"term1 is "<< term1.transpose()<<std::endl;
+
+        auto term2 = m_payload_rotation * joint_centri_acc;
+        std::cout<<std::string(4, ' ') <<"term2 is "<< term2.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"joint_centri_acc is "<< joint_centri_acc.transpose()<<std::endl;
+        // std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation<<std::endl;
+        // std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc<<std::endl;
+        // std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
+
+
+
+        
+        std::cout<<std::string(4, ' ') <<"joint_accs.linear_acc is "<< joint_accs.linear_acc.transpose()<<std::endl;
+        std::cout<<std::string(4, ' ') <<"joint_accs.angular_acc is "<< joint_accs.angular_acc.transpose()<<std::endl;
+
+        // std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
+        std::cout<<std::string(4, ' ') <<"Leave Payload::ComputeJointKinematics()"<<std::endl;
 
     }
 
-
-    // for (size_t i = 0; i < num_robot_; i++)
-    // {
-
-
-    //     // 
-    //     // 1. obtain attach points' posts in body frame
-    //     Eigen::Vector3d attach_point_body_frame = v_attach_points_posts_body_frame_.at(i);
-    //     // std::cout<< i <<"th attach point is " <<attach_point_body_frame.transpose()<<std::endl;
-
-    //     // 
-    //     Eigen::Vector3d attach_point_post_world_frame;
-    //     attach_point_post_world_frame = payload_position + (m_payload_rotation* attach_point_body_frame);
-
-
-
-
-    //     v_attach_points_posts_.at(i)= attach_point_post_world_frame;
-    //     // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 4"<<std::endl;
-
-    //     // 3. compute attach point's vels in world frame
-    //     Eigen::Vector3d attach_point_vel_world_frame;
-
-    //     // Eigen::Matrix3d m_skew_payload_bodyrate = TransVector3d2SkewSymMatrix(payload_bodyrate);
-            
-    //     attach_point_vel_world_frame = payload_vel + m_payload_rotation * m_skewsym_payload_bodyrate * attach_point_body_frame;
-        
-    //     // std::cout<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 5"<<std::endl;
-    //     v_attach_points_vels_.at(i) = attach_point_vel_world_frame;        
-
-    //     // 4 compute centri acc of attach point
-    //     Eigen::Vector3d joint_centri_acc =  m_skewsym_payload_bodyrate * (m_skewsym_payload_bodyrate * attach_point_body_frame);
-    //     // std::cout<< "joint_centri_acc  is " <<joint_centri_acc.transpose()<<std::endl;
-    //     // 3.3 compute acc of attach point
-    //     //  self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
-
-    //     Eigen::Vector3d attach_point_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * attach_point_body_frame)) + (m_payload_rotation * joint_centri_acc);
-
-
-    //     v_attach_points_accs_.at(i) = attach_point_acc;   
-       
-    // };
     
 
 }
@@ -189,7 +217,7 @@ void Payload::UpdateVelCollided()
         // bool flag_cable_taut = false;
         // UAVCable.CheckCollision(attachpoint_post, attachpoint_vel);
 
-        if (ptr_UAVCable->cable_.tautStatus() == true) // cable is taut
+        if (ptr_UAVCable->inelasticCollisionStauts() == true) // cable is taut
         {
 
             // 3) compute Ji for drones whose cables are taut
@@ -307,7 +335,7 @@ Eigen::VectorXd Payload::ComputeVectorbi(const Quadrotor &mav, const Cable &cabl
 
 //     m_D_ = m_D;
 
-//     // std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_force is "<< drones_net_force_.transpose()<<std::endl;   
+//     // std::cout<<std::string(4, ' ')<<"[----------] Payload::InputDronesNetForces mavs_net_force is "<< drones_net_force_.transpose()<<std::endl;   
 // }
 
 
@@ -315,8 +343,8 @@ void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_ac
 {
     if(!intial_acc_set_)
     {
-        SetAcc(payload_initial_acc);
-        SetBodyrateAcc(Eigen::Vector3d::Zero());
+        SetLinearAcc(payload_initial_acc);
+        SetAngularAcc(Eigen::Vector3d::Zero());
         intial_acc_set_ =  true;
     }
 }
@@ -329,9 +357,9 @@ void Payload::ComputeAccBodyRateAcc()
 
     Eigen::Vector3d payload_acc = ComputeTransDynamics();
     
-    SetAcc(payload_acc);
+    SetLinearAcc(payload_acc);
 
-    SetBodyrateAcc(payload_angular_acc);
+    SetAngularAcc(payload_angular_acc);
 };
 
 
@@ -354,9 +382,78 @@ void Payload::InputPayloadInteractPara(const CooperIntertPara &cooper_interact_p
 
 //     // m_E_ = m_E;
     
-//     // // std::cout<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
+//     // // std::cout<<std::string(4, ' ')<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
 // }
 
+
+void Payload::operator() (const object_state &x , object_state &dxdt, const double time [[maybe_unused]])
+{
+
+    // static bool is_recursing = false;
+    // if (is_recursing) return;  // Prevent recursion
+    // is_recursing = true;
+    
+    // std::cout<<std::string(4, ' ') << "state of payload" << x.transpose()<<std::endl; 
+    // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
+
+    // For instance
+    // std::cout<<std::string(4, ' ')<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
+    // std::cout<<std::string(4, ' ')<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
+    // std::cout<<std::string(4, ' ')<< "position is "<< x.head(3).transpose()<<std::endl;
+    // std::cout<<std::string(4, ' ')<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
+
+    // obtain bodyrate [p,      q,      r]
+    Eigen::Vector3d payload_bodyrate;
+    payload_bodyrate = x.tail(3);    
+
+    // obtain bodyrate acc [ dp,     dq,     dr]
+    Eigen::Vector3d payload_angular_acc;
+    payload_angular_acc = dxdt.tail(3);       
+
+    // 1. translation in world frame
+    // P = [x,y,z,dx, dy, dz]
+    // dP = [dx, dy, dz, ddx, ddy, ddz]
+    dxdt.head(3) = x.segment<3>(3);
+
+    // [ddx ddy ddz] = 
+    // dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_angular_acc);
+
+    dxdt.segment<3>(3) =ComputeTransDynamics();
+
+    
+    // std::cout<<std::string(4, ' ')<<"fuck payload " << m_mass_matrix_<<std::endl;
+
+
+    // std::cout<<std::string(4, ' ')<<"fuck payload " << m_D_ <<std::endl;
+
+
+    // std::cout<<std::string(4, ' ')<<"fuck payload " << payload_angular_acc.transpose() <<std::endl;
+    // 2. rotation in body frame
+    Eigen::Matrix3d matrix_pdr2dEuler;
+    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
+
+    // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
+    dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
+
+    // compute dp, dq ,dr
+    dxdt.tail(3) =ComputeRotDynamics();
+
+
+    // std::cout<<std::string(4, ' ')<<"fuck payload post" << x.head(3).transpose() <<std::endl;
+    // std::cout<<std::string(4, ' ')<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
+
+    // is_recursing = false;
+
+    // current_step_ = current_step_ + 
+    // save payload linear acc and angular acc
+    SetLinearAcc(dxdt.segment<3>(3));
+    SetAngularAcc(dxdt.tail(3));
+
+    // std::cout<<"fuck hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"<<std::endl;
+    std::cout<<"    "<< "payload inte is called"<<std::endl;
+
+}
 
 
 // Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_angular_acc)
@@ -402,20 +499,20 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
     torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
 
-    // std::cout<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
 
-    // std::cout<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
 
-    // std::cout<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
 
 
-    // std::cout<< "m_C  is " << m_C  <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "m_C  is " << m_C  <<std::endl; 
 
-    // std::cout<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
 
-    // std::cout<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
 
-    // std::cout<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
+    // std::cout<<std::string(4, ' ')<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;
@@ -443,75 +540,13 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
 
 
-void Payload::operator() (const object_state &x , object_state &dxdt, const double time [[maybe_unused]])
-{
-
-    static bool is_recursing = false;
-    if (is_recursing) return;  // Prevent recursion
-    is_recursing = true;
-    
-    // std::cout << "state of payload" << x.transpose()<<std::endl; 
-    // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
-
-    // For instance
-    // std::cout<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
-    // std::cout<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
-    // std::cout<< "position is "<< x.head(3).transpose()<<std::endl;
-    // std::cout<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
-
-    // obtain bodyrate [p,      q,      r]
-    Eigen::Vector3d payload_bodyrate;
-    payload_bodyrate = x.tail(3);    
-
-    // obtain bodyrate acc [ dp,     dq,     dr]
-    Eigen::Vector3d payload_angular_acc;
-    payload_angular_acc = dxdt.tail(3);       
-
-    // 1. translation in world frame
-    // P = [x,y,z,dx, dy, dz]
-    // dP = [dx, dy, dz, ddx, ddy, ddz]
-    dxdt.head(3) = x.segment<3>(3);
-
-    // [ddx ddy ddz] = 
-    // dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_angular_acc);
-
-    dxdt.segment<3>(3) =ComputeTransDynamics();
-
-    
-    // std::cout<<"fuck payload " << m_mass_matrix_<<std::endl;
-
-
-    // std::cout<<"fuck payload " << m_D_ <<std::endl;
-
-
-    // std::cout<<"fuck payload " << payload_angular_acc.transpose() <<std::endl;
-    // 2. rotation in body frame
-    Eigen::Matrix3d matrix_pdr2dEuler;
-    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
-
-    // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
-    dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
-
-    // compute dp, dq ,dr
-    dxdt.tail(3) =ComputeRotDynamics();
-
-
-    // std::cout<<"fuck payload post" << x.head(3).transpose() <<std::endl;
-    // std::cout<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
-
-    is_recursing = false;
-
-    // current_step_ = current_step_ + 
-}
-
-
 
 // void Payload::DoPayloadOneStepInt()
 // {
 
 //     // call one step integration for quadrotor dynamics
-//     this->stepper_.do_step(*this, state_, current_step_, step_size_);
+//     std::cout<<std::string(4, ' ')<<"sdf " << state_ <<  current_step_ << step_size_ << std::endl;
+//     this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
 
 //     // update current step
 //     current_step_ = current_step_ + step_size_;

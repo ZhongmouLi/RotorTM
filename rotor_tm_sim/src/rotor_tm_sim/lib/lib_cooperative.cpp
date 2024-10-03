@@ -6,6 +6,8 @@ Cooperative::Cooperative(const std::shared_ptr<Payload>& ptr_payload_, const std
     if (v_ptr_joints.size() == v_ptr_uavcables_.size())
     {
         number_robots_ = v_ptr_joints.size();
+
+        v_controllers_inputs_.resize(number_robots_);
     }
     else
     {
@@ -19,6 +21,7 @@ Cooperative::Cooperative(const std::shared_ptr<Payload>& ptr_payload, const std:
     v_ptr_joints_ = {ptr_joint};
     v_ptr_uavcables_ = {ptr_uavcable};
     number_robots_ =1;
+    v_controllers_inputs_.resize(number_robots_);
 
 }
 
@@ -48,7 +51,8 @@ void  Cooperative::SetPayloadInitPost(const Eigen::Vector3d &payload_init_post)
     // payload begins at origin
     ptr_payload_->SetInitialPost(payload_init_post);
 
-
+    ptr_payload_->SetJointInitPostBasedOnPayload();
+    
     // set initial post for each mav-cable
     for (size_t i = 0; i < number_robots_; i++)
     {
@@ -58,12 +62,44 @@ void  Cooperative::SetPayloadInitPost(const Eigen::Vector3d &payload_init_post)
 
         // set initial post for each mav-cable
         v_ptr_uavcables_[i]->SetMAVInitPostCableTautWithAttachPointPost(payload_init_post + attach_point_post_body_frame);
+
+        // set initial post for each joint
+        
     }        
 }
+
+
+void Cooperative::SetPayloadInitPost(const Eigen::Vector3d &payload_init_post, const double& tilt_angle)
+{
+    // payload begins at origin
+    ptr_payload_->SetInitialPost(payload_init_post);
+
+    ptr_payload_->SetJointInitPostBasedOnPayload();
+    
+    // set initial post for each mav-cable
+    for (size_t i = 0; i < number_robots_; i++)
+    {
+        // get ith join post in body frame with the vector of shared pointer of joint
+        Eigen::Vector3d attach_point_post_body_frame;
+        attach_point_post_body_frame = v_ptr_joints_.at(i)->post_body_frame();
+
+        // set initial post for each mav-cable
+        v_ptr_uavcables_[i]->SetMAVInitPostCableTautWithAttachPointPost(payload_init_post + attach_point_post_body_frame);
+
+        // set initial post for each joint
+        
+    }        
+}
+
 
 void Cooperative::UpdateJointAndCableStatus()
 {
     ptr_payload_->ComputeJointKinematics();
+    
+    for (size_t i = 0; i < number_robots_; i++)
+    {
+        v_ptr_uavcables_.at(i)->UpdateCableTautStatus();
+    }
 }
 
 // update vels of MAVs and payload after collsion
@@ -76,22 +112,22 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
 
 
         // step 3 check collision between mavs and payload at current iteration
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < number_robots_; i++)
             {
                 v_ptr_uavcables_[i]->CheckInelasticCollision();
             }
 
         // save collision status to v_flags_inelastic_collision_status
         std::vector<bool> v_flags_inelastic_collision_status(4,false);
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < number_robots_; i++)
             {
                 v_flags_inelastic_collision_status[i] = v_ptr_uavcables_[i]->inelasticCollisionStauts();
-                // std::cout<<"ith element of v_flags_inelastic_collision_status is"<<v_flags_inelastic_collision_status[i]<<std::endl;
+                //  std::cout<<std::string(2, ' ')<<"ith element of v_flags_inelastic_collision_status is"<<v_flags_inelastic_collision_status[i]<<std::endl;
             }
 
 
         /*Avoid any collision*/
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < number_robots_; i++)
             {
                 v_flags_inelastic_collision_status[i] = false;
                
@@ -106,7 +142,7 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             // 3.1 define a vector of 4 mav-cable inelatic collision status
             std::vector<bool> v_mavs_inelastic_status_before_collision(4,false);
             //assign v_mavs_inelastic_collision with value of inelastic_collision_ of each mav-cable
-            for (size_t i = 0; i < 4; i++)
+            for (size_t i = 0; i < number_robots_; i++)
             {
                 v_mavs_inelastic_status_before_collision[i] = v_ptr_uavcables_[i]->inelasticCollisionStauts();
             }
@@ -117,7 +153,7 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             ptr_payload_->UpdateVelCollided();
 
             // 3.3 update vel of mav if collision happend
-            for (size_t i = 0; i < 4; i++)
+            for (size_t i = 0; i < number_robots_; i++)
             {
                 // obtain ith uav-cable instance from vector
                 std::shared_ptr<UAVCable>& ptr_uavcable = v_ptr_uavcables_.at(i);
@@ -130,7 +166,7 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             // 3.4 save inelastic collision status of each mav-cable after collision
             std::vector<bool> v_mavs_inelastic_status_after_collision(4,false);
             //assign v_mavs_inelastic_status_after_collision with value of inelastic_collision_ of each mav-cable
-            for (size_t i = 0; i < 4; i++)
+            for (size_t i = 0; i < number_robots_; i++)
             {
                 v_mavs_inelastic_status_after_collision[i] = v_ptr_uavcables_[i]->inelasticCollisionStauts();
             }
@@ -162,14 +198,14 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             }
             else
             {
-                std::cout<<"no new collision"<<std::endl;
+                 std::cout<<std::string(2, ' ')<<"no new collision"<<std::endl;
 
                 // update post and vels of joint
                 ptr_payload_->ComputeJointKinematics();
 
                 v_flags_inelastic_collision_status = v_mavs_inelastic_status_after_collision;
 
-                for (size_t i = 0; i < 4; i++)
+                for (size_t i = 0; i < number_robots_; i++)
                     {
                         // debug here
                         v_ptr_uavcables_[i]->CheckInelasticCollision();
@@ -187,17 +223,13 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
 void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thrust, const std::vector<Eigen::Vector3d> v_mavs_torque)
 {
 
-    if (number_robots_!= static_cast<size_t>(v_mavs_thrust.size()) || number_robots_!= static_cast<size_t>(v_mavs_torque.size())  )
-    {
-        std::cout<< "ERROR: dim of input < num of robot"<<std::endl;
-        exit(0);
-    }
     
      for (size_t i = 0; i < number_robots_; i++)
      {
 
-        v_controllers_inputs_.emplace_back(v_mavs_thrust.at(i), v_mavs_torque.at(i));
+        // v_controllers_inputs_.emplace_back(v_mavs_thrust.at(i), v_mavs_torque.at(i));
 
+        v_controllers_inputs_.at(i) = {v_mavs_thrust.at(i), v_mavs_torque.at(i)};
         // v_drone_cable_.at(i).InputControllerInput(v_mavs_thrust[i], v_mavs_torque[i] );
         // v_drone_cable_.at(i) = (v_mavs_thrust[i], v_mavs_torque[i] );
 
@@ -205,9 +237,18 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
         // std::pair<double, Eigen::Vector3d> mav_input(v_mavs_thrust[i], v_mavs_torque.at(i));
 
         // v_controllers_inputs_.at(i) = mav_input;
-        // // std::cout<<"mav "<<i<< " input thrust is " << v_mavs_thrust[i] << " input torque is " << v_mavs_torque.at(i).transpose() << std::endl;
+        //  std::cout<<std::string(2, ' ')<<"mav "<<i<< " input thrust is " << v_mavs_thrust[i] << " input torque is " << v_mavs_torque.at(i).transpose() << std::endl;
+
      }
     
+     for (size_t i = 0; i < number_robots_; i++)
+     {
+
+        //  std::cout<<std::string(2, ' ')<<"check" << std::endl;
+        std::cout<<std::string(2, ' ')<<"mav "<<i<< " input thrust is " << v_controllers_inputs_.at(i).thrust << " input torque is " <<  v_controllers_inputs_.at(i).torque.transpose() << std::endl;
+
+     }
+
     // set accs of mavs and payload for 1st iteration
     if (flag_first_iteration_ == true)
     {
@@ -225,9 +266,9 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
         // compute intial accleration with total mass and total force
         Eigen::Vector3d total_acc = total_force * Eigen::Vector3d(0, 0, 1) /total_mass - ptr_payload_->gravity_ * Eigen::Vector3d(0, 0, 1);
 
-        std::cout<<"total_mass is "<<total_mass<<std::endl;
-        std::cout<<"total_force is "<<total_force<<std::endl;
-        std::cout<<"total_acc is "<<total_acc.transpose()<<std::endl;
+        //  std::cout<<std::string(2, ' ')<<"total_mass is "<<total_mass<<std::endl;
+        //  std::cout<<std::string(2, ' ')<<"total_force is "<<total_force<<std::endl;
+        //  std::cout<<std::string(2, ' ')<<"total_acc is "<<total_acc.transpose()<<std::endl;
 
         // set accs of mavs
         for (size_t i = 0; i < number_robots_; i++)
@@ -253,11 +294,13 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
 void Cooperative::ComputeInteractWrenches()
 {
 
-    std::cout<<"Entre Cooperative::ComputeInteractWrenches() "<<std::endl;
+     std::cout<<std::string(2, ' ')<<"Entre Cooperative::ComputeInteractWrenches() "<<std::endl;
 
     for (size_t i = 0; i < number_robots_; i++)
         {
             v_ptr_uavcables_.at(i)->InputControllerInput(v_controllers_inputs_.at(i).thrust, v_controllers_inputs_.at(i).torque);
+
+            std::cout<<std::string(2, ' ')<<"mav "<<i<< " input thrust is " << v_controllers_inputs_.at(i).thrust << " input torque is " << v_controllers_inputs_.at(i).torque.transpose() << std::endl;
             
         }
 
@@ -269,7 +312,7 @@ void Cooperative::ComputeInteractWrenches()
         for (size_t i = 0; i < number_robots_; i++)
             {
                // compute MDi, MCi and MEi for each mav     
-                v_ptr_uavcables_[i]->ComputeMatrixMDiMCiMEi(ptr_payload_->pose().att);
+                v_ptr_uavcables_.at(i)->ComputeMatrixMDiMCiMEi(ptr_payload_->pose().att);
 
                 // accumulate MDi, MCi and MEi
                 sum_m_C_i = sum_m_C_i +  v_ptr_uavcables_[i]->m_C_i();
@@ -289,41 +332,32 @@ void Cooperative::ComputeInteractWrenches()
         ptr_payload_->InputPayloadInteractPara(interaction_parameters_);
 
 
-        // std::cout<< "interaction_parameters_.m_C" << sum_m_C_i<<std::endl;
-        // std::cout<< "interaction_parameters_.m_D" << sum_m_D_i<<std::endl;
-        // std::cout<< "interaction_parameters_.m_E" << sum_m_E_i<<std::endl;
-        // std::cout<< "interaction_parameters_.m_mass_matrix" << m_mass_matrix<<std::endl;
-
-
-        // compute net wrench applied by UAVs to payload
-        std::cout<< "net_mavs_wrench_to_payload_ force" << net_mavs_wrench_to_payload_.force.transpose()<<std::endl;
-
-        std::cout<< "net_mavs_wrench_to_payload_ torque" << net_mavs_wrench_to_payload_.torque.transpose()<<std::endl;
-
         for (size_t i = 0; i < number_robots_; i++)
             {  
-                
-                v_ptr_uavcables_[i]->ComputeInteractionWrenches(ptr_payload_->pose().att, ptr_payload_->vels().bodyrate);
-                auto mav_wrench = v_ptr_uavcables_[i]->attach_point_wrench();
+                // std::cout<< "Entre UAVCable ComputeInteractionWrenches "<<std::endl; 
+                v_ptr_uavcables_.at(i)->ComputeInteractionWrenches(ptr_payload_->pose().att, ptr_payload_->vels().bodyrate);
 
-                std::cout<< i <<"th mav_wrench's force" << mav_wrench.force.transpose()<<std::endl;
-                std::cout<< i <<"th mav_wrench's torque" << mav_wrench.torque.transpose()<<std::endl;
+
+                auto mav_wrench = v_ptr_uavcables_.at(i)->attach_point_wrench();
+
+                std::cout<<std::string(2, ' ')<<i <<"th mav_wrench's force to payload is " << mav_wrench.force.transpose()<<std::endl;
+                std::cout<<std::string(2, ' ')<<i <<"th mav_wrench's torque to payload is " << mav_wrench.torque.transpose()<<std::endl;
                 net_mavs_wrench_to_payload_ = net_mavs_wrench_to_payload_ + mav_wrench;
             }           
 
-            std::cout<< "net_mavs_wrench_to_payload_ force" << net_mavs_wrench_to_payload_.force.transpose()<<std::endl;
+        std::cout<<std::string(2, ' ')<< "net_mavs_wrench_to_payload_ force" << net_mavs_wrench_to_payload_.force.transpose()<<std::endl;
 
-            std::cout<< "net_mavs_wrench_to_payload_ torque" << net_mavs_wrench_to_payload_.torque.transpose()<<std::endl;
+        std::cout<<std::string(2, ' ')<< "net_mavs_wrench_to_payload_ torque" << net_mavs_wrench_to_payload_.torque.transpose()<<std::endl;
 
-        std::cout<<"Leave Cooperative::ComputeInteractWrenches()"<<std::endl;
+        std::cout<<std::string(2, ' ')<<"Leave Cooperative::ComputeInteractWrenches()"<<std::endl;
 }
 
 
 void Cooperative::DoOneStepInt4Robots()
 {
 
-    std::cout<<"Entre Cooperative::DoOneStepInt4Robots()"<<std::endl;    
-        std::cout<<"integration for payload"<<std::endl;
+        std::cout<<std::string(2, ' ')<<"Entre Cooperative::DoOneStepInt4Robots()"<<std::endl;    
+        std::cout<<std::string(2, ' ')<<"integration for payload"<<std::endl;
         ptr_payload_->InputDronesNetWrenches(net_mavs_wrench_to_payload_);
 
 
@@ -331,22 +365,36 @@ void Cooperative::DoOneStepInt4Robots()
 
         // std::cout << std::fixed << std::setprecision(6);
 
-        std::cout<<"payload post is " << std::fixed << std::setprecision(5) <<  ptr_payload_->pose().post.transpose()<<std::endl;
+        std::cout<<std::string(2, ' ')<<"payload post is " << std::fixed << std::setprecision(5) <<  ptr_payload_->pose().post.transpose()<<std::endl;
 
-        std::cout<<"integration for mav"<<std::endl;
+        auto payload_euler = ptr_payload_->pose().att.toRotationMatrix().eulerAngles(2, 1, 0);
+        // std::cout<<std::string(2, ' ')<<"payload Euler angles are " << std::fixed << std::setprecision(5) <<  ptr_payload_->pose().att.coeffs().transpose()<<std::endl;
+        std::cout<<std::string(2, ' ')<<"payload Euler angles are " << std::fixed << std::setprecision(5) << "roll " << payload_euler[2]<< "pitch " <<payload_euler[1] << "yaw" << payload_euler[0] <<std::endl;
+
+        std::cout<<std::string(2, ' ')<<"integration for mav"<<std::endl;
         for (size_t i = 0; i < number_robots_; i++)
         {
                // compute MDi, MCi and MEi for each mav     
                 v_ptr_uavcables_.at(i)->ComputeNetWrenchApplied2MAV();
                 v_ptr_uavcables_.at(i)->DoOneStepInt();
-                std::cout<<"mav post is " << std::fixed << std::setprecision(5) <<  v_ptr_uavcables_.at(i)->mav_.pose().post.transpose()<<std::endl;
+                std::cout<<std::string(2, ' ')<< i<<" th mav post is " << std::fixed << std::setprecision(5) <<  v_ptr_uavcables_.at(i)->mav_.pose().post.transpose()<<std::endl;
+                // std::cout<<std::string(2, ' ')<<"mav att is " << std::fixed << std::setprecision(5) <<  v_ptr_uavcables_.at(i)->mav_.pose().att.coeffs().transpose()<<std::endl;
+                auto mav_euler = v_ptr_uavcables_.at(i)->mav_.pose().att.toRotationMatrix().eulerAngles(2, 1, 0);
+                std::cout<<std::string(2, ' ')<< i<<" th mav Euler angles are " << std::fixed << std::setprecision(5) << "roll " << mav_euler[2]<< "pitch " <<mav_euler[1] << "yaw" << mav_euler[0] <<std::endl;
+
+                auto mav_bodyrate = v_ptr_uavcables_.at(i)->mav_.vels().bodyrate.transpose();
+                std::cout<<std::string(2, ' ')<< i<<" th mavEuler bodyrate is " << mav_bodyrate <<std::endl;
+
+                auto mav_angular_acc = v_ptr_uavcables_.at(i)->mav_.accs().angular_acc.transpose();
+                std::cout<<std::string(2, ' ')<< i<<" th mavEuler angular acc is " << mav_angular_acc <<std::endl;                
+
         };
 
 
         // clear accumulated net wrenches for next iteration
         ClearNetWrenches2Payload();
 
-    std::cout<<"Leave Cooperative::DoOneStepInt4Robots()"<<std::endl; 
+    std::cout<<std::string(2, ' ')<<"Leave Cooperative::DoOneStepInt4Robots()"<<std::endl; 
 
     std::cout.unsetf(std::ios::fixed); // Reset fixed format
 }  
@@ -356,6 +404,8 @@ void Cooperative::ClearNetWrenches2Payload()
 {
     net_mavs_wrench_to_payload_.force = Eigen::Vector3d::Zero();
     net_mavs_wrench_to_payload_.torque = Eigen::Vector3d::Zero();
+
+    interaction_parameters_.setZero();
 }
      
 

@@ -36,6 +36,10 @@ class Joint
 
         Joint(const Eigen::Vector3d &post_body_frame);
 
+        Joint(const Eigen::Vector3d &post_body_frame, const std::shared_ptr<const UAVCable>& ptr_UAVCable_);
+
+        void LinkUAVCable(const std::shared_ptr<const UAVCable>& ptr_UAVCable) {ptr_UAVCable_ = ptr_UAVCable;};
+
         void SetLinearVel(const Eigen::Vector3d & linear_vel) {vels_.linear_vel = linear_vel;};
 
         void SetInitPost(const Eigen::Vector3d & post) {pose_.post = post;};

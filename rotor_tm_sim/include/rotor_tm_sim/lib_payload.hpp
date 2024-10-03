@@ -4,6 +4,7 @@
 #include <iostream>
 #include <boost/numeric/odeint.hpp>
 #include <Eigen/Dense>
+#include <iomanip>
 #include <cmath>
 #include <vector>
 #include <memory>
@@ -23,6 +24,13 @@ struct CooperIntertPara{
                 Eigen::Matrix3d m_E;
 
                 Eigen::Matrix3d m_mass_matrix;
+
+    void setZero() {
+        m_C.setZero();
+        m_D.setZero();
+        m_E.setZero();
+        m_mass_matrix.setZero();
+    }                
 };
 
 
@@ -75,19 +83,7 @@ class Payload: public RigidBody{
         Eigen::Vector3d ComputeRotDynamics();
         
 
-
-        Payload() = delete;
-        Payload(const Payload&) = delete;
-        Payload& operator=(const Payload&) = delete;
-        
-        double gravity_ = 9.8;
-
-        
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
-
-
-        // solver ruge_kutta
-        runge_kutta4<Eigen::Matrix<double, 12, 1>> stepper_;
 
         // double current_step_ = 0;
 
@@ -102,6 +98,8 @@ class Payload: public RigidBody{
     Payload(const MassProperty &mass_property, std::vector<std::shared_ptr<Joint>> v_ptr_joints, const double &step_size);
 
     Payload(const MassProperty &mass_property, std::shared_ptr<Joint> v_ptr_joint, const double &step_size);
+
+    void AddJointsLinkedWithUAVCable(const std::vector<std::shared_ptr<Joint>>& v_ptr_joints);
 
     // void CalVel4AttachPoint();      
 
@@ -120,25 +118,19 @@ class Payload: public RigidBody{
 
     void InputPayloadInteractPara(const CooperIntertPara &cooper_interact_para);
 
-    // // input mass matrix  
-    // void InputMassMatrix(const Eigen::Matrix3d &m_mass_matrix);
-
-    // // input translational dynamic model inputs: drones' net force to the payload and term m_D
-    // void InputDronesNetForces(const Eigen::Vector3d &drones_net_force, const Eigen::Matrix3d &m_D);
-
-    // // input rotational dynamic model inputs: drones' net force to the payload and term m_D
-    // void InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_E);    
 
     void ComputeAccBodyRateAcc();
 
-    // void GetOneAttachPoint(const size_t &i, AttachPoint &attach_point) const;
 
-  
-    // void doOneStepInt();
-
-    // virtual void DoPayloadOneStepInt() final;
+    void DoPayloadOneStepInt();
 
     void operator() (const object_state &x , object_state &dxdt, const double time) override;
+
+
+    Eigen::Vector3d jointPosttAt(size_t t) const {auto joint_post = v_ptr_joints_.at(t)->pose().post; return joint_post;};
+
+
+    void SetJointInitPostBasedOnPayload();
 };
 
 #endif
