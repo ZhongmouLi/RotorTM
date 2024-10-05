@@ -12,7 +12,7 @@ from rotor_tm_utils.vee import vee
 import time
 
 def ptmassslackToTaut(t, x):
-    print("--------------------------ptmassslackToTaut \n")
+    # print("--------------------------ptmassslackToTaut \n")
     # DESCRIPTION:
     # event function for point mass scenario dynammics 
     # if event is reached by ivp solver, it will switch from slack to taut, takes in t (time) and state (x)

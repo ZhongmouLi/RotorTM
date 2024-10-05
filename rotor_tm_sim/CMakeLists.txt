@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+# set (CMAKE_CXX_FLAGS "-g")
 
 enable_language(CXX)
 enable_language(C)
@@ -139,15 +140,15 @@ target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
 
 
-#  (4) cooperative
-# add_library(lib_cooperative SHARED
-#             include/rotor_tm_sim/lib_cooperative.hpp
-#             src/rotor_tm_sim/lib/lib_cooperative.cpp)
+#(4) cooperative
+add_library(lib_cooperative SHARED
+            include/rotor_tm_sim/lib_cooperative.hpp
+            src/rotor_tm_sim/lib/lib_cooperative.cpp)
 
-# target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-# target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody lib_quadrotor Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_cooperative lib_payload lib_uav_cable  Boost::program_options Eigen3::Eigen)
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
 # # (1) single quadrotor + point mass payload
@@ -176,8 +177,8 @@ target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_opt
 # target_link_libraries(rotorTM_CXX_DronePointMass lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # 4 mavs + payload
-# add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
-# target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
+target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative lib_payload lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ###########
 ## Test ##
@@ -194,11 +195,11 @@ catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for cable class
-catkin_add_gtest(cable_test gtest/testCable.cpp)
+# catkin_add_gtest(cable_test gtest/testCable.cpp)
 
-target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
-# # test for UAVcable class
+# test for UAVcable class
 catkin_add_gtest(UAVcable_test gtest/testUAVCable.cpp)
 
 target_link_libraries(UAVcable_test lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
@@ -210,12 +211,15 @@ catkin_add_gtest(payload_test gtest/testPayload.cpp)
 target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# # test for cooperative class
-# catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
+# test for cooperative class
+catkin_add_gtest(cooperative1MAV_test gtest/testCooperative1MAV.cpp)
 
-# target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(cooperative1MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
+catkin_add_gtest(cooperative4MAV_test gtest/testCooperative4MAVs.cpp)
+
+target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 # # ros tests for cooperative
 # catkin_add_gtest(
 #   ros_cooperative

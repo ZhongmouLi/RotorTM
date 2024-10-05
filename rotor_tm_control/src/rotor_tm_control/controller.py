@@ -63,6 +63,9 @@ class controller:
         # State Feedback
         xi = qd[qn]["xi"]
         xidot = qd[qn]["xidot"]
+
+        print('robot id:', qn, 'xi:', xi, 'xidot:', xidot)
+        
         rot = qd[qn]["rot"]
 
         # Cable Direction Tracking Control
@@ -77,6 +80,16 @@ class controller:
         e_w = w + np.cross(xi, np.cross(xi, w_des, axisa=0, axisb=0).T, axisa=0, axisb=0).T
 
         u_parallel = mu + m*l*np.linalg.norm(w)**2*xi + np.matmul(m*qd[qn]["xixiT"], qd[qn]["attach_accel"])
+
+        print('robot id:', qn, 'u_parallel:', u_parallel)
+
+        term_1 = m*l*np.linalg.norm(w)**2*xi
+
+        term_2 = np.matmul(m*qd[qn]["xixiT"], qd[qn]["attach_accel"])
+                              
+
+        print('robot id:', qn, 'mu:', mu, 'm*l*np.linalg.norm(w)**2*xi', term_1, 'np.matmul(m*qd[qn]["xixiT"], qd[qn]["attach_accel"])', term_2)
+        
         u_perpendicular = -m*l*np.cross(xi, params.Kxi @ e_xi + params.Kw @ e_w + (xi.T @ w_des) * xi_des_dot, axisa=0, axisb=0).T - m*np.cross(xi, np.cross(xi, qd[qn]["attach_accel"], axisa=0, axisb=0).T, axisa=0, axisb=0).T
         Force = u_parallel + u_perpendicular
         F = Force.T @ np.matmul(rot,e3)
@@ -145,9 +158,12 @@ class controller:
         e_omega = qd["omega"] - np.matmul(Rot.T, np.matmul(Rot_des, omega_des))
         M = np.cross(qd["omega"], np.matmul(params.I, qd["omega"]), axisa=0, axisb=0).T - np.matmul(params.Kpe, e_angle) - np.matmul(params.Kde, e_omega) 
 
-        print("FUCK mav inertia", params.I)
-        print("FUCK mav mass", params.mass)
-        
+        # print("---------------FUCK mav inertia", params.I)
+        # print("---------------FUCK mav mass", params.mass)
+        # print("---------------FUCK mav des rot", Rot_des)
+        # print("---------------FUCK mav rot", Rot)
+        # print("---------------FUCK mav bodyrate", qd["omega"])
+        # print("---------------FUCK mav torque cmd", M)
 
         return M
 
@@ -218,8 +234,8 @@ class controller:
         m = pl_params.mass
         nquad = pl_params.nquad
 
-        print("FUXK payload mass",  pl_params.mass)
-        print("FUXK payload inertia",  pl_params.I)
+        # print("FUXK payload mass",  pl_params.mass)
+        # print("FUXK payload inertia",  pl_params.I)
 
         e3 = np.array([[0],[0],[1.0]])
 
@@ -254,9 +270,9 @@ class controller:
 
         mu = diag_rot @ pl_params.pseudo_inv_P @ np.append(Rot.T @ F, M, axis=0) # F and M are desreid force and moment to the payload
         # mu cable forces
-        print("--------------------------ptmassslackToTaut \n")
-        print("controller des net forces", F)
-        print("controller des net torque", M)
+        print("--------------------------controller node  \n")
+        print("mu is ", mu)
+        # print("controller des net torque", M)
 
         for i in range(1, nquad+1):
             if (0>mu[3*i-1, 0]):
