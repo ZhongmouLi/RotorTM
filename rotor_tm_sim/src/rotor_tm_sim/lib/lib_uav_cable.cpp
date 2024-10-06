@@ -238,13 +238,15 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
     Eigen::Vector3d attach_point_centri_acc{0,0,0};
 
     attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_joint()->post_body_frame()) );
-
+  //attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_joint()->post_body_frame()) );
 
     // 3. compute the force applied by drone to the attach point
     Eigen::Vector3d mav_attach_point_force;
 
 
-    mav_attach_point_force = mav_thrust_force_along_cable - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.bodyrate().squaredNorm() * cable_.direction() - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
+    // mav_attach_point_force = mav_thrust_force_along_cable - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.bodyrate().squaredNorm() * cable_.direction() - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
+
+     mav_attach_point_force = mav_thrust_force_along_cable - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.direction() - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
 
     return mav_attach_point_force;
 
