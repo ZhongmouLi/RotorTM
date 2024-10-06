@@ -316,8 +316,8 @@ void Cooperative::ComputeInteractWrenches()
 
                 // accumulate MDi, MCi and MEi
                 sum_m_C_i = sum_m_C_i +  v_ptr_uavcables_[i]->m_C_i();
-                sum_m_D_i = sum_m_C_i +  v_ptr_uavcables_[i]->m_D_i();
-                sum_m_E_i = sum_m_C_i +  v_ptr_uavcables_[i]->m_E_i();
+                sum_m_D_i = sum_m_D_i +  v_ptr_uavcables_[i]->m_D_i();
+                sum_m_E_i = sum_m_E_i +  v_ptr_uavcables_[i]->m_E_i();
 
                 // accumlate
                 m_mass_matrix = m_mass_matrix + v_ptr_uavcables_[i]->m_mass_matrix();
