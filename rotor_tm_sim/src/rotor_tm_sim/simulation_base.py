@@ -12,7 +12,7 @@ from rotor_tm_utils.vee import vee
 import time
 
 def ptmassslackToTaut(t, x):
-    print("--------------------------ptmassslackToTaut \n")
+    # print("--------------------------ptmassslackToTaut \n")
     # DESCRIPTION:
     # event function for point mass scenario dynammics 
     # if event is reached by ivp solver, it will switch from slack to taut, takes in t (time) and state (x)
@@ -370,6 +370,7 @@ class simulation_base():
                         after_collide_inelastic_collision_flag, xi = self.cooperative_check_inelastic(x)
                         print("Checking after collision")
                         print("The after inelastic collision_flag is", after_collide_inelastic_collision_flag)
+                        # 
                         if np.any((after_collide_inelastic_collision_flag - before_collide_inelastic_collision_flag)>0):
                             inelastic_collision_flag = after_collide_inelastic_collision_flag + before_collide_inelastic_collision_flag
                             for i in range(inelastic_collision_flag.shape[0]):

@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 # 1. configure compliers 
 ## commnet the two lines if you want to use your default compliers
-set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+# set(CMAKE_C_COMPILER "/usr/bin/gcc-10")
+# set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+# set (CMAKE_CXX_FLAGS "-g")
 
 enable_language(CXX)
 enable_language(C)
@@ -53,8 +57,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## 3.1 base class/lib : rigid body, cable, point mass
 ## (1) rigid body
 add_library(lib_rigidbody SHARED
-            include/rotor_tm_sim/lib_rigidbody.hpp
-            src/rotor_tm_sim/lib/lib_rigidbody.cpp)
+            include/rotor_tm_sim/base/lib_rigidbody.hpp
+            src/rotor_tm_sim/lib/base/lib_rigidbody.cpp)
 
 # use this options in the future that specify c++ 17 for  library            
 target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
@@ -75,13 +79,13 @@ target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
 # target_link_libraries(lib_pointmass Boost::program_options Eigen3::Eigen)
 
 # (4) cable
-# add_library(lib_cable SHARED
-#             include/rotor_tm_sim/lib_cable.hpp
-#             src/rotor_tm_sim/lib/lib_cable.cpp)
+add_library(lib_cable SHARED
+            include/rotor_tm_sim/base/lib_cable.hpp
+            src/rotor_tm_sim/lib/base/lib_cable.cpp)
 
-# target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-# target_link_libraries(lib_cable Eigen3::Eigen)
+target_link_libraries(lib_cable Eigen3::Eigen)
 
 
 ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
@@ -96,36 +100,55 @@ target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 # link libs needed for building lib_quadrotor
 target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
 
-# (3) mav + cable
-# add_library(lib_uav_cable SHARED
+# (3) joint
+# add_library(lib_joint STATIC
+#             include/rotor_tm_sim/lib_joint.hpp
+#             src/rotor_tm_sim/lib/lib_joint.cpp)
+
+# target_compile_options(lib_joint PRIVATE -std=c++17 -Wall -Wextra)
+
+# target_link_libraries(lib_joint lib_uav_cable Eigen3::Eigen)
+
+# (4) mav + cable
+# add_library(lib_uav_cable STATIC
 #             include/rotor_tm_sim/lib_uav_cable.hpp
 #             src/rotor_tm_sim/lib/lib_uav_cable.cpp)
 
 # target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-# target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+# target_link_libraries(lib_uav_cable lib_joint lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+add_library(lib_uav_cable SHARED
+            include/rotor_tm_sim/lib_uav_cable.hpp
+            include/rotor_tm_sim/lib_joint.hpp
+            src/rotor_tm_sim/lib/lib_joint.cpp
+            src/rotor_tm_sim/lib/lib_uav_cable.cpp)
+
+target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
+
+target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+
 
 # (3) payload 
-# add_library(lib_payload SHARED
-#             include/rotor_tm_sim/lib_payload.hpp
-#             src/rotor_tm_sim/lib/lib_payload.cpp)
+add_library(lib_payload SHARED
+            include/rotor_tm_sim/lib_payload.hpp
+            src/rotor_tm_sim/lib/lib_payload.cpp)
 
 # use this options in the future that specify c++ 17 for  library
-# target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-# target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
 
 
-#  (4) cooperative
-# add_library(lib_cooperative SHARED
-#             include/rotor_tm_sim/lib_cooperative.hpp
-#             src/rotor_tm_sim/lib/lib_cooperative.cpp)
+#(4) cooperative
+add_library(lib_cooperative SHARED
+            include/rotor_tm_sim/lib_cooperative.hpp
+            src/rotor_tm_sim/lib/lib_cooperative.cpp)
 
-# target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
+target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-# target_link_libraries(lib_cooperative lib_payload lib_uav_cable lib_rigidbody lib_quadrotor Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_cooperative lib_payload lib_uav_cable  Boost::program_options Eigen3::Eigen)
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
 # # (1) single quadrotor + point mass payload
@@ -154,27 +177,27 @@ target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
 # target_link_libraries(rotorTM_CXX_DronePointMass lib_quadrotor_pointmass ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # 4 mavs + payload
-# add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
-# target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+add_executable(rotorTM_CXX_Cooperative src/rotor_tm_sim/node_cooperative.cpp)
+target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative lib_payload lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 ###########
 ## Test ##
 ###########
 
-# # test for rigid body class
-catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
+# test for rigid body class
+# catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 
-target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
-# # test for quadrotor class
-catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
+# # # # test for quadrotor class
+# catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
-target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
-# # test for cable class
-# catkin_add_gtest(cable_test gtest/testCable.cpp)
+# # # test for cable class
+# # catkin_add_gtest(cable_test gtest/testCable.cpp)
 
-# target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# # target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # # test for UAVcable class
 # catkin_add_gtest(UAVcable_test gtest/testUAVCable.cpp)
@@ -182,19 +205,25 @@ target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRAR
 # target_link_libraries(UAVcable_test lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# # # test for payload class
-# catkin_add_gtest(payload_test gtest/testPayloadClass.cpp)
+# # # # test for payload class
+# catkin_add_gtest(payload_test gtest/testPayload.cpp)
 
 # target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# # test for cooperative class
-# catkin_add_gtest(cooperative_test gtest/testCooperative4MAVs.cpp)
+# test for cooperative class
+catkin_add_gtest(cooperative1MAV_test gtest/testCooperative1MAV.cpp)
 
-# target_link_libraries(cooperative_test lib_cooperative lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(cooperative1MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# # ros tests for cooperative
+catkin_add_gtest(cooperative4MAV_test gtest/testCooperative4MAVs.cpp)
+
+target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+
+
+
+# ros tests for cooperative
 # catkin_add_gtest(
 #   ros_cooperative
 #   rostest/ros_cooerative.cpp

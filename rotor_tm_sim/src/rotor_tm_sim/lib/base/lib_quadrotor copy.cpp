@@ -114,10 +114,10 @@ void Quadrotor::setInitialPost(const Eigen::Vector3d &initial_post)
 }; 
 
 
-void Quadrotor::setVel(const Eigen::Vector3d &mav_vel)
-{
-    done_state_.segment<3>(3) = mav_vel;
-}
+// void Quadrotor::setVel(const Eigen::Vector3d &mav_vel)
+// {
+//     done_state_.segment<3>(3) = mav_vel;
+// }
 
 
 void Quadrotor::getPosition(Eigen::Vector3d &mav_position)

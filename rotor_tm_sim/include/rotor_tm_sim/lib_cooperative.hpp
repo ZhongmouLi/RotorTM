@@ -4,11 +4,13 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <iomanip>
 #include <cmath>
 #include <memory>
 #include <utility>
 #include <vector>
 #include <string> 
+#include <iomanip> // For std::setprecision
 #include "lib_uav_cable.hpp"
 #include "lib_payload.hpp"
 
@@ -21,60 +23,66 @@ class Cooperative{
         size_t number_robots_;
 
         // controller inputs for n MAVs
-        // for each MAV, the control input is thrust (scalar) + torque (3X1 vector)        
-        std::vector<std::pair<double, Eigen::Vector3d>> v_controllers_inputs_;
+        // for each MAV, the control input is wrench        
+        std::vector<ThrustWrench> v_controllers_inputs_;
 
-        // compute the projection of robot vel perpendicular to the cable
-        // input: drone vel (3X1 vector) and cable direction (3X1 vector)
-        // output:: drone vel projection that is perpendicular to cable (3X1 vector)
-        Eigen::Vector3d CalVelProjPerpendicularCable(const Eigen::Vector3d drone_vel, const Eigen::Vector3d &cable_direction);
+        Cooperative() =  delete;
 
-        // ComputeMatrixJi is a function for updating vels after collision
-        // compute matrix Ji in Eq46
-        Eigen::MatrixXd ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
+        Wrench net_mavs_wrench_to_payload_;
 
-        // ComputeVectorbi is a function for updating vels after collision    
-        // compute vector bi in Eq46
-        // Eigen::VectorXd ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
-        Eigen::VectorXd ComputeVectorbi(const double &drone_mass, const Eigen::Vector3d &drone_vel, const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
-        Cooperative();
+        CooperIntertPara interaction_parameters_;
 
-        const double gravity_ = 9.8;
+        void ClearNetWrenches2Payload();
 
-        bool intial_payload_acc_set = false;
+        bool flag_first_iteration_ = true;
+
+        void RigidbodyQuadInelasticCableCollision(std::vector<bool>& collision_flags);
+        bool AnyNewCollisions(const std::vector<bool>& before, const std::vector<bool>& after);
+        void UpdateCollisionFlags(std::vector<bool>& current, const std::vector<bool>& before, const std::vector<bool>& after);
+        void UpdateRobotPositions();        
 
     public:
 
-    // put them in private LATER
-    // vector of cable instances
-    std::vector<UAVCable> v_drone_cable_;
+        // put them in private LATER
+        // vector of cable instances
+        std::shared_ptr<Payload> ptr_payload_;
 
-    // payload
-    Payload payload_;
+        std::vector<std::shared_ptr<Joint>> v_ptr_joints_;
 
-    Cooperative(const std::vector<Eigen::Vector3d> &v_attach_point_post_bf, const double &mav_mass, const Eigen::Matrix3d &mav_inertia, const double cable_length, const double &payload_mass, const Eigen::Matrix3d &payload_inertia, const double &step_size);
+        std::vector<std::shared_ptr<UAVCable>> v_ptr_uavcables_;
 
-    // CheckCollisions4MAVsPayload checks if collission happens for every cable
-    // void CheckCollisions4MAVCables();
 
-    // set init post of payload
-    void SetPayloadInitPost();
 
-    void  SetPayloadInitPost(const Eigen::Vector3d &payload_init_post);    
+        Cooperative(const std::shared_ptr<Payload>& ptr_payload, const std::vector<std::shared_ptr<Joint>>&v_ptr_joints, const std::vector<std::shared_ptr<UAVCable>>& v_ptr_uavcables_);
 
-    void SetPayloadInitialAccAndBodyrateACC();
+        Cooperative(const std::shared_ptr<Payload>& ptr_payload, const std::shared_ptr<Joint> &ptr_joint, const std::shared_ptr<UAVCable>& ptr_uavcable_);
 
-    // update vels of collided MAVs and payload 
-    // method: eq (39)-(42)
-    void UpdateVelsCollidedUAVsPayload();
+        // CheckCollisions4MAVsPayload checks if collission happens for every cable
+        // void CheckCollisions4MAVCables();
 
-    void InputControllerInput4MAVs(const Eigen::VectorXd v_mavs_thrust, const std::vector<Eigen::Vector3d> v_mavs_torque);
+        // set init post of payload
+        void SetPayloadInitPost();
 
-    // compute interation wrenches and vars for MAVs and payload
-    void ComputeInteractWrenches();
+        void SetPayloadInitPost(const Eigen::Vector3d &payload_init_post);    
 
-    // call one step dynamic simulation for MAVs and payload
-    void DoOneStepInt4Robots();
+        void SetPayloadInitPost(const Eigen::Vector3d &payload_init_post, const double& tilt_angle);
+
+        // void SetPayloadInitialAccAndBodyrateACC();
+        void UpdateJointAndCableStatus();
+
+        // update vels of collided MAVs and payload 
+        // method: eq (39)-(42)
+        void UpdateVelsCollidedUAVsPayload();
+
+        void InputControllerInput4MAVs(const std::vector<double> v_mavs_thrust, const std::vector<Eigen::Vector3d> v_mavs_torque);
+
+        // compute interation wrenches and vars for MAVs and payload
+        void ComputeInteractWrenches();
+
+        // call one step dynamic simulation for MAVs and payload
+        void DoOneStepInt4Robots();
+
+        Wrench NetMavsWrenchToPayload() const {return net_mavs_wrench_to_payload_;};
 };
 
 

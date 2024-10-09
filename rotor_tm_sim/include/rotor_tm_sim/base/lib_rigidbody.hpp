@@ -7,37 +7,14 @@
 #include <boost/numeric/odeint/external/eigen/eigen.hpp>
 #include <cmath>
 #include <vector>
-
+#include "rotor_tm_sim/base/lib_base.hpp"
 
 using namespace boost::numeric::odeint;
 
 
 // typedef Eigen::Matrix<double, 12, 1> object_state;
 
-using object_state = Eigen::Matrix<double, 12, 1>;
-
-
-struct MassProperty {
-        double mass;
-        Eigen::Matrix3d inertia;};
-
-struct Kinematics{
-        Eigen::Vector3d vel;
-        Eigen::Vector3d bodyrate;         
-        Eigen::Vector3d acc;
-        Eigen::Vector3d bodyrate_acc;
-        };  
-
-struct Pose{
-        Eigen::Vector3d post;  
-        Eigen::Quaterniond att;
-}
-
-struct Wrench{
-        Eigen::Vector3d force;
-        Eigen::Vector3d torque;
-        };
-
+using object_state = Eigen::Matrix<double, 13, 1>;
 
 
 class RigidBody
@@ -59,18 +36,18 @@ class RigidBody
         // Eigen::Vector3d torque_;
         Wrench input_wrench_;
 
-        Pose pose_;
-
-        Kinematics kinematics_;
 
         // simulator setings for an object in 3D
-        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+        // state vecgor for a rigid body (13X1) including position, velcity, quaternion, bodyrate, 
+        // state_ = [x,     y,      z,      dx,     dy,     dz,     qw,     qx,     qy,     qz,    theta,      psi,    p,      q,      r]
         object_state state_;
 
+
+        Accs accs_;
+
         // object acc (3X1 vector) and bodyrate acc (3X1 vector) 
-        Eigen::Vector3d object_acc_;
-        Eigen::Vector3d object_bodyrate_acc_ = Eigen::Vector3d::Zero();
+        // Eigen::Vector3d object_acc_;
+        // Eigen::Vector3d object_bodyrate_acc_ = Eigen::Vector3d::Zero();
 
         // rotational dynamic
         // compute dbodyrate in body frame
@@ -82,6 +59,8 @@ class RigidBody
 
         // compute matrix transforming bodyrate to dEuler
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
+
+        Eigen::Vector4d ComputeQuaternionDerivative(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate);
 
         // prevent creating instance using none par
         RigidBody();
@@ -107,21 +86,34 @@ class RigidBody
         virtual void operator()(const object_state &x , object_state &dxdt, const double time); 
 
         // get drone status information
-        void GetPosition(Eigen::Vector3d &object_position) const;
+        // void GetPosition(Eigen::Vector3d &object_position) const;
 
-        void GetVel(Eigen::Vector3d &object_vel) const;
 
-        void GetAcc(Eigen::Vector3d &object_acc) const;
+        // get robot infor
+        double mass() const;
+        
+        Eigen::Matrix3d inertia() const;
 
-        void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
+        Pose pose() const;
 
-        void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
+        Vels vels() const;
 
-        void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
+        Accs accs() const;
+        // void GetVel(Eigen::Vector3d &object_vel) const;
+
+        // void GetAcc(Eigen::Vector3d &object_acc) const;
+
+        // void GetBodyrate(Eigen::Vector3d &object_bodyrate)const;
+
+        // void GetAttitude(Eigen::Quaterniond &object_attitude) const ;
+
+        // void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
 
         void GetState(object_state &state) const;
 
-        void GetCurrentTimeStep(double &current_time);
+        // void GetCurrentTimeStep(double &current_time);
+
+        double timestep() const;
 
         // input for a rigid body
         // void InputForce(const Eigen::Vector3d &force); // force is a force vector in world frame
@@ -132,26 +124,29 @@ class RigidBody
         // set initial position
         void SetInitialPost(const Eigen::Vector3d &initial_post);    
 
+        // set post in the world frame
+        void SetPost(const Eigen::Vector3d &object_post);
+
         // set initial attitude in Euler Angles
         void SetInitialAttitude(const double &phi, const double &theta, const double &psi);   
 
         // set vel in the world frame
-        void SetVel(const Eigen::Vector3d &object_vel);
+        void SetLinearVel(const Eigen::Vector3d &object_vel);
 
         // set acc in the world frame
-        void SetAcc(const Eigen::Vector3d &object_acc);
+        void SetLinearAcc(const Eigen::Vector3d &object_acc);
 
         // set bodyrate in the body frame
         void SetBodyrate(const Eigen::Vector3d &object_bodyrate);
 
         // set bodyrate_acc 
-        void SetBodyrateAcc(const Eigen::Vector3d &object_bodyrate_acc);
+        void SetAngularAcc(const Eigen::Vector3d &object_bodyrate_acc);
 
         // inline void GetMass(double &mass) const {mass= mass_;};
 
         // inline void GetInertia(Eigen::Matrix3d &m_inertia) const { m_inertia = m_inertia_;};
 
-        inline void GetMassProperty(MassProperty &mass_property) const { mass_property = mass_property_;};
+        // inline void GetMassProperty(MassProperty &mass_property) const { mass_property = mass_property_;};
 
 
         void SetStatesZeros();

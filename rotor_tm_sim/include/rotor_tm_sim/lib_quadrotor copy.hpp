@@ -97,7 +97,7 @@ class Quadrotor
         void inputTorque(const Eigen::Vector3d &mav_torque); //mav_torque is torque vector in body frame
 
         // set vel from outside
-        void setVel(const Eigen::Vector3d &mav_vel);
+        // void setVel(const Eigen::Vector3d &mav_vel);
 
         // set initial position for quadrotor
         void setInitialPost(const Eigen::Vector3d &initial_post);        

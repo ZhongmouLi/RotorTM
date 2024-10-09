@@ -18,6 +18,8 @@ class Cable
         // var indicates taut of slack of cable
         bool taut_ = true;
 
+
+
         // tention force in world frame
         // tension force applied at "robot" by cable
         // direction Z up
@@ -34,6 +36,8 @@ class Cable
 
         // threshold for zero
         const double k_threshold = 1e-3;
+
+        
 
     public:
 
@@ -55,10 +59,10 @@ class Cable
 
         // change taut status of cable
         // input:   (1) posts of attach points and drones
-        //          (2) vels of attach points and drones
         // methods: equation (34)-(38)
         // output: change boolen var taut_
-        void CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post, const Eigen::Vector3d &attachpoint_vel, const Eigen::Vector3d &robot_vel);
+        void CheckTaut(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post);
+
 
 
         // compute bodyrate of cable
@@ -69,17 +73,25 @@ class Cable
 
 
         // obtain cable direction
-        inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
+        inline Eigen::Vector3d direction() const {return xi_;};
+
+        // inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
 
         // obtain cable taut status
-        inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_;};
+        // inline void GetCableTautStatus(bool &cable_taut) {cable_taut = taut_;};
+        inline bool tautStatus() const {return taut_;};
 
         // obtain cable tension force
-        inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
+        // inline void GetCableTensionForce(Eigen::Vector3d &cable_tension_force){cable_tension_force = tension_force_;};
+        inline Eigen::Vector3d tensionForce() const {return tension_force_;};
 
-        inline void GetCableLength(double &cable_length){cable_length = length_;};
+        // inline void GetCableLength(double &cable_length){cable_length = length_;};
+        inline double length() const {return length_;};
 
-        inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
+        // inline void GetCableBodyRate(Eigen::Vector3d &cable_bodyrate){cable_bodyrate = body_rate_;};
+        inline Eigen::Vector3d bodyrate() const {return body_rate_;};
+
+        void SetCollisionStatus(const bool &collision_status);
 };
 
 

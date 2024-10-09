@@ -270,8 +270,8 @@ int main(int argc, char** argv)
             mav_vel = v + mav_vel - mav_vel_pre;
 
             // update vels of quadrotor and payload
-            ptr_drone->setVel(mav_vel);
-            ptr_payload->setVel(payload_vel);
+            ptr_drone->SetLinearVel(mav_vel);
+            ptr_payload->SetLinearVel(payload_vel);
 
         }
 

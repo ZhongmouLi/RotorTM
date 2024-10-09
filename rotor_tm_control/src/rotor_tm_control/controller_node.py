@@ -426,6 +426,11 @@ class controller_node:
         elif self.pl_params.mechanism_type == 'Cable':
             if self.pl_params.payload_type == 'Rigid Body':
                 mu, att_acc, F_list, M_list, quat_list, rot_list = self.controller.cooperative_suspended_payload_controller(self.pl, self.qd, self.pl_params, self.quad_params, self.node_id)
+                print("=====================================")
+                print("FUCKKKKKKKK node_id is ", self.node_id)
+                print("FUCKKKKKKKK Flist is ", F_list)
+                print("FUCKKKKKKKK Mlist is ",M_list)
+                print("=====================================")
                 cen_pl_command = CenPL_Command()
                 cen_pl_command.header.stamp = rospy.get_rostime()
                 cen_pl_command.header.frame_id = "simulator" 
@@ -469,7 +474,8 @@ if __name__ == '__main__':
 
     node_name = 'controller_'+str(int(sys.argv[1])+1)
     print(node_name)
-    rospy.init_node(node_name)
+    # rospy.init_node(node_name)
+    rospy.init_node(node_name, log_level=rospy.DEBUG)
 
     if int(sys.argv[2]) == 1:
         controller_node(int(sys.argv[1]), True, payload_params_path, uav_params_path, mechanism_params_path, payload_control_gain_path, uav_control_gain_path)
