@@ -102,6 +102,100 @@ void Cooperative::UpdateJointAndCableStatus()
     }
 }
 
+
+
+
+// void Cooperative::UpdateVelsCollidedUAVsPayload()
+// {
+//     std::vector<bool> inelastic_collision_flag(number_robots_, false);
+//     for (size_t i = 0; i < number_robots_; i++)
+//     {
+//         v_ptr_uavcables_[i]->CheckInelasticCollision();
+//         inelastic_collision_flag[i] = v_ptr_uavcables_[i]->inelasticCollisionStauts();
+//     }
+
+//     while (std::any_of(inelastic_collision_flag.begin(), inelastic_collision_flag.end(), [](bool flag) { return flag; }))
+//     {
+//         auto before_collision_flag = inelastic_collision_flag;
+        
+//         RigidbodyQuadInelasticCableCollision(inelastic_collision_flag);
+        
+//         for (size_t i = 0; i < number_robots_; i++)
+//         {
+//             v_ptr_uavcables_[i]->CheckInelasticCollision();
+//             inelastic_collision_flag[i] = v_ptr_uavcables_[i]->inelasticCollisionStauts();
+//         }
+
+//         auto after_collision_flag = inelastic_collision_flag;
+
+//         if (AnyNewCollisions(before_collision_flag, after_collision_flag))
+//         {
+//             UpdateCollisionFlags(inelastic_collision_flag, before_collision_flag, after_collision_flag);
+//         }
+//         else
+//         {
+//             UpdateRobotPositions();
+//             break;
+//         }
+//     }
+// }
+
+
+
+// void Cooperative::RigidbodyQuadInelasticCableCollision(std::vector<bool>& collision_flags)
+// {
+//     ptr_payload_->UpdateVelCollided();
+
+//     for (size_t i = 0; i < number_robots_; i++)
+//     {
+//         if (collision_flags[i])
+//         {
+//             v_ptr_uavcables_[i]->UpdateMAVVelCollided(
+//                 ptr_payload_->pose().att,
+//                 ptr_payload_->vels().linear_vel,
+//                 ptr_payload_->vels().bodyrate
+//             );
+//         }
+//     }
+// }
+
+// bool Cooperative::AnyNewCollisions(const std::vector<bool>& before, const std::vector<bool>& after)
+// {
+//     for (size_t i = 0; i < number_robots_; i++)
+//     {
+//         if (after[i] && !before[i])
+//         {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+
+// void Cooperative::UpdateCollisionFlags(std::vector<bool>& current, const std::vector<bool>& before, const std::vector<bool>& after)
+// {
+//     for (size_t i = 0; i < number_robots_; i++)
+//     {
+//         current[i] = after[i] || before[i];
+//     }
+// }
+
+void Cooperative::UpdateRobotPositions()
+{
+    Eigen::Vector3d payload_position = ptr_payload_->pose().post;
+    Eigen::Matrix3d payload_rotation = ptr_payload_->pose().att.toRotationMatrix();
+
+    for (size_t i = 0; i < number_robots_; i++)
+    {
+        Eigen::Vector3d attach_point = payload_position + payload_rotation * v_ptr_joints_[i]->post_body_frame();
+
+        v_ptr_uavcables_[i]->UpdateCableTautStatus();
+        Eigen::Vector3d cable_direction = v_ptr_uavcables_[i]->cable_.direction();
+        
+        Eigen::Vector3d new_position = attach_point - v_ptr_uavcables_[i]->cable_.length() * cable_direction;
+        v_ptr_uavcables_[i]->mav_.SetPost(new_position);
+    }
+}
+
 // update vels of MAVs and payload after collsion
 void Cooperative::UpdateVelsCollidedUAVsPayload()
 {
@@ -127,11 +221,11 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
 
 
         /*Avoid any collision*/
-        for (size_t i = 0; i < number_robots_; i++)
-            {
-                v_flags_inelastic_collision_status[i] = false;
+        // for (size_t i = 0; i < number_robots_; i++)
+        //     {
+        //         v_flags_inelastic_collision_status[i] = false;
                
-            }
+        //     }
 
 
         // step 3 distribute vels among collided mavs and payload until there is no collision
@@ -176,7 +270,7 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             // but will get collision after  
             std::vector<bool> v_mavs_inelastic_status_diff(4,false);
 
-            for (size_t i = 0; i < v_mavs_inelastic_status_diff.size(); ++i) 
+            for (size_t i = 0; i < v_mavs_inelastic_status_diff.size(); i++) 
                 {
                     v_mavs_inelastic_status_diff[i] = (v_mavs_inelastic_status_after_collision[i] && !v_mavs_inelastic_status_before_collision[i]);
 
@@ -190,7 +284,7 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             // 3.6
             if (condition_exist_new_collision)
             {
-                for (size_t i = 0; i < v_flags_inelastic_collision_status.size(); ++i) 
+                for (size_t i = 0; i < v_flags_inelastic_collision_status.size(); i++) 
                     {
                         v_flags_inelastic_collision_status[i] = (v_mavs_inelastic_status_after_collision[i] ||v_mavs_inelastic_status_before_collision[i]);
                          
@@ -214,6 +308,8 @@ void Cooperative::UpdateVelsCollidedUAVsPayload()
             }
      
         }   
+
+        UpdateRobotPositions();
 }
 
 

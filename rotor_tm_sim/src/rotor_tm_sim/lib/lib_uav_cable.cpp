@@ -121,7 +121,7 @@ void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, 
         mav_vel_collided = mav_vel_proj_perpendicular_cable + mav_vel_collision_along_perpendicular_cable;
 
         // set drone's vel
-        mav_.SetVel(mav_vel_collided);
+        mav_.SetLinearVel(mav_vel_collided);
     }
     else
     {
@@ -234,11 +234,14 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
     mav_thrust_force_along_cable= cable_.direction()  * cable_.direction().transpose() * mav_input_wrench_.force;
     
 
-    // 2. compute attach point centrifugal acc
+    // 2. get joint acc
     Eigen::Vector3d attach_point_centri_acc{0,0,0};
 
     attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_joint()->post_body_frame()) );
   //attach_point_centri_acc = mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (mav_.TransVector3d2SkewSymMatrix(payload_bodyrate) * (ptr_joint()->post_body_frame()) );
+
+    // Eigen::Vector3d attach_point_acc = ptr_joint()->accs().linear_acc;
+
 
     // 3. compute the force applied by drone to the attach point
     Eigen::Vector3d mav_attach_point_force;
@@ -246,7 +249,15 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
 
     // mav_attach_point_force = mav_thrust_force_along_cable - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.bodyrate().squaredNorm() * cable_.direction() - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
 
-     mav_attach_point_force = mav_thrust_force_along_cable - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.direction() - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
+    // mav_attach_point_force = mav_thrust_force_along_cable 
+    //                                     - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.direction()
+    //                                     - mav_.mass()* ( (cable_.direction() * cable_.direction().transpose()) * (payload_attitude.toRotationMatrix() * attach_point_centri_acc));
+
+
+    mav_attach_point_force = mav_thrust_force_along_cable 
+                                         - mav_.mass() * cable_.length() * cable_.bodyrate().squaredNorm() * cable_.direction() 
+                                         - mav_.mass() * (cable_.direction() * cable_.direction().transpose()) * 
+                                           payload_attitude.toRotationMatrix() * attach_point_centri_acc;
 
     return mav_attach_point_force;
 

@@ -14,7 +14,7 @@ using namespace boost::numeric::odeint;
 
 // typedef Eigen::Matrix<double, 12, 1> object_state;
 
-using object_state = Eigen::Matrix<double, 12, 1>;
+using object_state = Eigen::Matrix<double, 13, 1>;
 
 
 class RigidBody
@@ -38,8 +38,8 @@ class RigidBody
 
 
         // simulator setings for an object in 3D
-        // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-        // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+        // state vecgor for a rigid body (13X1) including position, velcity, quaternion, bodyrate, 
+        // state_ = [x,     y,      z,      dx,     dy,     dz,     qw,     qx,     qy,     qz,    theta,      psi,    p,      q,      r]
         object_state state_;
 
 
@@ -59,6 +59,8 @@ class RigidBody
 
         // compute matrix transforming bodyrate to dEuler
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
+
+        Eigen::Vector4d ComputeQuaternionDerivative(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate);
 
         // prevent creating instance using none par
         RigidBody();
@@ -122,11 +124,14 @@ class RigidBody
         // set initial position
         void SetInitialPost(const Eigen::Vector3d &initial_post);    
 
+        // set post in the world frame
+        void SetPost(const Eigen::Vector3d &object_post);
+
         // set initial attitude in Euler Angles
         void SetInitialAttitude(const double &phi, const double &theta, const double &psi);   
 
         // set vel in the world frame
-        void SetVel(const Eigen::Vector3d &object_vel);
+        void SetLinearVel(const Eigen::Vector3d &object_vel);
 
         // set acc in the world frame
         void SetLinearAcc(const Eigen::Vector3d &object_acc);

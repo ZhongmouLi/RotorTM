@@ -20,6 +20,7 @@ RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size)
 void RigidBody::SetStatesZeros()
 {
     state_.setZero();
+    state_[6] = 1; 
     // std::cout<<std::setw(16)<<"[----------] RigidBody: SetStatesZeros is called" << std::endl;
 };
 
@@ -54,6 +55,7 @@ Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
+    // get const inertia inverse
     dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
     // save body_rate_acc
@@ -84,20 +86,11 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // std::cout<<std::setw(16)<< << "state " << x.transpose()<<std::endl; 
     // get sub X vector
-    // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-    // x =  [x,     y,      z,      dx,     dy,     dz,     qw,      qx,          qy,      qz,    p,      q,      r]
-    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
-
-    // For instance
-    // std::cout<<std::setw(16)<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
-    // std::cout<<std::setw(16)<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
-    // std::cout<<std::setw(16)<< "position is "<< x.head(3).transpose()<<std::endl;
-    // std::cout<<std::setw(16)<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
+    // x =  [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
+    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dqnw,     dqnx,         dqny,     dqnz,   dp,     dq,     dr]
 
 
-    // define bodyrate
-    Eigen::Vector3d bodyrate;
-    bodyrate = x.tail(3);
+
 
     // translation in world frame
     // P = [x,y,z,dx, dy, dz]
@@ -109,12 +102,34 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // std::cout<<std::setw(16)<< "Fuck base class is "<< "force is "<< force_.transpose()<< "mass is" << mass_<<std::endl;
 
     // compute matrix that maps bodyrate to dEuler
-    Eigen::Matrix3d matrix_pdr2dEuler;
-    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
+    // Eigen::Matrix3d matrix_pdr2dEuler;
+    // matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
 
     // compute dphi,   dtheta,     dpsi
     // compute dqua--< p, q, r
-    dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
+    // dxdt.segment<3>(6) = matrix_pdr2dEuler * bodyrate;
+
+
+    // map bodyrate to quaternion derivative
+    // current att in quaternion
+    Eigen::Quaterniond qn(x[6], x[7], x[8], x[9]);
+    qn.normalize();
+
+    // convert bodyrate into quaternion
+    // define bodyrate
+    Eigen::Vector3d bodyrate;
+    bodyrate = x.tail(3);    
+    // Eigen::Quaterniond omega(0, bodyrate[0], bodyrate[1], bodyrate[2]);
+
+    // // compute quaternion derivative
+    // Eigen::Quaterniond dqn = 0.5 * ( omega * qn);
+    // dqn.normalize();
+    auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
+
+    dxdt[6] = dqn(0);
+    dxdt[7] = dqn(1);
+    dxdt[8] = dqn(2);
+    dxdt[9] = dqn(3);
 
     // compute dp, dq ,dr
     dxdt.tail(3) = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
@@ -155,23 +170,43 @@ void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
 {
     
     // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
-    // state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    // state_ = [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
     state_.head(3) = initial_post;
     // std::cout<<std::setw(16)<< "[----------] RigidBody: SetInitialPost state is " << state_.transpose()<<std::endl;
 }; 
 
 
-void RigidBody::SetInitialAttitude(const double &phi, const double &theta, const double &psi)
+
+void RigidBody::SetPost(const Eigen::Vector3d &object_post)
 {
-    // recall that state_ = [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-    state_[6] = phi;
-    state_[7] = theta;
-    state_[8] = psi;
-    // std::cout<<std::setw(16)<< "initial state" << state_.transpose()<<std::endl;
-    // std::cout<<std::setw(16)<< "initial attitude" << state_.segment<3>(6)<<std::endl;
+
+    state_.head<3>() = object_post;
 };
 
-void RigidBody::SetVel(const Eigen::Vector3d &object_vel)
+
+
+void RigidBody::SetInitialAttitude(const double &phi, const double &theta, const double &psi)
+{
+    // recall that state_ = [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
+    // state_[6] = phi;
+    // state_[7] = theta;
+    // state_[8] = psi;
+    // std::cout<<std::setw(16)<< "initial state" << state_.transpose()<<std::endl;
+    // std::cout<<std::setw(16)<< "initial attitude" << state_.segment<3>(6)<<std::endl;
+
+    Eigen::Quaterniond qn;
+    
+    qn = Eigen::AngleAxisd(psi, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(phi, Eigen::Vector3d::UnitX())  ;
+
+    qn.normalize();
+
+    state_[6] = qn.w();
+    state_[7] = qn.x();
+    state_[8] = qn.y();
+    state_[9] = qn.z();
+};
+
+void RigidBody::SetLinearVel(const Eigen::Vector3d &object_vel)
 {
     state_.segment<3>(3) = object_vel;
 };
@@ -275,8 +310,11 @@ Pose RigidBody::pose() const
 {
     auto robot_post = state_.head<3>();
 
-    auto robot_att = Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
+    // auto robot_att = Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
 
+    // robot_att.normalize();
+
+    Eigen::Quaterniond robot_att = Eigen::Quaterniond(state_(6), state_(7), state_(8), state_(9));
     robot_att.normalize();
 
     Pose robot_pose(robot_post, robot_att);
@@ -287,7 +325,7 @@ Pose RigidBody::pose() const
 
 Vels RigidBody::vels() const
 {
-    //x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
+    //x =  [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
     auto robot_linear_vel = state_.segment<3>(3);
     auto robot_angular_rate = state_.tail<3>(); 
 
@@ -349,3 +387,109 @@ Eigen::Matrix3d RigidBody::matirxBodyrate2EulerRate(const double &phi, const dou
 
     return m_Bodyrate2EulerRate;
 } 
+
+
+Eigen::Vector4d RigidBody::ComputeQuaternionDerivative(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate)
+{
+    // // Quaternion representing the angular velocity (0, bodyrate_x, bodyrate_y, bodyrate_z)
+    // Eigen::Quaterniond omega_q(0, bodyrate(0), bodyrate(1), bodyrate(2));
+
+    // // Quaternion derivative
+    // // Eigen::Quaterniond dqn = 0.5 * (qn * omega_q);
+    // Eigen::Quaterniond dqn =  omega_q * qn;  // Quaternion multiplication
+    // dqn.coeffs() = dqn.coeffs() * 0.5;   
+
+
+    // // Normalize the result to ensure the quaternion stays normalized
+    // dqn.normalize();
+
+    // return dqn;
+
+     // Extract quaternion components
+    double qW = qn.w();
+    double qX = qn.x();
+    double qY = qn.y();
+    double qZ = qn.z();
+
+    double p = bodyrate(0);
+    double q = bodyrate(1);
+    double r = bodyrate(2);
+
+    const double K_quat = 2.0;
+    double quaterror = 1.0 - (qW * qW + qX * qX + qY * qY + qZ * qZ);
+
+    // Define the angular velocity matrix
+    Eigen::Matrix4d omega_matrix;
+    omega_matrix << 0, -p, -q, -r,
+                    p, 0, r, -q,
+                    q, -r, 0, p,
+                    r, q, -p, 0;
+    Eigen::Vector4d v_qn(qn.w(), qn.x(), qn.y(), qn.z());    
+
+    // Calculate the quaternion derivative
+    Eigen::Vector4d term1 = omega_matrix * v_qn;  // Direct calculation
+    //coud omega_matrix
+    // std::cout<<"omega_matrix is "<< omega_matrix<<std::endl;
+    //cout quat.coeffs()
+    // std::cout<<"v_quad is "<< v_quad.transpose()<<std::endl;
+    // std::cout<<"term1 is "<< term1.transpose()<<std::endl;
+    auto term2= K_quat * quaterror * v_qn;  // Add error term
+    // std::cout<<"term 2 is "<< term2.transpose()<<std::endl;
+
+    Eigen::Vector4d qLdot = 0.5*term1 + term2;
+    // std::cout<<"qLdot is "<< qLdot.transpose()<<std::endl;
+    return qLdot;
+}
+
+
+
+
+
+// Eigen::Quaterniond RigidBody::ComputeQuaternionDerivate(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate)
+// {
+//     Eigen::Quaterniond dqn;
+
+//     // vector form of quaternion
+//     // qn.normalize();
+//     Eigen::VectorXd v_qn = Eigen::VectorXd::Zero(4);
+//     v_qn << qn.w(), qn.x(), qn.y(), qn.z();
+// // {qn.w(), qn.x(), qn.y(), qn.z()};
+
+//     // skew sym matrix form of omega 
+//     Eigen::Matrix4d m_skew_sym_omega = Eigen::Matrix4d::Zero();
+
+//     m_skew_sym_omega(0,1) = -bodyrate(0);
+//     m_skew_sym_omega(0,2) = -bodyrate(1);
+//     m_skew_sym_omega(0,3) = -bodyrate(2);
+
+
+//     m_skew_sym_omega(1,0) = bodyrate(0);
+//     m_skew_sym_omega(1,2) = bodyrate(2);
+//     m_skew_sym_omega(1,3) = -bodyrate(1);
+
+
+//     m_skew_sym_omega(2,0) = bodyrate(1);
+//     m_skew_sym_omega(2,1) = -bodyrate(2);
+//     m_skew_sym_omega(2,3) = bodyrate(0);
+
+
+//     m_skew_sym_omega(3,0) = bodyrate(2);
+//     m_skew_sym_omega(3,1) = bodyrate(1);
+//     m_skew_sym_omega(3,2) = -bodyrate(0);
+
+
+//     Eigen::VectorXd v_dqn = Eigen::VectorXd::Zero(4);
+
+//     v_dqn = 0.5 * m_skew_sym_omega * v_qn; 
+
+//     dqn.w() = v_dqn(0);
+//     dqn.x() = v_dqn(1);
+//     dqn.y() = v_dqn(2);
+//     dqn.z() = v_dqn(3);
+
+//     dqn.normalize();
+
+
+//     return dqn;
+// };
+

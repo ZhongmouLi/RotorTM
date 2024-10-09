@@ -36,6 +36,11 @@ class Cooperative{
 
         bool flag_first_iteration_ = true;
 
+        void RigidbodyQuadInelasticCableCollision(std::vector<bool>& collision_flags);
+        bool AnyNewCollisions(const std::vector<bool>& before, const std::vector<bool>& after);
+        void UpdateCollisionFlags(std::vector<bool>& current, const std::vector<bool>& before, const std::vector<bool>& after);
+        void UpdateRobotPositions();        
+
     public:
 
         // put them in private LATER

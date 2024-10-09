@@ -233,6 +233,69 @@ TEST_F(rotorTMCooperative1MAV, checkVerticalStaticEquilibriumRandPost){
 
 
 
+// // test if initial posts are set for mavs
+TEST_F(rotorTMCooperative1MAV, checkVerticalEquilibriumWithVel){
+
+//     // set initial posts for mavs and payload
+        Eigen::Vector3d payload_init_post = Eigen::Vector3d::Zero();
+        ptr_Cooperative->SetPayloadInitPost(payload_init_post);
+
+        std::vector<Eigen::Vector3d> v_mavs_torques(1, Eigen::Vector3d::Zero());
+        std::vector<double> v_mavs_thrusts(1, 4.9);
+
+        std::shared_ptr<UAVCable> ptr_uavcable_local = ptr_Cooperative->v_ptr_uavcables_.at(0);
+        std::shared_ptr<Payload> ptr_payload_local = ptr_Cooperative->ptr_payload_;
+
+        // set a constant velocity for payload and mav
+        Eigen::Vector3d vertical_vel(0,0,1);
+        ptr_payload_local->SetLinearVel(vertical_vel);
+
+        ptr_uavcable_local->mav_.SetLinearVel(vertical_vel);
+
+        // std::cout<< "fuck point cooperative test 3"<<std::endl;
+        const double dt = 0.01;
+        int num_steps =1000;
+        for(double t=dt ; t<=num_steps*dt ; t+= dt)
+        {
+            std::cout<<"-----------------" << t << "-----------------" <<std::endl;
+
+            ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
+
+
+            // compute interation wrenches and vars for MAVs and payload
+            ptr_Cooperative->UpdateJointAndCableStatus();                
+            
+            ptr_Cooperative->ComputeInteractWrenches();
+
+            ptr_Cooperative->DoOneStepInt4Robots();
+            // printf("current step is %.3f \n", t);
+        }
+       
+
+
+        const double cable_length = ptr_uavcable_local->cable_.length();
+
+        ASSERT_FLOAT_EQ(ptr_uavcable_local->mav_.pose().post[0], //
+        payload_init_post[0] + vertical_vel[0] * num_steps*dt ); 
+
+        // ASSERT_FLOAT_EQ(ptr_payload_local->v_ptr_joints_.at(0)->ptr_UAVCable()->mav_.pose().post[0], //
+        // payload_init_post[0]); 
+                
+        ASSERT_FLOAT_EQ(ptr_uavcable_local->mav_.pose().post[1], //
+        payload_init_post[1] + vertical_vel[1] * num_steps*dt ); 
+
+        ASSERT_FLOAT_EQ(ptr_uavcable_local->mav_.pose().post[2], //
+        payload_init_post[2]+cable_length  + vertical_vel[2] * num_steps*dt ); 
+
+        ASSERT_FLOAT_EQ(ptr_payload_local->pose().post[0], //
+        payload_init_post[0] +  vertical_vel[0] *  num_steps*dt ); 
+        ASSERT_FLOAT_EQ(ptr_payload_local->pose().post[1], //
+        payload_init_post[1]  +  vertical_vel[1] *  num_steps*dt ); 
+        ASSERT_FLOAT_EQ(ptr_payload_local->pose().post[2], //
+        payload_init_post[2] +  vertical_vel[2] * num_steps*dt ); 
+}
+
+
 
 TEST_F(rotorTMCooperative1MAV, checkVerticalConstAcc){
 

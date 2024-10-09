@@ -245,7 +245,7 @@ void Payload::UpdateVelCollided()
         // solve J [vel; bodyrate] = b in Eq.42
         payload_vel_bodyrate_collised = J.householderQr().solve(b);
 
-        SetVel(payload_vel_bodyrate_collised.head(3));
+        SetLinearVel(payload_vel_bodyrate_collised.head(3));
 
         SetBodyrate(payload_vel_bodyrate_collised.tail(3));
     }
@@ -430,12 +430,36 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     // std::cout<<std::string(4, ' ')<<"fuck payload " << payload_angular_acc.transpose() <<std::endl;
     // 2. rotation in body frame
-    Eigen::Matrix3d matrix_pdr2dEuler;
-    matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
+    // Eigen::Matrix3d matrix_pdr2dEuler;
+    // matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
 
-    // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
-    dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
+    // // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
+    // dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
 
+
+    // map bodyrate to quaternion derivative
+    // current att in quaternion
+    Eigen::Quaterniond qn(x[6], x[7], x[8], x[9]);
+    qn.normalize();
+
+    // convert bodyrate into quaternion
+    // define bodyrate
+    Eigen::Vector3d bodyrate;
+    bodyrate = x.tail(3);    
+    // Eigen::Quaterniond omega(0, bodyrate[0], bodyrate[1], bodyrate[2]);
+
+    // // compute quaternion derivative
+    // Eigen::Quaterniond dqn = 0.5 * ( omega * qn);
+    // dqn.normalize();
+    auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
+
+    dxdt[6] = dqn(0);
+    dxdt[7] = dqn(1);
+    dxdt[8] = dqn(2);
+    dxdt[9] = dqn(3);
+
+
+    
     // compute dp, dq ,dr
     dxdt.tail(3) =ComputeRotDynamics();
 

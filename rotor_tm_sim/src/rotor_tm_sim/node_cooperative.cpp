@@ -57,9 +57,9 @@ void fmCmdCallback0(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     //  v_mavs_thrusts.at(0) = thrust_all;
 
     // torque = vector3MsgToEigen(msg->moments);
-    // v_mavs_torques.at(0) = vector3MsgToEigen(msg->moments);
+    v_mavs_torques.at(0) = vector3MsgToEigen(msg->moments);
 
-    v_mavs_torques.at(0) = Eigen::Vector3d::Zero();
+    // v_mavs_torques.at(0) = Eigen::Vector3d::Zero();
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     ROS_DEBUG_STREAM("mav0 call back");
     ROS_DEBUG_STREAM("mav0 input torque "<<v_mavs_torques.at(0).transpose());
@@ -81,8 +81,8 @@ void fmCmdCallback1(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // v_mavs_thrusts.at(1) = v_mavs_thrusts.at(1) + 0.001;
 
     // torque = vector3MsgToEigen(msg->moments);
-    // v_mavs_torques.at(1) = vector3MsgToEigen(msg->moments);
-    v_mavs_torques.at(1) = Eigen::Vector3d::Zero();
+    v_mavs_torques.at(1) = vector3MsgToEigen(msg->moments);
+    // v_mavs_torques.at(1) = Eigen::Vector3d::Zero();
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
@@ -101,8 +101,8 @@ void fmCmdCallback2(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // v_mavs_thrusts.at(2) = thrust_all;
 
     // torque = vector3MsgToEigen(msg->moments);
-    // v_mavs_torques.at(2) = vector3MsgToEigen(msg->moments);
-    v_mavs_torques.at(2) = Eigen::Vector3d::Zero();
+    v_mavs_torques.at(2) = vector3MsgToEigen(msg->moments);
+    // v_mavs_torques.at(2) = Eigen::Vector3d::Zero();
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<<torque.transpose());
@@ -120,8 +120,8 @@ void fmCmdCallback3(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
     // v_mavs_thrusts.at(3) = thrust_all;
 
     // torque = vector3MsgToEigen(msg->moments);
-    // v_mavs_torques.at(3) = vector3MsgToEigen(msg->moments);
-    v_mavs_torques.at(3) = Eigen::Vector3d::Zero();
+    v_mavs_torques.at(3) = vector3MsgToEigen(msg->moments);
+    // v_mavs_torques.at(3) = Eigen::Vector3d::Zero();
     // ROS_INFO_STREAM("receive input torque in Eigen"<<torque.transpose());
     // ROS_INFO_STREAM("receive input torque "<<msg->moments);
     // ROS_INFO_STREAM("receive input wrench "<< thrust<< " "<ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);<torque.transpose());
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
     ptr_Cooperative->SetPayloadInitPost(payload_init_post);
 
     // 9. run simulation
-    while (ros::ok()  && (counter_simulation < 20) )
+    while (ros::ok()  ) // && (counter_simulation < 20)
     {   
 
         // thrust_all  = thrust_all +0.0001;
@@ -294,8 +294,8 @@ int main(int argc, char** argv)
         ROS_DEBUG_STREAM("update kinematcs of joints");
         ptr_Cooperative->UpdateJointAndCableStatus();  
 
-        // ROS_DEBUG_STREAM("collision");
-        // ptr_Cooperative->UpdateVelsCollidedUAVsPayload();
+        ROS_DEBUG_STREAM("collision");
+        ptr_Cooperative->UpdateVelsCollidedUAVsPayload();
 
         ROS_DEBUG_STREAM("compute interaction wrenches");
         ptr_Cooperative->ComputeInteractWrenches();

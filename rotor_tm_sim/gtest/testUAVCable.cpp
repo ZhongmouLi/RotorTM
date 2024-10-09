@@ -87,7 +87,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStatic){
 
     const Eigen::Vector3d mav_vel{0,0,0};
 
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     // 2. set post and vel of attach point in vertical direction
     const Eigen::Vector3d attachpoint_vel{0,0,0};
@@ -111,7 +111,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalCollision){
     const Eigen::Vector3d mav_vel{0,0,RandomGenerate(0,0.1)};
 
     ptr_UAVCable->SetMAVInitPost(mav_post);
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     // 2. set vel of attach point in vertical direction
     const Eigen::Vector3d attachpoint_vel{0,0,RandomGenerate(-0.1,0)};
@@ -132,7 +132,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistribution){
     // 1. set post and vel of mav in vertical direction
     const double mav_vel_z = 1;
     const Eigen::Vector3d mav_vel{0,0,mav_vel_z};
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     double cable_length = ptr_UAVCable->cable_.length();
     const Eigen::Vector3d mav_post{0,0,ptr_UAVCable->cable_.length()+RandomGenerate(0,0.1)};
@@ -184,7 +184,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithPayloadMotion){
     const double mav_vel_z = 1;
 
     const Eigen::Vector3d mav_vel{0,0,mav_vel_z};
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
 
     // 2. set post and vel of payload in vertical direction
@@ -243,7 +243,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalVelDistributionWithRandomMotion){
     const double mav_vel_z = RandomGenerate(0,5);
 
     const Eigen::Vector3d mav_vel{0,0,mav_vel_z};
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     
     // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -301,7 +301,7 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistribution){
 
     const Eigen::Vector3d mav_vel{mav_vel_x,0,mav_vel_z};
 
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     
     // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -363,7 +363,7 @@ TEST_F(rotorTMUAVCableTest, checkTiltedXVelDistributionRandomMotion){
 
     const Eigen::Vector3d mav_vel{mav_vel_x,0,mav_vel_z};
 
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     
     // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -421,7 +421,7 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistribution){
 
     const Eigen::Vector3d mav_vel{0,mav_vel_y,mav_vel_z};
 
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     
     // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -481,7 +481,7 @@ TEST_F(rotorTMUAVCableTest, checkTiltedYVelDistributionRandomMotion){
 
     const Eigen::Vector3d mav_vel{0,mav_vel_y,mav_vel_z};
 
-    ptr_UAVCable->mav_.SetVel(mav_vel);
+    ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
     
     // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -531,7 +531,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         // 1. set posts of mav and payload to remain cable taut
         const double mav_vel_z = 0;
         const Eigen::Vector3d mav_vel{0,0,mav_vel_z};
-        ptr_UAVCable->mav_.SetVel(mav_vel);
+        ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
         
         // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -639,7 +639,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         // 1. set posts of mav and payload to remain cable taut
         const double mav_vel_z = 0;
         const Eigen::Vector3d mav_vel{0,0,mav_vel_z};
-        ptr_UAVCable->mav_.SetVel(mav_vel);
+        ptr_UAVCable->mav_.SetLinearVel(mav_vel);
 
         
         const Eigen::Vector3d mav_post{0,0,ptr_UAVCable->cable_.length()+0.1};
@@ -750,7 +750,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
         // 1. set posts of mav and payload to remain cable taut
         const double mav_vel_z = 0;
         const Eigen::Vector3d mav_init_vel{0,0,mav_vel_z};
-        ptr_UAVCable->mav_.SetVel(mav_init_vel);
+        ptr_UAVCable->mav_.SetLinearVel(mav_init_vel);
 
         
         const Eigen::Vector3d mav_init_post{0,0,ptr_UAVCable->cable_.length()+0.1};
@@ -847,7 +847,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
         // 1. set posts of mav and payload to make collision
         const double mav_vel_z = 0;
         const Eigen::Vector3d mav_init_vel{0,0,mav_vel_z};
-        ptr_UAVCable->mav_.SetVel(mav_init_vel);
+        ptr_UAVCable->mav_.SetLinearVel(mav_init_vel);
 
         
         // ptr_UAVCable->cable_.GetCableLength(cable_length);
@@ -946,7 +946,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
              // 1. set posts of mav and payload to make collision
         const double mav_vel_z = 0;
         const Eigen::Vector3d mav_init_vel{0,0,mav_vel_z};
-        ptr_UAVCable->mav_.SetVel(mav_init_vel);
+        ptr_UAVCable->mav_.SetLinearVel(mav_init_vel);
 
         
         // ptr_UAVCable->cable_.GetCableLength(cable_length);
