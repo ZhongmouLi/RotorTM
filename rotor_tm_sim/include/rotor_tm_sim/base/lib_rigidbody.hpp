@@ -36,6 +36,8 @@ class RigidBody
         // Eigen::Vector3d torque_;
         Wrench input_wrench_;
 
+        Eigen::Matrix3d inv_inertia_;
+
 
         // simulator setings for an object in 3D
         // state vecgor for a rigid body (13X1) including position, velcity, quaternion, bodyrate, 

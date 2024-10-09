@@ -13,7 +13,12 @@
 
 RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size): mass_property_(mass_property),step_size_(step_size) 
 {
+
+    // set stable states
     SetStatesZeros();
+
+    // compute inverse of inertia
+    inv_inertia_ = mass_property_.inertia.inverse();
 };
 
 
@@ -56,7 +61,9 @@ Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
     // get const inertia inverse
-    dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
+    // dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
+
+    dBodyRate = inv_inertia_ * (-bodyrate.cross(Inertia*bodyrate) + torque);
 
     // save body_rate_acc
     // object_bodyrate_acc_ = dBodyRate;
@@ -230,60 +237,6 @@ void RigidBody::SetAngularAcc(const Eigen::Vector3d &object_bodyrate_acc)
 
 
 
-
-// void RigidBody::GetPosition(Eigen::Vector3d &object_position) const
-// {
-//     // std::cout<<std::setw(16)<< "[----------] RigidBody: GetPosition state is" << state_.transpose() <<std::endl;
-//     object_position = state_.head(3);
-//     // std::cout<<std::setw(16)<< "[----------] RigidBody: GetPosition" << state_.head<3>().transpose()<< object_position.transpose() <<std::endl;
-// };
-
-
-// void RigidBody::GetState(object_state &state) const 
-// {
-
-//     state = state_;
-// }
-
-
-// void RigidBody::GetVel(Eigen::Vector3d &object_vel) const
-// {
-//     object_vel = state_.segment<3>(3);
-// };
-
-
-// void RigidBody::GetAcc(Eigen::Vector3d &object_acc) const
-// { 
-    
-//     // compute translation acc
-//     object_acc = object_acc_;
-// }
-
-// void RigidBody::GetBodyrate(Eigen::Vector3d &object_bodyrate) const
-// {
-//     object_bodyrate = state_.tail<3>();
-// };
-
-// void RigidBody::GetAttitude(Eigen::Quaterniond &object_attitude) const
-// {
-
-//     // compute rotation in Quaternion from quadrotor state
-//     // rotation is created using ZYX rotation in its body frame
-//     auto attitude =  Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
-
-//     // normalise
-//     attitude.normalize();
-
-//     // assisn 
-//     object_attitude = attitude;
-
-// };
-
-// void RigidBody::GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const
-// { 
-//     object_bodyrate_acc = object_bodyrate_acc_;
-    
-// }
 
 
 

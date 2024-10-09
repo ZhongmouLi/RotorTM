@@ -243,7 +243,9 @@ void Payload::UpdateVelCollided()
         Eigen::VectorXd payload_vel_bodyrate_collised = Eigen::MatrixXd::Zero(6, 1);
 
         // solve J [vel; bodyrate] = b in Eq.42
-        payload_vel_bodyrate_collised = J.householderQr().solve(b);
+        // payload_vel_bodyrate_collised = J.householderQr().solve(b);
+        payload_vel_bodyrate_collised = J.llt().solve(b);
+
 
         SetLinearVel(payload_vel_bodyrate_collised.head(3));
 
@@ -488,7 +490,7 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
 
     // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
-    payload_acc = cooper_interact_para_.m_mass_matrix.householderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+    payload_acc = cooper_interact_para_.m_mass_matrix.llt().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
     
     // SetAcc(payload_acc);
 
@@ -550,7 +552,7 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
     Eigen::Vector3d bodyrate_acc;
 
-    bodyrate_acc =  interia_effective.householderQr().solve(torque_effective);
+    bodyrate_acc =  interia_effective.llt().solve(torque_effective);
 
     // return bodyrate_acc;
     // SetBodyrateAcc(bodyrate_acc);
