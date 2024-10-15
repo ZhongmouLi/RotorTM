@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 #include <mutex>
+#include <chrono> 
 
 // headers for rotor_sim class
 #include "rotor_tm_sim/lib_payload.hpp"
@@ -288,6 +289,9 @@ int main(int argc, char** argv)
         // thrust_all  = thrust_all +0.0001;
         ROS_DEBUG_STREAM(counter_simulation << "iteration");
 
+        auto start = std::chrono::steady_clock::now();
+
+
         ROS_DEBUG_STREAM("Input controller input for mavs");
         ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
@@ -302,6 +306,14 @@ int main(int argc, char** argv)
 
         ROS_DEBUG_STREAM("do one step dynamic simulation for mavs and payload");
         ptr_Cooperative->DoOneStepInt4Robots();
+
+        auto end = std::chrono::steady_clock::now();
+
+        // Compute the duration
+        std::chrono::duration<double> duration = end - start;
+
+        // Output the time cost in seconds
+        std::cout << "Time cost of one iteration " << duration.count() << " seconds" << std::endl;
 
      
         // setp 5. Publish simulation results to topics

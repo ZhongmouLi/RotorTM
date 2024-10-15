@@ -244,7 +244,8 @@ void Payload::UpdateVelCollided()
 
         // solve J [vel; bodyrate] = b in Eq.42
         // payload_vel_bodyrate_collised = J.householderQr().solve(b);
-        payload_vel_bodyrate_collised = J.llt().solve(b);
+        // payload_vel_bodyrate_collised = J.llt().solve(b);
+        payload_vel_bodyrate_collised = J.inverse() * b;
 
 
         SetLinearVel(payload_vel_bodyrate_collised.head(3));
@@ -352,18 +353,6 @@ void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_ac
 }
 
 
-void Payload::ComputeAccBodyRateAcc()
-{
-  
-    Eigen::Vector3d payload_angular_acc = ComputeRotDynamics();
-
-    Eigen::Vector3d payload_acc = ComputeTransDynamics();
-    
-    SetLinearAcc(payload_acc);
-
-    SetAngularAcc(payload_angular_acc);
-};
-
 
 void Payload::InputDronesNetWrenches(const Wrench &mavs_net_wrench)
 {
@@ -376,16 +365,7 @@ void Payload::InputPayloadInteractPara(const CooperIntertPara &cooper_interact_p
     cooper_interact_para_ = cooper_interact_para;
 };
 
-// void Payload::InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque)
-// {
-//     drones_net_torque_ = drones_net_torque;
 
-//     // m_C_ = m_C;
-
-//     // m_E_ = m_E;
-    
-//     // // std::cout<<std::string(4, ' ')<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
-// }
 
 
 void Payload::operator() (const object_state &x , object_state &dxdt, const double time [[maybe_unused]])
@@ -397,13 +377,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     
     // std::cout<<std::string(4, ' ') << "state of payload" << x.transpose()<<std::endl; 
     // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
+    // dxdt = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
 
-    // For instance
-    // std::cout<<std::string(4, ' ')<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "position is "<< x.head(3).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
 
     // obtain bodyrate [p,      q,      r]
     Eigen::Vector3d payload_bodyrate;
@@ -421,7 +396,9 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // [ddx ddy ddz] = 
     // dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_angular_acc);
 
-    dxdt.segment<3>(3) =ComputeTransDynamics();
+    // dxdt.segment<3>(3) =ComputeTransDynamics();
+    dxdt.segment<3>(3) =ComputeTransDynamics(payload_angular_acc);
+
 
     
     // std::cout<<std::string(4, ' ')<<"fuck payload " << m_mass_matrix_<<std::endl;
@@ -463,7 +440,7 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     
     // compute dp, dq ,dr
-    dxdt.tail(3) =ComputeRotDynamics();
+    dxdt.tail(3) =ComputeRotDynamics(bodyrate);
 
 
     // std::cout<<std::string(4, ' ')<<"fuck payload post" << x.head(3).transpose() <<std::endl;
@@ -483,14 +460,33 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 
 // Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_angular_acc)
-Eigen::Vector3d Payload::ComputeTransDynamics()
+// Eigen::Vector3d Payload::ComputeTransDynamics()
+// {
+//     Eigen::Vector3d payload_acc(0,0,0);
+    
+
+//     // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+
+//     // payload_acc = cooper_interact_para_.m_mass_matrix.llt().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+
+//     payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc)  - Eigen::Vector3d::UnitZ() * gravity_;
+    
+//     // SetAcc(payload_acc);
+
+//     return payload_acc;
+// }
+
+
+Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &payload_angular_acc)
 {
     Eigen::Vector3d payload_acc(0,0,0);
     
 
     // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
-    payload_acc = cooper_interact_para_.m_mass_matrix.llt().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+    // payload_acc = cooper_interact_para_.m_mass_matrix.llt().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+
+    payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * payload_angular_acc)  - Eigen::Vector3d::UnitZ() * gravity_;
     
     // SetAcc(payload_acc);
 
@@ -499,18 +495,8 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
 
 // // Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
 
-Eigen::Vector3d Payload::ComputeRotDynamics()
+Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &payload_bodyrate)
 {
-
-    // compute effective inertia and torque for the payload
-    // such that
-    // effective_inertia * payload_angular_acc = effective_torque
-    // this relation can be obtained from Eq17-18
-
-    // Input
-    // m_C in R{3X3}, m_C = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T 
-    // m_D in R{3X3}, m_D = Sum_k m_k * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
-    // m_E in R{3X3}, m_E = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
 
     // setp 1. compute effective torque for the payload
     // such that 
@@ -521,24 +507,8 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
     Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
 
-    // torque_effective = mavs_net_wrench.torque - cooper_interact_para.m_C * inv_m_mass_matrix *  mavs_net_wrench.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
+    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
 
-    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
-
-    // std::cout<<std::string(4, ' ')<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
-
-
-    // std::cout<<std::string(4, ' ')<< "m_C  is " << m_C  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;
@@ -547,12 +517,15 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
     
     interia_effective = inertia() + cooper_interact_para_.m_C * (inv_m_mass_matrix * cooper_interact_para_.m_D) - cooper_interact_para_.m_E;
 
+
+
     // step 3 compute bodyrate acc
-    // bodyrate_acc = inv(effective_inertia) * effective_torque
 
     Eigen::Vector3d bodyrate_acc;
 
-    bodyrate_acc =  interia_effective.llt().solve(torque_effective);
+    // bodyrate_acc =  interia_effective.llt().solve(torque_effective);
+     bodyrate_acc =  interia_effective.inverse() * torque_effective;
+
 
     // return bodyrate_acc;
     // SetBodyrateAcc(bodyrate_acc);
@@ -562,39 +535,80 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
 
 
+// // Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
 
-
-
-
-
-// void Payload::DoPayloadOneStepInt()
+// Eigen::Vector3d Payload::ComputeRotDynamics()
 // {
 
-//     // call one step integration for quadrotor dynamics
-//     std::cout<<std::string(4, ' ')<<"sdf " << state_ <<  current_step_ << step_size_ << std::endl;
-//     this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+//     // compute effective inertia and torque for the payload
+//     // such that
+//     // effective_inertia * payload_angular_acc = effective_torque
+//     // this relation can be obtained from Eq17-18
 
-//     // update current step
-//     current_step_ = current_step_ + step_size_;
+//     // Input
+//     // m_C in R{3X3}, m_C = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T 
+//     // m_D in R{3X3}, m_D = Sum_k m_k * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
+//     // m_E in R{3X3}, m_E = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
+
+//     // setp 1. compute effective torque for the payload
+//     // such that 
+//     Eigen::Vector3d torque_effective{0,0,0};
+
+//     // Eigen::Matrix3d payload_interia;
+//     // GetInertia(payload_interia);
+
+//     Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
+
+//     torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
+
+
+//     // Eigen::Matrix3d m_mass_matrix = cooper_interact_para_.m_mass_matrix;
+
+//     // torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * m_mass_matrix.llt().solve(mavs_net_wrench_.force)  - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
+
+//     // std::cout<<std::string(4, ' ')<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
+
+//     // std::cout<<std::string(4, ' ')<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
+
+//     // std::cout<<std::string(4, ' ')<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
+
+
+//     // std::cout<<std::string(4, ' ')<< "m_C  is " << m_C  <<std::endl; 
+
+//     // std::cout<<std::string(4, ' ')<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
+
+//     // std::cout<<std::string(4, ' ')<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
+
+//     // std::cout<<std::string(4, ' ')<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
+
+//     // step 2. compute effective inertia
+//     Eigen::Matrix3d interia_effective;
+
+//     // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
+    
+//     interia_effective = inertia() + cooper_interact_para_.m_C * (inv_m_mass_matrix * cooper_interact_para_.m_D) - cooper_interact_para_.m_E;
+
+//     // interia_effective = inertia() + cooper_interact_para_.m_C * ( m_mass_matrix.llt().solve(cooper_interact_para_.m_D) ) - cooper_interact_para_.m_E;
+
+
+//     // step 3 compute bodyrate acc
+//     // bodyrate_acc = inv(effective_inertia) * effective_torque
+
+//     Eigen::Vector3d bodyrate_acc;
+
+//     // bodyrate_acc =  interia_effective.llt().solve(torque_effective);
+//      bodyrate_acc =  interia_effective.inverse() * torque_effective;
+
+
+//     // return bodyrate_acc;
+//     // SetBodyrateAcc(bodyrate_acc);
+
+//     return bodyrate_acc;
 // }
 
-// // void Payload::doOneStepInt()
-// // {
-
-// //     auto state = RigidBody::state();
-
-// //     auto step_size = RigidBody::step_size();
 
 
-// //     this->stepper_.do_step(*this, state_, current_step_, RigidBody::step_size());
 
-// //     // acculate simulation steps
-// //     current_step_ = current_step_ +  RigidBody::step_size();
-
-// //     // // assign states to position and velocity
-// //     // assignPtMasState(ptmas_state_);
-
-// // }
 
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)
