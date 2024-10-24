@@ -74,13 +74,15 @@ class Payload: public RigidBody{
 
         // translational dynamic model
         // Eigen::Vector3d ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_bodyrate_acc);
-        Eigen::Vector3d ComputeTransDynamics();
+        // Eigen::Vector3d ComputeTransDynamics();
+        Eigen::Vector3d ComputeTransDynamics(const Eigen::Vector3d &payload_angular_acc);
 
 
         // rotational dynamic model
         // Eigen::Vector3d ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E);
 
-        Eigen::Vector3d ComputeRotDynamics();
+        // Eigen::Vector3d ComputeRotDynamics();
+        Eigen::Vector3d ComputeRotDynamics(const Eigen::Vector3d &payload_bodyrate);
         
 
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
@@ -118,8 +120,6 @@ class Payload: public RigidBody{
 
     void InputPayloadInteractPara(const CooperIntertPara &cooper_interact_para);
 
-
-    void ComputeAccBodyRateAcc();
 
 
     void DoPayloadOneStepInt();

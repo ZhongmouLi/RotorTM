@@ -8,12 +8,6 @@ Payload::Payload(const MassProperty &mass_property, const double &step_size): Ri
 }
 
 
-// Payload::Payload(const MassProperty &mass_property, std::vector<std::unique_ptr<Joint>> v_ptr_joints, const double &step_size): RigidBody(mass_property, step_size), v_ptr_joints_(std::move(v_ptr_joints))
-// {
-//     num_robot_ = v_ptr_joints_.size();
-
-// };
-
 
 Payload::Payload(const MassProperty &mass_property, std::shared_ptr<Joint> v_ptr_joint, const double &step_size): RigidBody(mass_property, step_size)
 {
@@ -243,7 +237,10 @@ void Payload::UpdateVelCollided()
         Eigen::VectorXd payload_vel_bodyrate_collised = Eigen::MatrixXd::Zero(6, 1);
 
         // solve J [vel; bodyrate] = b in Eq.42
-        payload_vel_bodyrate_collised = J.householderQr().solve(b);
+        // payload_vel_bodyrate_collised = J.householderQr().solve(b);
+        payload_vel_bodyrate_collised = J.colPivHouseholderQr().solve(b);
+        // payload_vel_bodyrate_collised = J.inverse() * b;
+
 
         SetLinearVel(payload_vel_bodyrate_collised.head(3));
 
@@ -324,20 +321,6 @@ Eigen::VectorXd Payload::ComputeVectorbi(const Quadrotor &mav, const Cable &cabl
 }
 
 
-// void Payload::InputMassMatrix(const Eigen::Matrix3d &m_mass_matrix)
-// {
-//     m_mass_matrix_ = m_mass_matrix;
-// }
-
-// void Payload::InputDronesNetForces(const Eigen::Vector3d &drones_net_force, const Eigen::Matrix3d &m_D)
-// {
-//     drones_net_force_ = drones_net_force;
-
-//     m_D_ = m_D;
-
-//     // std::cout<<std::string(4, ' ')<<"[----------] Payload::InputDronesNetForces mavs_net_force is "<< drones_net_force_.transpose()<<std::endl;   
-// }
-
 
 void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_acc)
 {
@@ -349,18 +332,6 @@ void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_ac
     }
 }
 
-
-void Payload::ComputeAccBodyRateAcc()
-{
-  
-    Eigen::Vector3d payload_angular_acc = ComputeRotDynamics();
-
-    Eigen::Vector3d payload_acc = ComputeTransDynamics();
-    
-    SetLinearAcc(payload_acc);
-
-    SetAngularAcc(payload_angular_acc);
-};
 
 
 void Payload::InputDronesNetWrenches(const Wrench &mavs_net_wrench)
@@ -374,16 +345,7 @@ void Payload::InputPayloadInteractPara(const CooperIntertPara &cooper_interact_p
     cooper_interact_para_ = cooper_interact_para;
 };
 
-// void Payload::InputDronesNetTorques(const Eigen::Vector3d &drones_net_torque)
-// {
-//     drones_net_torque_ = drones_net_torque;
 
-//     // m_C_ = m_C;
-
-//     // m_E_ = m_E;
-    
-//     // // std::cout<<std::string(4, ' ')<<"[----------] Payload::InputDronesNetForces mavs_net_torque is "<< drones_net_torque_.transpose()<<std::endl;       
-// }
 
 
 void Payload::operator() (const object_state &x , object_state &dxdt, const double time [[maybe_unused]])
@@ -395,57 +357,53 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     
     // std::cout<<std::string(4, ' ') << "state of payload" << x.transpose()<<std::endl; 
     // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
-    // dx = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
+    // dxdt = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
 
-    // For instance
-    // std::cout<<std::string(4, ' ')<< "Euler angle is "<< x.segment<3>(6).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "Bodyrate is "<< x.tail(3).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "position is "<< x.head(3).transpose()<<std::endl;
-    // std::cout<<std::string(4, ' ')<< "vel is "<< x.segment<3>(3).transpose()<<std::endl;
 
     // obtain bodyrate [p,      q,      r]
-    Eigen::Vector3d payload_bodyrate;
-    payload_bodyrate = x.tail(3);    
+    // Eigen::Vector3d payload_bodyrate;
+    // payload_bodyrate = x.tail(3);    
+    Eigen::Vector3d payload_bodyrate(x.at(10), x.at(11), x.at(12));
 
     // obtain bodyrate acc [ dp,     dq,     dr]
-    Eigen::Vector3d payload_angular_acc;
-    payload_angular_acc = dxdt.tail(3);       
+    // Eigen::Vector3d payload_angular_acc;
+    // payload_angular_acc = dxdt.tail(3);    
+    Eigen::Vector3d payload_angular_acc(dxdt.at(10), dxdt.at(11), dxdt.at(12));   
 
     // 1. translation in world frame
     // P = [x,y,z,dx, dy, dz]
     // dP = [dx, dy, dz, ddx, ddy, ddz]
-    dxdt.head(3) = x.segment<3>(3);
+    // dxdt.head(3) = x.segment<3>(3);
+    // dxdt.at(0) = x.at(3);
+    // dxdt.at(1) = x.at(4);
+    // dxdt.at(2) = x.at(5);
 
-    // [ddx ddy ddz] = 
-    // dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_angular_acc);
+    // // [ddx ddy ddz] = 
+    // // dxdt.segment<3>(3) = ComputeTransDynamics(drones_net_force_, m_mass_matrix_, m_D_, payload_angular_acc);
 
-    dxdt.segment<3>(3) =ComputeTransDynamics();
+    // // dxdt.segment<3>(3) =ComputeTransDynamics();
+    // dxdt.segment<3>(3) =ComputeTransDynamics(payload_angular_acc);
+    dxdt.at(0) = x.at(3);
+    dxdt.at(1) = x.at(4);
+    dxdt.at(2) = x.at(5);
 
-    
-    // std::cout<<std::string(4, ' ')<<"fuck payload " << m_mass_matrix_<<std::endl;
+    auto ddx = ComputeTransDynamics(payload_angular_acc);
+    dxdt.at(3) = ddx[0];
+    dxdt.at(4) = ddx[1];
+    dxdt.at(5) = ddx[2];
 
-
-    // std::cout<<std::string(4, ' ')<<"fuck payload " << m_D_ <<std::endl;
-
-
-    // std::cout<<std::string(4, ' ')<<"fuck payload " << payload_angular_acc.transpose() <<std::endl;
-    // 2. rotation in body frame
-    // Eigen::Matrix3d matrix_pdr2dEuler;
-    // matrix_pdr2dEuler = matirxBodyrate2EulerRate(x(6), x(7));
-
-    // // compute [dphi,   dtheta,     dpsi]^T =  matrix_pdr2dEuler * bodyrate
-    // dxdt.segment<3>(6) = matrix_pdr2dEuler * payload_bodyrate;
 
 
     // map bodyrate to quaternion derivative
     // current att in quaternion
-    Eigen::Quaterniond qn(x[6], x[7], x[8], x[9]);
+    Eigen::Quaterniond qn(x.at(6), x.at(7), x.at(8), x.at(9));
     qn.normalize();
 
     // convert bodyrate into quaternion
     // define bodyrate
-    Eigen::Vector3d bodyrate;
-    bodyrate = x.tail(3);    
+    // Eigen::Vector3d bodyrate;
+    // bodyrate = x.tail(3);    
+    Eigen::Vector3d bodyrate(x.at(10), x.at(11), x.at(12));
     // Eigen::Quaterniond omega(0, bodyrate[0], bodyrate[1], bodyrate[2]);
 
     // // compute quaternion derivative
@@ -453,16 +411,34 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // dqn.normalize();
     auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
 
-    dxdt[6] = dqn(0);
-    dxdt[7] = dqn(1);
-    dxdt[8] = dqn(2);
-    dxdt[9] = dqn(3);
+    // dxdt[6] = dqn(0);
+    // dxdt[7] = dqn(1);
+    // dxdt[8] = dqn(2);
+    // dxdt[9] = dqn(3);
 
+    dxdt.at(6) = dqn(0);
+    dxdt.at(7) = dqn(1);
+    dxdt.at(8) = dqn(2);
+    dxdt.at(9) = dqn(3);
 
     
     // compute dp, dq ,dr
-    dxdt.tail(3) =ComputeRotDynamics();
+    // dxdt.tail(3) =ComputeRotDynamics(bodyrate);
+    auto dpqr = ComputeRotDynamics(bodyrate);
+    
+    dxdt.at(10) = dpqr[0];
+    dxdt.at(11) = dpqr[1];
+    dxdt.at(12) = dpqr[2];    
 
+
+
+    double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+    double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    state_.at(6) /= norm;
+    state_.at(7) /= norm;
+    state_.at(8) /= norm;
+    state_.at(9) /= norm;
+    // NormalizeQuaternion(dxdt, 6);  // Assuming quaternion starts at index 6
 
     // std::cout<<std::string(4, ' ')<<"fuck payload post" << x.head(3).transpose() <<std::endl;
     // std::cout<<std::string(4, ' ')<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
@@ -471,8 +447,10 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
     // current_step_ = current_step_ + 
     // save payload linear acc and angular acc
-    SetLinearAcc(dxdt.segment<3>(3));
-    SetAngularAcc(dxdt.tail(3));
+    Eigen::Vector3d linear_acc(dxdt.at(3), dxdt.at(4), dxdt.at(5));
+    SetLinearAcc(linear_acc);
+    Eigen::Vector3d angular_acc(dxdt.at(10), dxdt.at(11), dxdt.at(12));
+    SetAngularAcc(angular_acc);
 
     // std::cout<<"fuck hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"<<std::endl;
     std::cout<<"    "<< "payload inte is called"<<std::endl;
@@ -480,15 +458,17 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 }
 
 
-// Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_angular_acc)
-Eigen::Vector3d Payload::ComputeTransDynamics()
+
+Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &payload_angular_acc)
 {
     Eigen::Vector3d payload_acc(0,0,0);
     
 
     // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
-    payload_acc = cooper_interact_para_.m_mass_matrix.householderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+    payload_acc = cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+
+    // payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * payload_angular_acc)  - Eigen::Vector3d::UnitZ() * gravity_;
     
     // SetAcc(payload_acc);
 
@@ -497,18 +477,8 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
 
 // // Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
 
-Eigen::Vector3d Payload::ComputeRotDynamics()
+Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &payload_bodyrate)
 {
-
-    // compute effective inertia and torque for the payload
-    // such that
-    // effective_inertia * payload_angular_acc = effective_torque
-    // this relation can be obtained from Eq17-18
-
-    // Input
-    // m_C in R{3X3}, m_C = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T 
-    // m_D in R{3X3}, m_D = Sum_k m_k * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
-    // m_E in R{3X3}, m_E = Sum_k m_k * m_skew(attach_point_post_k) * (payload_attitude_rotation_matrix)^T * cable_direction_k * cable_direction_k^T  * payload_attitude_rotation_matrix * m_skew(attach_point_post_k)
 
     // setp 1. compute effective torque for the payload
     // such that 
@@ -517,40 +487,27 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
     // Eigen::Matrix3d payload_interia;
     // GetInertia(payload_interia);
 
-    Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
+    // Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
 
-    // torque_effective = mavs_net_wrench.torque - cooper_interact_para.m_C * inv_m_mass_matrix *  mavs_net_wrench.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate;
-
-    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
-
-    // std::cout<<std::string(4, ' ')<< "torque_effective is " << torque_effective.transpose() <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "drones_net_torques is " << drones_net_torques.transpose() <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "m_C * inv_m_mass_matrix *  drones_net_forces  is " << m_C * inv_m_mass_matrix *  drones_net_forces  <<std::endl; 
-
-
-    // std::cout<<std::string(4, ' ')<< "m_C  is " << m_C  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "inv_m_mass_matrix   is " << inv_m_mass_matrix  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "drones_net_forces  is " << drones_net_forces  <<std::endl; 
-
-    // std::cout<<std::string(4, ' ')<< "TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate is " << TransVector3d2SkewSymMatrix(payload_bodyrate) * payload_interia * payload_bodyrate <<std::endl; 
+    // torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
+    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(  mavs_net_wrench_.force) - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;
 
     // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
     
-    interia_effective = inertia() + cooper_interact_para_.m_C * (inv_m_mass_matrix * cooper_interact_para_.m_D) - cooper_interact_para_.m_E;
+    // interia_effective = inertia() + cooper_interact_para_.m_C * (inv_m_mass_matrix * cooper_interact_para_.m_D) - cooper_interact_para_.m_E;
+    interia_effective = inertia() + cooper_interact_para_.m_C * (cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve( cooper_interact_para_.m_D)) - cooper_interact_para_.m_E;
+
 
     // step 3 compute bodyrate acc
-    // bodyrate_acc = inv(effective_inertia) * effective_torque
 
     Eigen::Vector3d bodyrate_acc;
 
-    bodyrate_acc =  interia_effective.householderQr().solve(torque_effective);
+    bodyrate_acc =  interia_effective.colPivHouseholderQr().solve(torque_effective);
+    //  bodyrate_acc =  interia_effective.inverse() * torque_effective;
+
 
     // return bodyrate_acc;
     // SetBodyrateAcc(bodyrate_acc);
@@ -561,38 +518,6 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
 
 
-
-
-
-
-// void Payload::DoPayloadOneStepInt()
-// {
-
-//     // call one step integration for quadrotor dynamics
-//     std::cout<<std::string(4, ' ')<<"sdf " << state_ <<  current_step_ << step_size_ << std::endl;
-//     this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
-
-//     // update current step
-//     current_step_ = current_step_ + step_size_;
-// }
-
-// // void Payload::doOneStepInt()
-// // {
-
-// //     auto state = RigidBody::state();
-
-// //     auto step_size = RigidBody::step_size();
-
-
-// //     this->stepper_.do_step(*this, state_, current_step_, RigidBody::step_size());
-
-// //     // acculate simulation steps
-// //     current_step_ = current_step_ +  RigidBody::step_size();
-
-// //     // // assign states to position and velocity
-// //     // assignPtMasState(ptmas_state_);
-
-// // }
 
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)

@@ -11,16 +11,31 @@
 // };
 
 
-RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size): mass_property_(mass_property),step_size_(step_size) 
+RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size): mass_property_(mass_property),step_size_(step_size), controlled_stepper(
+              error_checker_type(1.0e-6, 1.0e-3)  // absolute and relative tolerances
+             )
 {
+
+    // set stable states
     SetStatesZeros();
+
+    // compute inverse of inertia
+    inv_inertia_ = mass_property_.inertia.inverse();
+
+
+    
+
+    
 };
 
 
 void RigidBody::SetStatesZeros()
 {
-    state_.setZero();
-    state_[6] = 1; 
+    // state_.setZero();
+    // state_[6] = 1; 
+
+     std::fill(state_.begin(), state_.end(), 0);
+     state_.at(6) = 1;
     // std::cout<<std::setw(16)<<"[----------] RigidBody: SetStatesZeros is called" << std::endl;
 };
 
@@ -56,7 +71,9 @@ Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
     // get const inertia inverse
-    dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
+    // dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
+
+    dBodyRate = inv_inertia_ * (-bodyrate.cross(Inertia*bodyrate) + torque);
 
     // save body_rate_acc
     // object_bodyrate_acc_ = dBodyRate;
@@ -95,9 +112,17 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // translation in world frame
     // P = [x,y,z,dx, dy, dz]
     // dP = [dx, dy, dz, ddx, ddy, ddz]
-    dxdt.head(3) = x.segment<3>(3);
+    // dxdt.head(3) = x.segment<3>(3);
+    dxdt.at(0) = x.at(3);
+    dxdt.at(1) = x.at(4);
+    dxdt.at(2) = x.at(5);
+
     // [ddx ddy ddz] = (F-mg)/m
-    dxdt.segment<3>(3) = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    // dxdt.segment<3>(3) = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    auto ddx = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    dxdt.at(3) = ddx[0];
+    dxdt.at(4) = ddx[1];
+    dxdt.at(5) = ddx[2];
 
     // std::cout<<std::setw(16)<< "Fuck base class is "<< "force is "<< force_.transpose()<< "mass is" << mass_<<std::endl;
 
@@ -112,13 +137,14 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // map bodyrate to quaternion derivative
     // current att in quaternion
-    Eigen::Quaterniond qn(x[6], x[7], x[8], x[9]);
+    Eigen::Quaterniond qn(x.at(6), x.at(7), x.at(8), x.at(9));
     qn.normalize();
 
     // convert bodyrate into quaternion
     // define bodyrate
-    Eigen::Vector3d bodyrate;
-    bodyrate = x.tail(3);    
+    // Eigen::Vector3d bodyrate;
+    // bodyrate = x.tail(3);    
+    Eigen::Vector3d bodyrate(x.at(10), x.at(11), x.at(12));
     // Eigen::Quaterniond omega(0, bodyrate[0], bodyrate[1], bodyrate[2]);
 
     // // compute quaternion derivative
@@ -126,28 +152,47 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // dqn.normalize();
     auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
 
-    dxdt[6] = dqn(0);
-    dxdt[7] = dqn(1);
-    dxdt[8] = dqn(2);
-    dxdt[9] = dqn(3);
+    // dxdt[6] = dqn(0);
+    // dxdt[7] = dqn(1);
+    // dxdt[8] = dqn(2);
+    // dxdt[9] = dqn(3);
+
+    dxdt.at(6) = dqn(0);
+    dxdt.at(7) = dqn(1);
+    dxdt.at(8) = dqn(2);
+    dxdt.at(9) = dqn(3);
 
     // compute dp, dq ,dr
-    dxdt.tail(3) = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
-
+    // dxdt.tail(3) = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    auto dpqr = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    
+    dxdt.at(10) = dpqr[0];
+    dxdt.at(11) = dpqr[1];
+    dxdt.at(12) = dpqr[2];
 
     // std::cout<<std::setw(16)<<"fuck uav post" << x.head(3).transpose() <<std::endl;
     // std::cout<<std::setw(16)<<"fuck uav acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
     // std::cout<<std::setw(16)<<"fuck uav input force" <<  force_.transpose() <<std::endl;
     // update linear acc and angular acc
    
-    
-
+    // Normalize quaternion after integration
+    // double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+    // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    // state_.at(6) /= norm;
+    // state_.at(7) /= norm;
+    // state_.at(8) /= norm;
+    // state_.at(9) /= norm;
     // is_recursing = false;
 
     // accs_.linear_acc = dxdt.segment<3>(3);
-    SetLinearAcc(dxdt.segment<3>(3));
+    // SetLinearAcc(dxdt.segment<3>(3));
     // accs_.angular_acc = dxdt.tail(3);
-    SetAngularAcc(dxdt.tail(3));
+    // SetAngularAcc(dxdt.tail(3));
+
+    Eigen::Vector3d linear_acc(dxdt.at(3), dxdt.at(4), dxdt.at(5));
+    SetLinearAcc(linear_acc);
+    Eigen::Vector3d angular_acc(dxdt.at(10), dxdt.at(11), dxdt.at(12));
+    SetAngularAcc(angular_acc);
     // std::cout<<std::setw(16)<<"accs_.linear_acc is " <<  accs_.linear_acc.transpose() <<std::endl;
 }
 
@@ -158,20 +203,99 @@ void RigidBody::DoOneStepInt()
 
     // call one step integration for quadrotor dynamics
     // this->stepper_.do_step(*this, state_, current_step_, step_size_);
-    this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+    // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+
+        // typedef runge_kutta_cash_karp54<object_state> stepper_type;
+    //     controlled_runge_kutta<stepper_type> controlled_stepper;
+
+    // // Perform a single adaptive integration step
+    //     integrate_adaptive(
+    //         controlled_stepper,
+    //         std::ref(*this), // ODE system (operator())
+    //         state_,           // Current state (position and velocity)
+    //         current_step_,            // Current time
+    //         current_step_ + step_size_,       // End time for this step
+    //         step_size_               // Initial step size (adaptive stepper adjusts it)
+    //     );
+
+        // typedef runge_kutta_cash_karp54<object_state> stepper_type;
+        // typedef default_error_checker<double, array_algebra, default_operations> error_checker_type;
+
+        // double abs_err = 1e-6;  // Absolute error tolerance
+        // double rel_err = 1e-3;   // Relative error tolerance
+        // // double dt = 0.01;        // Start with a smaller time step
+
+
+        // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper(error_checker_type(abs_err, rel_err));
+
+    
+        // Perform a single adaptive integration step
+        // controlled_stepper.try_step(std::ref(*this), state_, current_step_, step_size_);
+        // controlled_stepper_.try_step(std::ref(*this), state_, current_step_, step_size_);
+
+
+        // bool success = stepper_.do_step(system, state_, current_step_, step_size_, state_err_);
+        // if (!success) {
+        //     std::cerr << "Step failed with the stiff solver." << std::endl;
+        // }
+
+
+        double current_time = current_step_;
+        double end_time = current_step_ + step_size_;
+
+        integrate_adaptive(
+            controlled_stepper,
+            std::ref(*this),
+            state_,
+            current_time,
+            end_time,
+            step_size_ * 0.1
+        );
+
+        current_step_ = end_time;
+
+        // // Normalize quaternion after integration
+        double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+        double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+        state_.at(6) /= norm;
+        state_.at(7) /= norm;
+        state_.at(8) /= norm;
+        state_.at(9) /= norm;
+
 
     // update current step
-    current_step_ = current_step_ + step_size_;
+    // current_step_ = current_step_ + step_size_;
+    //    current_step_ =  
+    // int sub_steps = 10;  // Adjust as needed
+    // double sub_step_size = step_size_ / sub_steps;
+    
+    // for (int i = 0; i < sub_steps; ++i)
+    // {
+    //     stepper_.do_step(std::ref(*this), state_, current_step_, sub_step_size);
+    //     current_step_ += sub_step_size;
+        
+    //     // Normalize quaternion after each sub-step
+    //     double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+    //     double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    //     state_.at(6) /= norm;
+    //     state_.at(7) /= norm;
+    //     state_.at(8) /= norm;
+    //     state_.at(9) /= norm;
+    // }    
 
 };
   
+
 
 void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
 {
     
     // state vecgor for a rigid body (12X1) including position, velcity, euler angle, bodyrate, 
     // state_ = [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
-    state_.head(3) = initial_post;
+    // state_.head(3) = initial_post;
+    state_.at(0) = initial_post[0];
+    state_.at(1) = initial_post[1];
+    state_.at(2) = initial_post[2];
     // std::cout<<std::setw(16)<< "[----------] RigidBody: SetInitialPost state is " << state_.transpose()<<std::endl;
 }; 
 
@@ -180,7 +304,10 @@ void RigidBody::SetInitialPost(const Eigen::Vector3d &initial_post)
 void RigidBody::SetPost(const Eigen::Vector3d &object_post)
 {
 
-    state_.head<3>() = object_post;
+    // state_.head<3>() = object_post;
+    state_.at(0) = object_post[0];
+    state_.at(1) = object_post[1];
+    state_.at(2) = object_post[2];
 };
 
 
@@ -200,15 +327,23 @@ void RigidBody::SetInitialAttitude(const double &phi, const double &theta, const
 
     qn.normalize();
 
-    state_[6] = qn.w();
-    state_[7] = qn.x();
-    state_[8] = qn.y();
-    state_[9] = qn.z();
+    // state_[6] = qn.w();
+    // state_[7] = qn.x();
+    // state_[8] = qn.y();
+    // state_[9] = qn.z();
+    state_.at(6) = qn.w();
+    state_.at(7) = qn.x();
+    state_.at(8) = qn.y();
+    state_.at(9) = qn.z();
 };
+
 
 void RigidBody::SetLinearVel(const Eigen::Vector3d &object_vel)
 {
-    state_.segment<3>(3) = object_vel;
+    // state_.segment<3>(3) = object_vel;
+    state_.at(3) = object_vel[0];
+    state_.at(4) = object_vel[1];
+    state_.at(5) = object_vel[2];
 };
 
 void RigidBody::SetLinearAcc(const Eigen::Vector3d &object_acc)
@@ -220,7 +355,10 @@ void RigidBody::SetLinearAcc(const Eigen::Vector3d &object_acc)
 void RigidBody::SetBodyrate(const Eigen::Vector3d &object_bodyrate)
 {
 
-    state_.tail(3) = object_bodyrate;
+    // state_.tail(3) = object_bodyrate;
+    state_.at(10) = object_bodyrate[0];
+    state_.at(11) = object_bodyrate[1];
+    state_.at(12) = object_bodyrate[2];
 }
 
 void RigidBody::SetAngularAcc(const Eigen::Vector3d &object_bodyrate_acc)
@@ -230,60 +368,6 @@ void RigidBody::SetAngularAcc(const Eigen::Vector3d &object_bodyrate_acc)
 
 
 
-
-// void RigidBody::GetPosition(Eigen::Vector3d &object_position) const
-// {
-//     // std::cout<<std::setw(16)<< "[----------] RigidBody: GetPosition state is" << state_.transpose() <<std::endl;
-//     object_position = state_.head(3);
-//     // std::cout<<std::setw(16)<< "[----------] RigidBody: GetPosition" << state_.head<3>().transpose()<< object_position.transpose() <<std::endl;
-// };
-
-
-// void RigidBody::GetState(object_state &state) const 
-// {
-
-//     state = state_;
-// }
-
-
-// void RigidBody::GetVel(Eigen::Vector3d &object_vel) const
-// {
-//     object_vel = state_.segment<3>(3);
-// };
-
-
-// void RigidBody::GetAcc(Eigen::Vector3d &object_acc) const
-// { 
-    
-//     // compute translation acc
-//     object_acc = object_acc_;
-// }
-
-// void RigidBody::GetBodyrate(Eigen::Vector3d &object_bodyrate) const
-// {
-//     object_bodyrate = state_.tail<3>();
-// };
-
-// void RigidBody::GetAttitude(Eigen::Quaterniond &object_attitude) const
-// {
-
-//     // compute rotation in Quaternion from quadrotor state
-//     // rotation is created using ZYX rotation in its body frame
-//     auto attitude =  Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
-
-//     // normalise
-//     attitude.normalize();
-
-//     // assisn 
-//     object_attitude = attitude;
-
-// };
-
-// void RigidBody::GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const
-// { 
-//     object_bodyrate_acc = object_bodyrate_acc_;
-    
-// }
 
 
 
@@ -308,13 +392,14 @@ Eigen::Matrix3d RigidBody::inertia() const
 
 Pose RigidBody::pose() const
 {
-    auto robot_post = state_.head<3>();
+    // auto robot_post = state_.head<3>();
+    Eigen::Vector3d robot_post(state_.at(0), state_.at(1), state_.at(2));
 
     // auto robot_att = Eigen::AngleAxisd(state_(8), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(state_(7),Eigen::Vector3d::UnitY()) *Eigen::AngleAxisd(state_(6), Eigen::Vector3d::UnitX());
 
     // robot_att.normalize();
 
-    Eigen::Quaterniond robot_att = Eigen::Quaterniond(state_(6), state_(7), state_(8), state_(9));
+    Eigen::Quaterniond robot_att = Eigen::Quaterniond(state_.at(6), state_.at(7), state_.at(8), state_.at(9));
     robot_att.normalize();
 
     Pose robot_pose(robot_post, robot_att);
@@ -326,8 +411,10 @@ Pose RigidBody::pose() const
 Vels RigidBody::vels() const
 {
     //x =  [x,     y,      z,      dx,     dy,     dz,     qnw,      qnx,          qny,      qnz,    p,      q,      r]
-    auto robot_linear_vel = state_.segment<3>(3);
-    auto robot_angular_rate = state_.tail<3>(); 
+    // auto robot_linear_vel = state_.segment<3>(3);
+    // auto robot_angular_rate = state_.tail<3>(); 
+    Eigen::Vector3d robot_linear_vel(state_.at(3), state_.at(4), state_.at(5));
+    Eigen::Vector3d robot_angular_rate(state_.at(10), state_.at(11), state_.at(12));
 
 
     // define output
@@ -415,7 +502,7 @@ Eigen::Vector4d RigidBody::ComputeQuaternionDerivative(const Eigen::Quaterniond 
     double q = bodyrate(1);
     double r = bodyrate(2);
 
-    const double K_quat = 2.0;
+    const double K_quat = 0.5;
     double quaterror = 1.0 - (qW * qW + qX * qX + qY * qY + qZ * qZ);
 
     // Define the angular velocity matrix
@@ -443,53 +530,20 @@ Eigen::Vector4d RigidBody::ComputeQuaternionDerivative(const Eigen::Quaterniond 
 
 
 
+std::array<double, 3> RigidBody::EigenToArray(const Eigen::Vector3d& vec)
+{
+    std::array<double, 3> arr;
+    arr[0] = vec(0);
+    arr[1] = vec(1);
+    arr[2] = vec(2);
+    return arr;
+}
 
 
-// Eigen::Quaterniond RigidBody::ComputeQuaternionDerivate(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate)
-// {
-//     Eigen::Quaterniond dqn;
-
-//     // vector form of quaternion
-//     // qn.normalize();
-//     Eigen::VectorXd v_qn = Eigen::VectorXd::Zero(4);
-//     v_qn << qn.w(), qn.x(), qn.y(), qn.z();
-// // {qn.w(), qn.x(), qn.y(), qn.z()};
-
-//     // skew sym matrix form of omega 
-//     Eigen::Matrix4d m_skew_sym_omega = Eigen::Matrix4d::Zero();
-
-//     m_skew_sym_omega(0,1) = -bodyrate(0);
-//     m_skew_sym_omega(0,2) = -bodyrate(1);
-//     m_skew_sym_omega(0,3) = -bodyrate(2);
-
-
-//     m_skew_sym_omega(1,0) = bodyrate(0);
-//     m_skew_sym_omega(1,2) = bodyrate(2);
-//     m_skew_sym_omega(1,3) = -bodyrate(1);
-
-
-//     m_skew_sym_omega(2,0) = bodyrate(1);
-//     m_skew_sym_omega(2,1) = -bodyrate(2);
-//     m_skew_sym_omega(2,3) = bodyrate(0);
-
-
-//     m_skew_sym_omega(3,0) = bodyrate(2);
-//     m_skew_sym_omega(3,1) = bodyrate(1);
-//     m_skew_sym_omega(3,2) = -bodyrate(0);
-
-
-//     Eigen::VectorXd v_dqn = Eigen::VectorXd::Zero(4);
-
-//     v_dqn = 0.5 * m_skew_sym_omega * v_qn; 
-
-//     dqn.w() = v_dqn(0);
-//     dqn.x() = v_dqn(1);
-//     dqn.y() = v_dqn(2);
-//     dqn.z() = v_dqn(3);
-
-//     dqn.normalize();
-
-
-//     return dqn;
-// };
+Eigen::Vector3d RigidBody::ArrayToEigen(const std::array<double, 3>& arr)
+{
+    Eigen::Vector3d vec;
+    vec << arr[0], arr[1], arr[2];
+    return vec;
+}
 
