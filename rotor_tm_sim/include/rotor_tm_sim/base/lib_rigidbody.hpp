@@ -7,6 +7,9 @@
 #include <boost/numeric/odeint/external/eigen/eigen.hpp>
 #include <cmath>
 #include <vector>
+#include <array>
+#include <algorithm>  // For std::fill
+
 #include "rotor_tm_sim/base/lib_base.hpp"
 
 using namespace boost::numeric::odeint;
@@ -14,8 +17,8 @@ using namespace boost::numeric::odeint;
 
 // typedef Eigen::Matrix<double, 12, 1> object_state;
 
-using object_state = Eigen::Matrix<double, 13, 1>;
-
+// using object_state = Eigen::Matrix<double, 13, 1>;
+using object_state = std::array<double, 13>;
 
 class RigidBody
 {
@@ -64,12 +67,43 @@ class RigidBody
 
         Eigen::Vector4d ComputeQuaternionDerivative(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate);
 
+        std::array<double, 3> EigenToArray(const Eigen::Vector3d& vec);
+
+        Eigen::Vector3d ArrayToEigen(const std::array<double, 3>& arr);
+        
+
         // prevent creating instance using none par
         RigidBody();
 
         // solver ruge_kutta
-        runge_kutta4<object_state> stepper_;        
+        // runge_kutta4<object_state> stepper_;      
 
+        // typedef rosenbrock4<object_state> stepper_type;
+        // typedef default_error_checker<double, array_algebra, default_operations> error_checker_type;
+
+
+        // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper_; 
+
+
+        // typedef rosenbrock4<object_state> stepper_type;
+
+        // // Define the stepper
+        // stepper_type stepper_;
+        // object_state state_err_; // Error estimate
+        // using error_stepper_type = runge_kutta_dopri5<object_state>;
+        // using controlled_stepper_type = controlled_runge_kutta<error_stepper_type>;
+        // controlled_stepper_type controlled_stepper_;
+  
+        // runge_kutta_fehlberg78<object_state> stepper_;
+        using error_stepper_type = runge_kutta_cash_karp54<object_state>;
+        using error_checker_type = default_error_checker<
+        double,
+        array_algebra,
+        default_operations
+        >;
+        using controlled_stepper_type = controlled_runge_kutta<error_stepper_type, error_checker_type>;
+
+        controlled_stepper_type controlled_stepper;  // Stepper as class member
         double current_step_ = 0;
         
     public:
@@ -165,6 +199,7 @@ class RigidBody
 
 
         virtual ~RigidBody(){};
+
 
 };
 #endif

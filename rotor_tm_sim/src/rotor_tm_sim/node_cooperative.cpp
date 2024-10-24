@@ -582,7 +582,8 @@ int main(int argc, char** argv)
 
 
 
-Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg) {
+Eigen::Vector3d vector3MsgToEigen(const geometry_msgs::Vector3& msg) 
+{
     return Eigen::Vector3d(static_cast<double>(msg.x), static_cast<double>(msg.y), static_cast<double>(msg.z));
 }
 
