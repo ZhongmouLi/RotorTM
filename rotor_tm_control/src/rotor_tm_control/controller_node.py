@@ -144,9 +144,12 @@ class controller_node:
             FM_message.header.stamp = rospy.get_rostime()
             if self.pl_params.payload_type == 'Rigid Body':
                 FM_message.thrust = F_list[uav_id]
-                FM_message.moments.x = M_list[uav_id][0]
-                FM_message.moments.y = M_list[uav_id][1]
-                FM_message.moments.z = M_list[uav_id][2]
+                # FM_message.moments.x = M_list[uav_id][0]
+                # FM_message.moments.y = M_list[uav_id][1]
+                # FM_message.moments.z = M_list[uav_id][2]
+                FM_message.moments.x = 0
+                FM_message.moments.y = 0
+                FM_message.moments.z = 0          
                 return FM_message
             elif self.pl_params.payload_type == 'Point Mass':
                 FM_message.thrust = F_list[0,0]

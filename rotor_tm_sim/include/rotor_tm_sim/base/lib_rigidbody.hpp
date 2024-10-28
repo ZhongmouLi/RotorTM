@@ -83,7 +83,7 @@ class RigidBody
 
 
         // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper_; 
-
+        void RK4Step(const object_state& current_state, const double dt, object_state& next_state);
 
         // typedef rosenbrock4<object_state> stepper_type;
 

@@ -197,6 +197,48 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 }
 
 
+void RigidBody::RK4Step(const object_state& current_state, const double dt, object_state& next_state)
+{
+    object_state k1, k2, k3, k4;
+    object_state temp_state;
+
+    // k1 = f(y_n)
+    this->operator()(current_state, k1, current_step_);
+
+    // k2 = f(y_n + dt/2 * k1)
+    for(size_t i = 0; i < current_state.size(); ++i) {
+        temp_state[i] = current_state[i] + 0.5 * dt * k1[i];
+    }
+    this->operator()(temp_state, k2, current_step_ + 0.5 * dt);
+
+    // k3 = f(y_n + dt/2 * k2)
+    for(size_t i = 0; i < current_state.size(); ++i) {
+        temp_state[i] = current_state[i] + 0.5 * dt * k2[i];
+    }
+    this->operator()(temp_state, k3, current_step_ + 0.5 * dt);
+
+    // k4 = f(y_n + dt * k3)
+    for(size_t i = 0; i < current_state.size(); ++i) {
+        temp_state[i] = current_state[i] + dt * k3[i];
+    }
+    this->operator()(temp_state, k4, current_step_ + dt);
+
+    // y_{n+1} = y_n + dt/6 * (k1 + 2k2 + 2k3 + k4)
+    for(size_t i = 0; i < current_state.size(); ++i) {
+        next_state[i] = current_state[i] + dt/6.0 * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]);
+    }
+
+    // Normalize quaternion part
+    double qw = next_state[6], qx = next_state[7], 
+           qy = next_state[8], qz = next_state[9];
+    double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    next_state[6] /= norm;
+    next_state[7] /= norm;
+    next_state[8] /= norm;
+    next_state[9] /= norm;
+}
+
+
 
 void RigidBody::DoOneStepInt()
 {
@@ -240,20 +282,25 @@ void RigidBody::DoOneStepInt()
         // }
 
 
-        double current_time = current_step_;
-        double end_time = current_step_ + step_size_;
+        // double current_time = current_step_;
+        // double end_time = current_step_ + step_size_;
 
-        integrate_adaptive(
-            controlled_stepper,
-            std::ref(*this),
-            state_,
-            current_time,
-            end_time,
-            step_size_ * 0.1
-        );
+        // integrate_adaptive(
+        //     controlled_stepper,
+        //     std::ref(*this),
+        //     state_,
+        //     current_time,
+        //     end_time,
+        //     step_size_ * 0.1
+        // );
 
-        current_step_ = end_time;
+        // current_step_ = end_time;
 
+        object_state state_next = state_;
+        RK4Step(state_, step_size_, state_next);
+        current_step_ += step_size_;
+
+        state_ = state_next;
         // // Normalize quaternion after integration
         double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
         double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
