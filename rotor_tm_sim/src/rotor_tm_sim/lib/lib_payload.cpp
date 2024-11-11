@@ -387,7 +387,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     dxdt.at(1) = x.at(4);
     dxdt.at(2) = x.at(5);
 
-    auto ddx = ComputeTransDynamics(payload_angular_acc);
+    // auto ddx = ComputeTransDynamics(payload_angular_acc);
+     auto ddx = ComputeTransDynamics();
     dxdt.at(3) = ddx[0];
     dxdt.at(4) = ddx[1];
     dxdt.at(5) = ddx[2];
@@ -424,8 +425,9 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     
     // compute dp, dq ,dr
     // dxdt.tail(3) =ComputeRotDynamics(bodyrate);
-    auto dpqr = ComputeRotDynamics(bodyrate);
-    
+    // auto dpqr = ComputeRotDynamics(bodyrate);
+    auto dpqr = ComputeRotDynamics();
+
     dxdt.at(10) = dpqr[0];
     dxdt.at(11) = dpqr[1];
     dxdt.at(12) = dpqr[2];    
@@ -459,7 +461,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 
 
-Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &payload_angular_acc)
+// Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &payload_angular_acc)
+Eigen::Vector3d Payload::ComputeTransDynamics()
 {
     Eigen::Vector3d payload_acc(0,0,0);
     
@@ -477,7 +480,8 @@ Eigen::Vector3d Payload::ComputeTransDynamics(const Eigen::Vector3d &payload_ang
 
 // // Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E)
 
-Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &payload_bodyrate)
+// Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &payload_bodyrate)
+Eigen::Vector3d Payload::ComputeRotDynamics()
 {
 
     // setp 1. compute effective torque for the payload
@@ -490,7 +494,7 @@ Eigen::Vector3d Payload::ComputeRotDynamics(const Eigen::Vector3d &payload_bodyr
     // Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
 
     // torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
-    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(  mavs_net_wrench_.force) - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
+    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(  mavs_net_wrench_.force) - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
 
     // step 2. compute effective inertia
     Eigen::Matrix3d interia_effective;

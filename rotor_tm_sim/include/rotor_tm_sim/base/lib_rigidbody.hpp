@@ -56,11 +56,14 @@ class RigidBody
 
         // rotational dynamic
         // compute dbodyrate in body frame
-        Eigen::Vector3d RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate);
+        // Eigen::Vector3d RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate);
+        Eigen::Vector3d RotDynac();
 
         // translation dyanmic
         // compute acceleration in world frame
-        Eigen::Vector3d TransDynac(const Eigen::Vector3d &Thurst, const double &mass, const double &gravity);
+        Eigen::Vector3d TransDynac();
+
+        void NormalizeQuaternion(object_state& state);
 
         // compute matrix transforming bodyrate to dEuler
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
@@ -84,6 +87,11 @@ class RigidBody
 
         // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper_; 
         void RK4Step(const object_state& current_state, const double dt, object_state& next_state);
+
+        void AB4Step(const object_state& current_state, const double dt, object_state& next_state);
+
+        std::vector<object_state> previous_derivatives;  // Store derivatives for AB4
+        int n_stored_derivatives;
 
         // typedef rosenbrock4<object_state> stepper_type;
 

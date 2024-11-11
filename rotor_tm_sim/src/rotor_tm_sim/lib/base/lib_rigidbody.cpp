@@ -23,7 +23,8 @@ RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size)
     inv_inertia_ = mass_property_.inertia.inverse();
 
 
-    
+    previous_derivatives.resize(3);  // Need 3 previous steps for AB4
+    n_stored_derivatives = 0;
 
     
 };
@@ -48,7 +49,7 @@ void RigidBody::InputWrench(const Wrench &input_wrench)
     
     input_wrench_ = input_wrench;
 
-    auto object_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    auto object_acc = TransDynac();
     
     std::cout<<std::string(8, ' ')<<"mav acc is " << object_acc.transpose()<<std::endl;
     std::cout<<std::string(8, ' ')<<"mav net input force is " << input_wrench_.force.transpose()<<std::endl;
@@ -66,14 +67,17 @@ void RigidBody::InputWrench(const Wrench &input_wrench)
 
 
 // TODO-ZLi use quaterion for rotation dynamics in the future
-Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
+// Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::Matrix3d &Inertia, const Eigen::Vector3d &bodyrate)
+Eigen::Vector3d RigidBody::RotDynac()
 {
     Eigen::Vector3d dBodyRate = Eigen::Vector3d::Zero();
 
     // get const inertia inverse
     // dBodyRate = Inertia.householderQr().solve(-bodyrate.cross(Inertia*bodyrate) + torque);
 
-    dBodyRate = inv_inertia_ * (-bodyrate.cross(Inertia*bodyrate) + torque);
+    // dBodyRate = inv_inertia_ * (-bodyrate.cross(mass_property_.inertia*bodyrate) + input_wrench_.torque);
+
+    dBodyRate = inv_inertia_ * (-vels().bodyrate.cross(mass_property_.inertia*vels().bodyrate) + input_wrench_.torque);
 
     // save body_rate_acc
     // object_bodyrate_acc_ = dBodyRate;
@@ -81,11 +85,11 @@ Eigen::Vector3d RigidBody::RotDynac(const Eigen::Vector3d &torque, const Eigen::
     return dBodyRate;
 }
 
-Eigen::Vector3d RigidBody::TransDynac(const Eigen::Vector3d &force_applied, const double &mass, const double &gravity)
+Eigen::Vector3d RigidBody::TransDynac()
 {   
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
-    acc = (force_applied-mass*gravity*Eigen::Vector3d::UnitZ())/mass;
+    acc = (input_wrench_.force-mass_property_.mass*gravity_*Eigen::Vector3d::UnitZ())/mass_property_.mass;
 
     return acc;
 }
@@ -119,7 +123,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // [ddx ddy ddz] = (F-mg)/m
     // dxdt.segment<3>(3) = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
-    auto ddx = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    auto ddx = TransDynac();
     dxdt.at(3) = ddx[0];
     dxdt.at(4) = ddx[1];
     dxdt.at(5) = ddx[2];
@@ -164,7 +168,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 
     // compute dp, dq ,dr
     // dxdt.tail(3) = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
-    auto dpqr = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    auto dpqr = RotDynac();
     
     dxdt.at(10) = dpqr[0];
     dxdt.at(11) = dpqr[1];
@@ -196,6 +200,42 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     // std::cout<<std::setw(16)<<"accs_.linear_acc is " <<  accs_.linear_acc.transpose() <<std::endl;
 }
 
+void RigidBody::AB4Step(const object_state& current_state, const double dt, object_state& next_state) {
+        object_state current_derivative;
+        this->operator()(current_state, current_derivative, current_step_);
+
+        // Initialize with RK4 if we don't have enough previous steps
+        if (n_stored_derivatives < 3) {
+            RK4Step(current_state, dt, next_state);
+            previous_derivatives[n_stored_derivatives] = current_derivative;
+            n_stored_derivatives++;
+            return;
+        }
+
+        // Adams-Bashforth 4th order coefficients
+        const double c1 = 55.0/24.0;
+        const double c2 = -59.0/24.0;
+        const double c3 = 37.0/24.0;
+        const double c4 = -9.0/24.0;
+
+        // Calculate next state
+        for(size_t i = 0; i < current_state.size(); ++i) {
+            next_state[i] = current_state[i] + dt * (
+                c1 * current_derivative[i] +
+                c2 * previous_derivatives[2][i] +
+                c3 * previous_derivatives[1][i] +
+                c4 * previous_derivatives[0][i]
+            );
+        }
+
+        // Update stored derivatives
+        previous_derivatives[0] = previous_derivatives[1];
+        previous_derivatives[1] = previous_derivatives[2];
+        previous_derivatives[2] = current_derivative;
+
+        // Normalize quaternion part
+        NormalizeQuaternion(next_state);
+    }
 
 void RigidBody::RK4Step(const object_state& current_state, const double dt, object_state& next_state)
 {
@@ -203,39 +243,35 @@ void RigidBody::RK4Step(const object_state& current_state, const double dt, obje
     object_state temp_state;
 
     // k1 = f(y_n)
+    // NormalizeQuaternion(current_state); 
     this->operator()(current_state, k1, current_step_);
 
     // k2 = f(y_n + dt/2 * k1)
     for(size_t i = 0; i < current_state.size(); ++i) {
         temp_state[i] = current_state[i] + 0.5 * dt * k1[i];
     }
+    NormalizeQuaternion(temp_state); 
     this->operator()(temp_state, k2, current_step_ + 0.5 * dt);
 
     // k3 = f(y_n + dt/2 * k2)
     for(size_t i = 0; i < current_state.size(); ++i) {
         temp_state[i] = current_state[i] + 0.5 * dt * k2[i];
     }
+    NormalizeQuaternion(temp_state); 
     this->operator()(temp_state, k3, current_step_ + 0.5 * dt);
 
     // k4 = f(y_n + dt * k3)
     for(size_t i = 0; i < current_state.size(); ++i) {
         temp_state[i] = current_state[i] + dt * k3[i];
     }
+    NormalizeQuaternion(temp_state); 
     this->operator()(temp_state, k4, current_step_ + dt);
 
     // y_{n+1} = y_n + dt/6 * (k1 + 2k2 + 2k3 + k4)
     for(size_t i = 0; i < current_state.size(); ++i) {
         next_state[i] = current_state[i] + dt/6.0 * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]);
     }
-
-    // Normalize quaternion part
-    double qw = next_state[6], qx = next_state[7], 
-           qy = next_state[8], qz = next_state[9];
-    double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
-    next_state[6] /= norm;
-    next_state[7] /= norm;
-    next_state[8] /= norm;
-    next_state[9] /= norm;
+    NormalizeQuaternion(next_state); 
 }
 
 
@@ -296,18 +332,31 @@ void RigidBody::DoOneStepInt()
 
         // current_step_ = end_time;
 
-        object_state state_next = state_;
-        RK4Step(state_, step_size_, state_next);
-        current_step_ += step_size_;
+        // object_state state_next = state_;
+        // RK4Step(state_, step_size_, state_next);
+        // current_step_ += step_size_;
 
-        state_ = state_next;
+        // state_ = state_next;
+
+
+        // Method 2: Take multiple smaller steps
+        int n_substeps = 6;
+        double sub_dt = step_size_ / n_substeps;
+        
+        for(int i = 0; i < n_substeps; ++i) {
+            AB4Step(state_, sub_dt, state_);
+            current_step_ += sub_dt;
+        }
+
+
         // // Normalize quaternion after integration
-        double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
-        double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
-        state_.at(6) /= norm;
-        state_.at(7) /= norm;
-        state_.at(8) /= norm;
-        state_.at(9) /= norm;
+        // double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+        // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+        // state_.at(6) /= norm;
+        // state_.at(7) /= norm;
+        // state_.at(8) /= norm;
+        // state_.at(9) /= norm;
+        NormalizeQuaternion(state_);
 
 
     // update current step
@@ -549,7 +598,7 @@ Eigen::Vector4d RigidBody::ComputeQuaternionDerivative(const Eigen::Quaterniond 
     double q = bodyrate(1);
     double r = bodyrate(2);
 
-    const double K_quat = 0.5;
+    const double K_quat = 2;
     double quaterror = 1.0 - (qW * qW + qX * qX + qY * qY + qZ * qZ);
 
     // Define the angular velocity matrix
@@ -575,7 +624,17 @@ Eigen::Vector4d RigidBody::ComputeQuaternionDerivative(const Eigen::Quaterniond 
     return qLdot;
 }
 
+void RigidBody::NormalizeQuaternion(object_state& state)
+{
 
+    double qw = state.at(6), qx = state.at(7), qy = state.at(8), qz = state.at(9);
+    double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+        if(norm < 1e-10) return;  // Avoid division by very small numbers
+        state.at(6) /= norm;
+        state.at(7) /= norm;
+        state.at(8) /= norm;
+        state.at(9) /= norm;
+}
 
 std::array<double, 3> RigidBody::EigenToArray(const Eigen::Vector3d& vec)
 {
