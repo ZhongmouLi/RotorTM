@@ -107,7 +107,12 @@
     <arg name="uav_control_gain_path"       default = "$(find rotor_tm_config)/config/control_params/"/>
     <arg name="number_of_robots"            default = "4"/>
 
-
+    <!-- <arg name="uav_params_path"             default = "$(find rotor_tm_config)/config/uav_params/"/>
+    <arg name="payload_params_path"         default = "$(find rotor_tm_config)/config/load_params/fedex_box_payload.yaml"/>
+    <arg name="mechanism_params_path"       default = "$(find rotor_tm_config)/config/attach_mechanism/cable/4_robots_fedex_box_0_5m.yaml"/>
+    <arg name="payload_control_gain_path"   default = "$(find rotor_tm_config)/config/control_params/triangular_payload_cooperative_cable_gains.yaml"/>
+    <arg name="uav_control_gain_path"       default = "$(find rotor_tm_config)/config/control_params/"/>
+    <arg name="number_of_robots"            default = "4"/> -->
 
 <!--
     6 dragonfly with fedex box payload using cable mechanisms

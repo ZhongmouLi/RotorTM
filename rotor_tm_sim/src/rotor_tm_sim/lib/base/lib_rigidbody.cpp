@@ -204,6 +204,23 @@ void RigidBody::AB4Step(const object_state& current_state, const double dt, obje
         object_state current_derivative;
         this->operator()(current_state, current_derivative, current_step_);
 
+
+    // // Check if we're at equilibrium (small velocities and rates)
+    // bool at_equilibrium = true;
+    // for(int i = 3; i < 6; ++i) {  // Check linear velocities
+    //     if(std::abs(current_state[i]) > 1e-6) at_equilibrium = false;
+    // }
+    // for(int i = 10; i < 13; ++i) {  // Check angular velocities
+    //     if(std::abs(current_state[i]) > 1e-6) at_equilibrium = false;
+    // }
+
+    // if(at_equilibrium) {
+    //     // If at equilibrium, be more conservative
+    //     next_state = current_state;  // Keep current state
+    //     NormalizeQuaternion(next_state);
+    //     return;
+    // }
+
         // Initialize with RK4 if we don't have enough previous steps
         if (n_stored_derivatives < 3) {
             RK4Step(current_state, dt, next_state);
@@ -274,6 +291,22 @@ void RigidBody::RK4Step(const object_state& current_state, const double dt, obje
     NormalizeQuaternion(next_state); 
 }
 
+
+
+bool RigidBody::isAtEquilibrium(const object_state& state) {
+    const double velocity_threshold = 1e-6;
+    const double angular_rate_threshold = 1e-6;
+
+    // Check linear velocities
+    for(int i = 3; i < 6; ++i) {
+        if(std::abs(state[i]) > velocity_threshold) return false;
+    }
+    // Check angular rates
+    for(int i = 10; i < 13; ++i) {
+        if(std::abs(state[i]) > angular_rate_threshold) return false;
+    }
+    return true;
+}
 
 
 void RigidBody::DoOneStepInt()

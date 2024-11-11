@@ -70,6 +70,8 @@ class RigidBody
 
         Eigen::Vector4d ComputeQuaternionDerivative(const Eigen::Quaterniond &qn, const Eigen::Vector3d &bodyrate);
 
+        bool isAtEquilibrium(const object_state& state);
+
         std::array<double, 3> EigenToArray(const Eigen::Vector3d& vec);
 
         Eigen::Vector3d ArrayToEigen(const std::array<double, 3>& arr);
