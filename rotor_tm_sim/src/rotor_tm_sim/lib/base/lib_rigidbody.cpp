@@ -201,26 +201,23 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
 }
 
 void RigidBody::AB4Step(const object_state& current_state, const double dt, object_state& next_state) {
+        
+    bool is_equilibrium = checkEquilibrium(current_state);
+    
+    if (is_equilibrium) {
+        // At equilibrium, just copy current state
+        next_state = current_state;
+        // Still normalize quaternion
+        NormalizeQuaternion(next_state);
+        return;
+    }
+
+
         object_state current_derivative;
         this->operator()(current_state, current_derivative, current_step_);
 
 
-    // // Check if we're at equilibrium (small velocities and rates)
-    // bool at_equilibrium = true;
-    // for(int i = 3; i < 6; ++i) {  // Check linear velocities
-    //     if(std::abs(current_state[i]) > 1e-6) at_equilibrium = false;
-    // }
-    // for(int i = 10; i < 13; ++i) {  // Check angular velocities
-    //     if(std::abs(current_state[i]) > 1e-6) at_equilibrium = false;
-    // }
-
-    // if(at_equilibrium) {
-    //     // If at equilibrium, be more conservative
-    //     next_state = current_state;  // Keep current state
-    //     NormalizeQuaternion(next_state);
-    //     return;
-    // }
-
+    
         // Initialize with RK4 if we don't have enough previous steps
         if (n_stored_derivatives < 3) {
             RK4Step(current_state, dt, next_state);
@@ -293,18 +290,36 @@ void RigidBody::RK4Step(const object_state& current_state, const double dt, obje
 
 
 
-bool RigidBody::isAtEquilibrium(const object_state& state) {
-    const double velocity_threshold = 1e-6;
-    const double angular_rate_threshold = 1e-6;
+bool RigidBody::checkEquilibrium(const object_state& state)  {
+    // Check velocities and angular rates
+    const double vel_threshold = 1e-3;    // Adjust these thresholds 
+    const double omega_threshold = 1e-3;  // based on your needs
 
-    // Check linear velocities
+    // // Check linear velocities [3,4,5]
+    // for(int i = 3; i < 6; ++i) {
+    //     if(std::abs(state[i]) > vel_threshold) return false;
+    // }
+
+    // // Check angular velocities [10,11,12]
+    // for(int i = 10; i < 13; ++i) {
+    //     if(std::abs(state[i]) > omega_threshold) return false;
+    // }
+    
+    // Could also check accelerations from operator()
+    object_state derivatives;
+    this->operator()(state, derivatives, current_step_);
+    
+    const double acc_threshold = 1e-3;
+    // Check linear accelerations
     for(int i = 3; i < 6; ++i) {
-        if(std::abs(state[i]) > velocity_threshold) return false;
+        if(std::abs(derivatives[i]) > acc_threshold) return false;
     }
-    // Check angular rates
+    
+    // Check angular accelerations
     for(int i = 10; i < 13; ++i) {
-        if(std::abs(state[i]) > angular_rate_threshold) return false;
+        if(std::abs(derivatives[i]) > acc_threshold) return false;
     }
+
     return true;
 }
 
