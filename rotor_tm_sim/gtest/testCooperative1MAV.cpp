@@ -141,7 +141,7 @@ TEST_F(rotorTMCooperative1MAV, checkVerticalStaticEquilibrium){
         const double dt = 0.01;
         for(double t=dt ; t<=2*dt ; t+= dt)
         {
-            std::cout<<"-----------------" << t << "-----------------" <<std::endl;
+            // std::cout<<"-----------------" << t << "-----------------" <<std::endl;
 
             ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
@@ -192,11 +192,11 @@ TEST_F(rotorTMCooperative1MAV, checkVerticalStaticEquilibriumRandPost){
         const double dt = 0.01;
         for(double t=dt ; t<=1000*dt ; t+= dt)
         {
-            std::cout<<"-----------------" << t << "-----------------" <<std::endl;
+            // std::cout<<"-----------------" << t << "-----------------" <<std::endl;
 
             ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
-
+            // dbg(v_mavs_torques);
             // compute interation wrenches and vars for MAVs and payload
             ptr_Cooperative->UpdateJointAndCableStatus();                
             
@@ -257,7 +257,7 @@ TEST_F(rotorTMCooperative1MAV, checkVerticalEquilibriumWithVel){
         int num_steps =1000;
         for(double t=dt ; t<=num_steps*dt ; t+= dt)
         {
-            std::cout<<"-----------------" << t << "-----------------" <<std::endl;
+            // std::cout<<"-----------------" << t << "-----------------" <<std::endl;
 
             ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
@@ -326,17 +326,17 @@ TEST_F(rotorTMCooperative1MAV, checkVerticalConstAcc){
         const double num_steps = 1000;
         for(double t=dt ; t<=num_steps*dt ; t+= dt)
         {
-                 std:: cout << "------------------" << t <<"------------------" <<std::endl;
+                //  std:: cout << "------------------" << t <<"------------------" <<std::endl;
                  ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
                  ptr_Cooperative->UpdateJointAndCableStatus();  
-                 std::cout << "joint acc is "<< ptr_joint->accs().linear_acc.transpose()<<std::endl;
-                 std::cout << "payload acc is "<< ptr_payload->accs().linear_acc.transpose()<<std::endl;
+                //  std::cout << "joint acc is "<< ptr_joint->accs().linear_acc.transpose()<<std::endl;
+                //  std::cout << "payload acc is "<< ptr_payload->accs().linear_acc.transpose()<<std::endl;
 
-                 std::cout << "joint post is "<< ptr_joint->pose().post.transpose()<<std::endl;
+                //  std::cout << "joint post is "<< ptr_joint->pose().post.transpose()<<std::endl;
                  ptr_Cooperative->ComputeInteractWrenches();
 
                  ptr_Cooperative->DoOneStepInt4Robots();
-                 std:: cout << "------------------------------------" <<std::endl;
+                //  std:: cout << "------------------------------------" <<std::endl;
                 // printf("current step is %.3f \n", t);
         }
        

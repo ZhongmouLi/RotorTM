@@ -744,10 +744,10 @@ TEST_F(rotorTMPayloadTest, checkIntwithPythonData){
     std::vector<double> payload_quat(payload_state_new.begin() + 6, payload_state_new.begin() + 10);
     std::vector<double> payload_angular_rate(payload_state_new.begin() + 10, payload_state_new.begin() + 13);
 
-    std::printf("payload_pos: %.10f, %.10f, %.10f\n", payload_pos[0], payload_pos[1], payload_pos[2]);
-    std::printf("payload_vel: %.10f, %.10f, %.10f\n", payload_vel[0], payload_vel[1], payload_vel[2]);
-    std::printf("payload_quat: %.10f, %.10f, %.10f, %.10f\n", payload_quat[0], payload_quat[1], payload_quat[2], payload_quat[3]);
-    std::printf("payload_angular_rate: %.10f, %.10f, %.10f\n", payload_angular_rate[0], payload_angular_rate[1], payload_angular_rate[2]);
+    // std::printf("payload_pos: %.10f, %.10f, %.10f\n", payload_pos[0], payload_pos[1], payload_pos[2]);
+    // std::printf("payload_vel: %.10f, %.10f, %.10f\n", payload_vel[0], payload_vel[1], payload_vel[2]);
+    // std::printf("payload_quat: %.10f, %.10f, %.10f, %.10f\n", payload_quat[0], payload_quat[1], payload_quat[2], payload_quat[3]);
+    // std::printf("payload_angular_rate: %.10f, %.10f, %.10f\n", payload_angular_rate[0], payload_angular_rate[1], payload_angular_rate[2]);
     
     // payload_pos: -0.4270976585, 0.3006525364, -0.0004483574
     

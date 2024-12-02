@@ -57,7 +57,7 @@ TEST_F(rotorTMCooperative, checkMAVInitialPosts){
     Eigen::Vector3d mav1_init_post{0,0,0};
     Eigen::Vector3d mav2_init_post{0,0,0};
 
-    // std::cout<< "fuck point cooperative test 1"<<std::endl;
+    // //std::cout<< "fuck point cooperative test 1"<<std::endl;
     std::vector<UAVCable> v_drone_cable = ptr_Cooperative->v_drone_cable_;
 
     // UAVCable mavcable1 = v_drone_cable[0];
@@ -70,17 +70,17 @@ TEST_F(rotorTMCooperative, checkMAVInitialPosts){
     double cable_length;
     ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
 
-    // std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
+    // //std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav0_init_post[0], 1); 
     EXPECT_FLOAT_EQ(mav0_init_post[1], 0); 
     EXPECT_FLOAT_EQ(mav0_init_post[2], cable_length);  
 
-    // std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
+    // //std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav1_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav1_init_post[1], 1); 
     EXPECT_FLOAT_EQ(mav1_init_post[2], cable_length);  
 
-    // std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
+    // //std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav2_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[1], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[2], cable_length);          
@@ -105,15 +105,15 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium){
     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(3,1,14.7);
     std::vector<Eigen::Vector3d> v_mavs_torques(3, Eigen::Vector3d::Zero());
 
-    std::cout<< "fuck point cooperative test 1"<<std::endl;
+    // //std::cout<< "fuck point cooperative test 1"<<std::endl;
     ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
     // compute interation wrenches and vars for MAVs and payload
-    std::cout<< "fuck point cooperative test 2"<<std::endl;
+    // //std::cout<< "fuck point cooperative test 2"<<std::endl;
     ptr_Cooperative->ComputeInteractWrenches();
 
     // call one step dynamic simulation for MAVs and payload
-    std::cout<< "fuck point cooperative test 3"<<std::endl;
+    //std::cout<< "fuck point cooperative test 3"<<std::endl;
     ptr_Cooperative->DoOneStepInt4Robots();
 
     // 
@@ -121,7 +121,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium){
     Eigen::Vector3d mav1_init_post{0,0,0};
     Eigen::Vector3d mav2_init_post{0,0,0};
 
-    std::cout<< "fuck point cooperative test 4"<<std::endl;
+    //std::cout<< "fuck point cooperative test 4"<<std::endl;
     std::vector<UAVCable> v_drone_cable = ptr_Cooperative->v_drone_cable_;
 
     v_drone_cable.at(0).mav_.GetPosition(mav0_init_post);
@@ -130,7 +130,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium){
     double cable_length;
     ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
 
-    std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
+    //std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav1_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav1_init_post[1], 1); 
     EXPECT_FLOAT_EQ(mav1_init_post[2], cable_length);  
@@ -172,7 +172,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium){
     EXPECT_FLOAT_EQ(mav1_bodyrate_acc[2], 0);  
 
 
-    std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
+    //std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav2_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[1], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[2], cable_length);        
@@ -229,15 +229,15 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(3,1,14.7);
     std::vector<Eigen::Vector3d> v_mavs_torques(3, Eigen::Vector3d::Zero());
 
-    std::cout<< "fuck point cooperative test 1"<<std::endl;
+    //std::cout<< "fuck point cooperative test 1"<<std::endl;
     ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
     // compute interation wrenches and vars for MAVs and payload
-    std::cout<< "fuck point cooperative test 2"<<std::endl;
+    //std::cout<< "fuck point cooperative test 2"<<std::endl;
     ptr_Cooperative->ComputeInteractWrenches();
 
     // call one step dynamic simulation for MAVs and payload
-    std::cout<< "fuck point cooperative test 3"<<std::endl;
+    //std::cout<< "fuck point cooperative test 3"<<std::endl;
     // ptr_Cooperative->DoOneStepInt4Robots();
     // do 10 steps integration
     const double dt = 0.01;
@@ -252,7 +252,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
     Eigen::Vector3d mav1_init_post{0,0,0};
     Eigen::Vector3d mav2_init_post{0,0,0};
 
-    std::cout<< "fuck point cooperative test 4"<<std::endl;
+    //std::cout<< "fuck point cooperative test 4"<<std::endl;
     std::vector<UAVCable> v_drone_cable = ptr_Cooperative->v_drone_cable_;
 
     v_drone_cable.at(0).mav_.GetPosition(mav0_init_post);
@@ -261,7 +261,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
     double cable_length;
     ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
 
-    std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
+    //std::cout<<"[----------] test: mav0_init_post  is " << mav0_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav0_init_post[0], 1); 
     EXPECT_FLOAT_EQ(mav0_init_post[1], 0); 
     EXPECT_FLOAT_EQ(mav0_init_post[2], cable_length);  
@@ -304,7 +304,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
 
 
 
-    std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
+    //std::cout<<"[----------] test: mav1_init_post  is " << mav1_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav1_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav1_init_post[1], 1); 
     EXPECT_FLOAT_EQ(mav1_init_post[2], cable_length);  
@@ -346,7 +346,7 @@ TEST_F(rotorTMCooperative, checkVerticalStaticEquilibrium100Steps){
     EXPECT_FLOAT_EQ(mav1_bodyrate_acc[2], 0);  
 
 
-    std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
+    //std::cout<<"[----------] test: mav2_init_post  is " << mav2_init_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav2_init_post[0], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[1], 0); 
     EXPECT_FLOAT_EQ(mav2_init_post[2], cable_length);        
@@ -405,15 +405,15 @@ TEST_F(rotorTMCooperative, checkVerticalConstAcc){
     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(3,1,16.2);
     std::vector<Eigen::Vector3d> v_mavs_torques(3, Eigen::Vector3d::Zero());
 
-    std::cout<< "--------------------fuck point cooperative test 1--------------------"<<std::endl;
+    //std::cout<< "--------------------fuck point cooperative test 1--------------------"<<std::endl;
     ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
     // compute interation wrenches and vars for MAVs and payload
-    std::cout<< "--------------------fuck point cooperative test 2--------------------"<<std::endl;
+    //std::cout<< "--------------------fuck point cooperative test 2--------------------"<<std::endl;
     ptr_Cooperative->ComputeInteractWrenches();
 
     // call one step dynamic simulation for MAVs and payload
-    std::cout<< "--------------------fuck point cooperative test 3--------------------"<<std::endl;
+    //std::cout<< "--------------------fuck point cooperative test 3--------------------"<<std::endl;
     // ptr_Cooperative->DoOneStepInt4Robots();
     // do 1 step integration
     ptr_Cooperative->DoOneStepInt4Robots();
@@ -424,7 +424,7 @@ TEST_F(rotorTMCooperative, checkVerticalConstAcc){
     Eigen::Vector3d mav1_post{0,0,0};
     Eigen::Vector3d mav2_post{0,0,0};
 
-    std::cout<< "fuck point cooperative test 4"<<std::endl;
+    //std::cout<< "fuck point cooperative test 4"<<std::endl;
     std::vector<UAVCable> v_drone_cable = ptr_Cooperative->v_drone_cable_;
 
     v_drone_cable.at(0).mav_.GetPosition(mav0_post);
@@ -433,7 +433,7 @@ TEST_F(rotorTMCooperative, checkVerticalConstAcc){
     double cable_length;
     ptr_Cooperative->v_drone_cable_.at(0).cable_.GetCableLength(cable_length);
 
-    std::cout<<"[--------------------] test: mav0_init_post  is " << mav0_post.transpose()<<std::endl;
+    //std::cout<<"[--------------------] test: mav0_init_post  is " << mav0_post.transpose()<<std::endl;
     // post of mav0 = 0.5 * a * t
     EXPECT_FLOAT_EQ(mav0_post[0], 1); 
     EXPECT_FLOAT_EQ(mav0_post[1], 0); 
@@ -477,7 +477,7 @@ TEST_F(rotorTMCooperative, checkVerticalConstAcc){
 
 
 
-    std::cout<<"[--------------------] test: mav1_init_post  is " << mav1_post.transpose()<<std::endl;
+    //std::cout<<"[--------------------] test: mav1_init_post  is " << mav1_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav1_post[0], 0); 
     EXPECT_FLOAT_EQ(mav1_post[1], 1); 
     EXPECT_FLOAT_EQ(mav1_post[2], cable_length + 0.5*1*pow(0.01,2));  
@@ -519,7 +519,7 @@ TEST_F(rotorTMCooperative, checkVerticalConstAcc){
     EXPECT_FLOAT_EQ(mav1_bodyrate_acc[2], 0);  
 
 
-    std::cout<<"[--------------------] test: mav2_init_post  is " << mav2_post.transpose()<<std::endl;
+    //std::cout<<"[--------------------] test: mav2_init_post  is " << mav2_post.transpose()<<std::endl;
     EXPECT_FLOAT_EQ(mav2_post[0], 0); 
     EXPECT_FLOAT_EQ(mav2_post[1], 0); 
     EXPECT_FLOAT_EQ(mav2_post[2], cable_length+0.5*1*pow(0.01,2));        

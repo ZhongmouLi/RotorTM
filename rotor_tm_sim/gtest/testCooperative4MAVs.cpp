@@ -16,67 +16,67 @@ class rotorTMCooperative4MAV : public ::testing::Test
 {
 public:
 
-rotorTMCooperative4MAV(){
-    const int ROS_FREQ = 100;
+    rotorTMCooperative4MAV(){
+        const int ROS_FREQ = 100;
 
-    // set int step size to be same as ros step
-    const double dt = 1.0/ROS_FREQ;
+        // set int step size to be same as ros step
+        const double dt = 1.0/ROS_FREQ;
 
-    const double mav_mass = 0.25;
-    Eigen::Matrix3d mav_inertia = Eigen::Matrix3d::Zero(3,3);
-    mav_inertia(0,0)= 0.000601;
-    mav_inertia(1,1)= 0.000589;
-    mav_inertia(2,2)= 0.001076; 
+        const double mav_mass = 0.25;
+        Eigen::Matrix3d mav_inertia = Eigen::Matrix3d::Zero(3,3);
+        mav_inertia(0,0)= 0.000601;
+        mav_inertia(1,1)= 0.000589;
+        mav_inertia(2,2)= 0.001076; 
 
-    MassProperty mav_mass_property = {mav_mass, mav_inertia};
+        MassProperty mav_mass_property = {mav_mass, mav_inertia};
 
-    // payload
-    // load_params/fedex_box_payload.yaml
-    // 1. set payload param
-    double payload_mass = 0.250;
-    Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Zero(3,3);    
-    payload_inertia(0,0)= 0.000601;
-    payload_inertia(1,1)= 0.000589;
-    payload_inertia(2,2)= 0.01076; 
+        // payload
+        // load_params/fedex_box_payload.yaml
+        // 1. set payload param
+        double payload_mass = 0.250;
+        Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Zero(3,3);    
+        payload_inertia(0,0)= 0.000601;
+        payload_inertia(1,1)= 0.000589;
+        payload_inertia(2,2)= 0.01076; 
 
-    MassProperty payload_mass_property = {payload_mass, payload_inertia};
-    // 2. set cable length
-    const double cable_length = 0.5;
+        MassProperty payload_mass_property = {payload_mass, payload_inertia};
+        // 2. set cable length
+        const double cable_length = 0.5;
 
-    // const Eigen::Vector3d v_attach_point_post{0,0,0};
+        // const Eigen::Vector3d v_attach_point_post{0,0,0};
 
-    
+        
 
-    v_ptr_joints.reserve(4);
-    v_ptr_uavcables.reserve(4);
-
-  for (size_t i = 0; i < 4; i++)
-    {
-        auto ptr_joint = std::make_shared<Joint>(v_attach_point_post.at(i));
-
-        v_ptr_joints.push_back(ptr_joint);
-        // use v_ptr_uavcables[i] or use pus_back
-
-        auto ptr_uav_cable= std::make_shared<UAVCable>(mav_mass_property, cable_length, v_ptr_joints.at(i), dt); 
-
-        v_ptr_uavcables.push_back(ptr_uav_cable);
-    }
-
+        v_ptr_joints.reserve(4);
+        v_ptr_uavcables.reserve(4);
 
     for (size_t i = 0; i < 4; i++)
-    {
-        // link join with uav cable
-        v_ptr_joints.at(i)->LinkUAVCable(v_ptr_uavcables.at(i));
+        {
+            auto ptr_joint = std::make_shared<Joint>(v_attach_point_post.at(i));
+
+            v_ptr_joints.push_back(ptr_joint);
+            // use v_ptr_uavcables[i] or use pus_back
+
+            auto ptr_uav_cable= std::make_shared<UAVCable>(mav_mass_property, cable_length, v_ptr_joints.at(i), dt); 
+
+            v_ptr_uavcables.push_back(ptr_uav_cable);
+        }
+
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            // link join with uav cable
+            v_ptr_joints.at(i)->LinkUAVCable(v_ptr_uavcables.at(i));
+        }
+        
+
+        ptr_payload = std::make_shared<Payload>(payload_mass_property, v_ptr_joints, dt);
+
+        ptr_Cooperative = std::make_shared<Cooperative>(ptr_payload, v_ptr_joints, v_ptr_uavcables);
     }
-    
 
-    ptr_payload = std::make_shared<Payload>(payload_mass_property, v_ptr_joints, dt);
-
-    ptr_Cooperative = std::make_shared<Cooperative>(ptr_payload, v_ptr_joints, v_ptr_uavcables);
-}
-
-~rotorTMCooperative4MAV(){
-}
+    ~rotorTMCooperative4MAV(){
+    }
 
 protected:
     std::shared_ptr<Cooperative> ptr_Cooperative;
@@ -1460,25 +1460,8 @@ TEST_F(rotorTMCooperative4MAV, checkFourMAVWrench2PayloadwithRandom){
 
 
 // TEST_F(rotorTMCooperative4MAV, checkVerticalVarAcc){
-// //     // set initial posts for mavs and payload
-//         Eigen::Vector3d payload_init_post = Eigen::Vector3d::Zero();
-//         ptr_Cooperative->SetPayloadInitPost(payload_init_post);
 
-// //     // input mav controllers' inputs to hover
-// //     // 4 mav + 1 payload =  0.25 * 5 = 1.25
-// //     // linear acc = 1m/s^2
-// //     // mav thrust = 1.25*(9.8 + 1)/4 = 3.375
 
-// //     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(4,1,13.475);
-//         std::vector<Eigen::Vector3d> v_mavs_torques(4, Eigen::Vector3d::Zero());
-//         std::vector<double> v_mavs_thrusts(4, 3.375);
-
-//         // std::cout<< "fuck point cooperative test 3"<<std::endl;
-//         const double dt = 0.01;
-//         const double num_steps = 10;
-//         for(double t=dt ; t<=num_steps*dt ; t+= dt)
-//         {
-//             std::cout<<"-----------------" << t << "-----------------" <<std::endl;
 
 //             ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts, v_mavs_torques);
 
@@ -1492,65 +1475,6 @@ TEST_F(rotorTMCooperative4MAV, checkFourMAVWrench2PayloadwithRandom){
 
 //             ptr_Cooperative->DoOneStepInt4Robots();
 //             // printf("current step is %.3f \n", t);
-//         }
-       
-//         // destiatin of payload
-//         auto payload_destination_1 =  ptr_Cooperative->ptr_payload_->pose().post;
-
-//         // desitation of mavs
-//         auto mav0_desination_1 = ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().post;
-//         auto mav1_desination_1 = ptr_Cooperative->v_ptr_uavcables_.at(1)->mav_.pose().post;
-//         auto mav2_desination_1 = ptr_Cooperative->v_ptr_uavcables_.at(2)->mav_.pose().post;
-//         auto mav3_desination_1 = ptr_Cooperative->v_ptr_uavcables_.at(3)->mav_.pose().post;
-
-
-//         // payload vel
-//         auto payload_vel = ptr_Cooperative->ptr_payload_->vels().linear_vel;
-
-//         std::cout<< "linear vel is " << payload_vel.transpose()<<std::endl;    
-
-
-//         auto mav0_vel = ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.vels().linear_vel;
-//         // write code to get mav1_vel and mav2_vel and mav3_vel
-//         auto mav1_vel = ptr_Cooperative->v_ptr_uavcables_.at(1)->mav_.vels().linear_vel;
-//         auto mav2_vel = ptr_Cooperative->v_ptr_uavcables_.at(2)->mav_.vels().linear_vel;
-//         auto mav3_vel = ptr_Cooperative->v_ptr_uavcables_.at(3)->mav_.vels().linear_vel;
-
-
-//         const double cable_length = ptr_Cooperative->v_ptr_uavcables_.at(0)->cable_.length();
-
-
-
-// //     // input mav controllers' inputs to hover
-// //     // 4 mav + 1 payload =  0.25 * 5 = 1.25
-// //     // linear acc = acc2
-// //     // mav thrust = 1.25*(9.8 + acc2)/4
-
-// //     Eigen::VectorXd v_mavs_thrusts = Eigen::MatrixXd::Constant(4,1,13.475);
-//         const double acc2 = 10;
-//         std::vector<Eigen::Vector3d> v_mavs_torques_2(4, Eigen::Vector3d::Zero());
-//         const double mavs_thrust_2 = 1.25 * (9.8 + acc2)/4;
-//         std::vector<double> v_mavs_thrusts_2(4, mavs_thrust_2);
-
-//         // std::cout<< "fuck point cooperative test 3"<<std::endl;
-//         size_t num_steps_2 =2;
-//         for(double t=dt ; t<=num_steps_2*dt ; t+= dt)
-//         {
-//             std::cout<<"-----------------" << t << "-----------------" <<std::endl;
-
-//             ptr_Cooperative->InputControllerInput4MAVs(v_mavs_thrusts_2, v_mavs_torques_2);
-
-
-//             // compute interation wrenches and vars for MAVs and payload
-//             ptr_Cooperative->UpdateJointAndCableStatus();            
-
-//             ptr_Cooperative->UpdateVelsCollidedUAVsPayload();       
-            
-//             ptr_Cooperative->ComputeInteractWrenches();
-
-//             ptr_Cooperative->DoOneStepInt4Robots();
-//             // printf("current step is %.3f \n", t);
-//         }        
 
 
 
@@ -1581,30 +1505,6 @@ TEST_F(rotorTMCooperative4MAV, checkFourMAVWrench2PayloadwithRandom){
 
 //         ASSERT_FLOAT_EQ(ptr_Cooperative->ptr_payload_->pose().att.w(), //
 //         1);          
-
-
-//         // mav 0 
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().post[0], //
-//         mav0_desination_1[0]);         
-
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().post[1], //
-//         mav0_desination_1[1]); 
-
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().post[2], //
-//         mav0_desination_1[2] + 0.5 * acc2* pow(num_steps_2*dt,2) + mav0_vel[2]*num_steps_2*dt); 
-
-//         // payload att
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().att.x(), //
-//         0);
-
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().att.y(), //
-//         0);
-
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().att.z(), //
-//         0);
-
-//         ASSERT_FLOAT_EQ(ptr_Cooperative->v_ptr_uavcables_.at(0)->mav_.pose().att.w(), //
-//         1);              
 
 
 // }

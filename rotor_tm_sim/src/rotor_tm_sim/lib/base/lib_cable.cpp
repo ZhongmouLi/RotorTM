@@ -16,9 +16,9 @@ void Cable::ComputeCableDirection(const Eigen::Vector3d &attachpoint_post, const
 
     xi_ = (attachpoint_post - robot_post)/distance;
 
-     std::cout<<std::string(8, ' ')<< "attachpoint_post is " << attachpoint_post.transpose() <<std::endl;
-     std::cout<<std::string(8, ' ')<< "robot_post is " << robot_post.transpose() <<std::endl;
-     std::cout<<std::string(8, ' ')<< "distance is " << distance <<std::endl;
+    //  std::cout<<std::string(8, ' ')<< "attachpoint_post is " << attachpoint_post.transpose() <<std::endl;
+    //  std::cout<<std::string(8, ' ')<< "robot_post is " << robot_post.transpose() <<std::endl;
+    //  std::cout<<std::string(8, ' ')<< "distance is " << distance <<std::endl;
 
 };
 
@@ -106,9 +106,9 @@ void Cable::ComputeCableTensionForce(const double &mav_mass, const Eigen::Vector
         // 2. comupute tension force
         tension_force_ = tension * xi_;
 
-        std::cout<<std::string(8, ' ')<<"tension is "<< tension << std::endl;
+        // std::cout<<std::string(8, ' ')<<"tension is "<< tension << std::endl;
 
-        std::cout<<std::string(8, ' ')<< "tension force is " << tension_force_.transpose() << std::endl;
+        // std::cout<<std::string(8, ' ')<< "tension force is " << tension_force_.transpose() << std::endl;
     }
     else
     {

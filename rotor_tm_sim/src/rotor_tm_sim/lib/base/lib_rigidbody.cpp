@@ -45,24 +45,24 @@ void RigidBody::SetStatesZeros()
 
 void RigidBody::InputWrench(const Wrench &input_wrench)
 {
-    std::cout<<std::string(8, ' ')<<"Entre RigidBody::InputWrench"<<std::endl;
+    // std::cout<<std::string(8, ' ')<<"Entre RigidBody::InputWrench"<<std::endl;
     
     input_wrench_ = input_wrench;
 
-    auto object_acc = TransDynac();
+    // auto object_acc = TransDynac();
     
-    std::cout<<std::string(8, ' ')<<"mav acc is " << object_acc.transpose()<<std::endl;
-    std::cout<<std::string(8, ' ')<<"mav net input force is " << input_wrench_.force.transpose()<<std::endl;
-    std::cout<<std::string(8, ' ')<<"mav net input torque is " << input_wrench_.torque.transpose()<<std::endl;
-    // accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    // std::cout<<std::string(8, ' ')<<"mav acc is " << object_acc.transpose()<<std::endl;
+    // std::cout<<std::string(8, ' ')<<"mav net input force is " << input_wrench_.force.transpose()<<std::endl;
+    // std::cout<<std::string(8, ' ')<<"mav net input torque is " << input_wrench_.torque.transpose()<<std::endl;
+    // // accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
 
-    // obtain bodyrate from state
-    // Eigen::Vector3d bodyrate = state_.tail(3);
+    // // obtain bodyrate from state
+    // // Eigen::Vector3d bodyrate = state_.tail(3);
 
-    // compute dp, dq ,dr
-    // object_bodyrate_acc_ = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
-    // accs_.angular_acc = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
-    std::cout<<std::string(8, ' ')<<"Leave RigidBody::InputWrench"<<std::endl;
+    // // compute dp, dq ,dr
+    // // object_bodyrate_acc_ = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    // // accs_.angular_acc = RotDynac(input_wrench_.torque, mass_property_.inertia, bodyrate);
+    // std::cout<<std::string(8, ' ')<<"Leave RigidBody::InputWrench"<<std::endl;
 }
 
 
@@ -251,6 +251,10 @@ void RigidBody::AB4Step(const object_state& current_state, const double dt, obje
         NormalizeQuaternion(next_state);
     }
 
+
+
+
+
 void RigidBody::RK4Step(const object_state& current_state, const double dt, object_state& next_state)
 {
     object_state k1, k2, k3, k4;
@@ -284,8 +288,14 @@ void RigidBody::RK4Step(const object_state& current_state, const double dt, obje
     // y_{n+1} = y_n + dt/6 * (k1 + 2k2 + 2k3 + k4)
     for(size_t i = 0; i < current_state.size(); ++i) {
         next_state[i] = current_state[i] + dt/6.0 * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]);
+        // std::cout<<i<<"th element is "<<next_state[i]<<std::endl;
     }
     NormalizeQuaternion(next_state); 
+    
+
+    // write code to print the next state that is a std vector
+
+
 }
 
 
@@ -324,110 +334,212 @@ bool RigidBody::checkEquilibrium(const object_state& state)  {
 }
 
 
+// /*---------------------------------------------------------------------------------------------------- */
+
+
+
 void RigidBody::DoOneStepInt()
 {
-
-    // call one step integration for quadrotor dynamics
-    // this->stepper_.do_step(*this, state_, current_step_, step_size_);
-    // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
-
-        // typedef runge_kutta_cash_karp54<object_state> stepper_type;
-    //     controlled_runge_kutta<stepper_type> controlled_stepper;
-
-    // // Perform a single adaptive integration step
-    //     integrate_adaptive(
-    //         controlled_stepper,
-    //         std::ref(*this), // ODE system (operator())
-    //         state_,           // Current state (position and velocity)
-    //         current_step_,            // Current time
-    //         current_step_ + step_size_,       // End time for this step
-    //         step_size_               // Initial step size (adaptive stepper adjusts it)
-    //     );
-
-        // typedef runge_kutta_cash_karp54<object_state> stepper_type;
-        // typedef default_error_checker<double, array_algebra, default_operations> error_checker_type;
-
-        // double abs_err = 1e-6;  // Absolute error tolerance
-        // double rel_err = 1e-3;   // Relative error tolerance
-        // // double dt = 0.01;        // Start with a smaller time step
-
-
-        // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper(error_checker_type(abs_err, rel_err));
-
+    double target_time = current_step_ + step_size_;  // Time we want to reach
+    double current_time = current_step_;
     
-        // Perform a single adaptive integration step
-        // controlled_stepper.try_step(std::ref(*this), state_, current_step_, step_size_);
-        // controlled_stepper_.try_step(std::ref(*this), state_, current_step_, step_size_);
-
-
-        // bool success = stepper_.do_step(system, state_, current_step_, step_size_, state_err_);
-        // if (!success) {
-        //     std::cerr << "Step failed with the stiff solver." << std::endl;
-        // }
-
-
-        // double current_time = current_step_;
-        // double end_time = current_step_ + step_size_;
-
-        // integrate_adaptive(
-        //     controlled_stepper,
-        //     std::ref(*this),
-        //     state_,
-        //     current_time,
-        //     end_time,
-        //     step_size_ * 0.1
-        // );
-
-        // current_step_ = end_time;
-
-        // object_state state_next = state_;
-        // RK4Step(state_, step_size_, state_next);
-        // current_step_ += step_size_;
-
-        // state_ = state_next;
-
-
-        // Method 2: Take multiple smaller steps
-        int n_substeps = 6;
-        double sub_dt = step_size_ / n_substeps;
+    while(current_time < target_time) {
+        // Calculate suitable step size (not larger than remaining time)
+        double dt = std::min(step_size_/10.0, target_time - current_time);
         
-        for(int i = 0; i < n_substeps; ++i) {
-            AB4Step(state_, sub_dt, state_);
-            current_step_ += sub_dt;
+        // Try to take a step with error control
+        bool step_accepted = AdaptiveRK23Step(state_, dt, current_time);
+        
+        // If step was rejected, dt will be modified inside AdaptiveRK23Step
+        if (!step_accepted) {
+            continue;  // Try again with new dt
         }
-
-
-        // // Normalize quaternion after integration
-        // double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
-        // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
-        // state_.at(6) /= norm;
-        // state_.at(7) /= norm;
-        // state_.at(8) /= norm;
-        // state_.at(9) /= norm;
-        NormalizeQuaternion(state_);
-
-
-    // update current step
-    // current_step_ = current_step_ + step_size_;
-    //    current_step_ =  
-    // int sub_steps = 10;  // Adjust as needed
-    // double sub_step_size = step_size_ / sub_steps;
+    }
     
-    // for (int i = 0; i < sub_steps; ++i)
-    // {
-    //     stepper_.do_step(std::ref(*this), state_, current_step_, sub_step_size);
-    //     current_step_ += sub_step_size;
-        
-    //     // Normalize quaternion after each sub-step
-    //     double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
-    //     double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
-    //     state_.at(6) /= norm;
-    //     state_.at(7) /= norm;
-    //     state_.at(8) /= norm;
-    //     state_.at(9) /= norm;
-    // }    
+    current_step_ = target_time;
+}
 
-};
+bool RigidBody::AdaptiveRK23Step(object_state& state, double& dt, double& current_time)
+{
+    object_state k1, k2, k3, k4;
+    object_state temp_state;
+    object_state third_order_solution;
+    object_state second_order_solution;
+    
+    // Save initial state in case we need to reject the step
+    object_state initial_state = state;
+
+    // Compute the stages
+    this->operator()(state, k1, current_time);
+
+    for(size_t i = 0; i < state.size(); ++i) {
+        temp_state[i] = state[i] + dt * 0.5 * k1[i];
+    }
+    NormalizeQuaternion(temp_state);
+    this->operator()(temp_state, k2, current_time + 0.5 * dt);
+
+    for(size_t i = 0; i < state.size(); ++i) {
+        temp_state[i] = state[i] + dt * 0.75 * k2[i];
+    }
+    NormalizeQuaternion(temp_state);
+    this->operator()(temp_state, k3, current_time + 0.75 * dt);
+
+    for(size_t i = 0; i < state.size(); ++i) {
+        temp_state[i] = state[i] + dt * (2.0/9.0 * k1[i] + 1.0/3.0 * k2[i] + 4.0/9.0 * k3[i]);
+    }
+    NormalizeQuaternion(temp_state);
+    this->operator()(temp_state, k4, current_time + dt);
+
+    // Compute both solutions
+    for(size_t i = 0; i < state.size(); ++i) {
+        // 3rd order solution
+        third_order_solution[i] = state[i] + dt * (2.0/9.0 * k1[i] + 1.0/3.0 * k2[i] + 4.0/9.0 * k3[i]);
+        
+        // 2nd order solution
+        second_order_solution[i] = state[i] + dt * (7.0/24.0 * k1[i] + 1.0/4.0 * k2[i] + 
+                                                   1.0/3.0 * k3[i] + 1.0/8.0 * k4[i]);
+    }
+
+    // Calculate error
+    double max_error = 0.0;
+    const double rtol = 1e-3;  // Relative tolerance
+    const double atol = 1e-6;  // Absolute tolerance
+    
+    for(size_t i = 0; i < state.size(); ++i) {
+        double scale = atol + rtol * std::max(std::abs(initial_state[i]), std::abs(third_order_solution[i]));
+        double error = std::abs(third_order_solution[i] - second_order_solution[i]) / scale;
+        max_error = std::max(max_error, error);
+    }
+
+    // Calculate new step size
+    double safety_factor = 0.9;
+    double error_exponent = 1.0/3.0;  // For RK23
+    double new_dt = dt * safety_factor * std::pow(1.0/max_error, error_exponent);
+    
+    // Limit step size changes
+    new_dt = std::min(new_dt, 2.0*dt);    // Don't increase too fast
+    new_dt = std::max(new_dt, 0.1*dt);    // Don't decrease too fast
+    
+    // Accept or reject the step
+    if (max_error <= 1.0) {
+        // Accept the step
+        state = third_order_solution;
+        NormalizeQuaternion(state);
+        current_time += dt;
+        dt = new_dt;
+        return true;
+    } else {
+        // Reject the step
+        dt = new_dt;
+        return false;
+    }
+}
+
+
+// void RigidBody::DoOneStepInt()
+// {
+
+//     // call one step integration for quadrotor dynamics
+//     // this->stepper_.do_step(*this, state_, current_step_, step_size_);
+//     // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+// // 
+//         // typedef runge_kutta_cash_karp54<object_state> stepper_type;
+//     //     controlled_runge_kutta<stepper_type> controlled_stepper;
+
+//     // // Perform a single adaptive integration step
+//     //     integrate_adaptive(
+//     //         controlled_stepper,
+//     //         std::ref(*this), // ODE system (operator())
+//     //         state_,           // Current state (position and velocity)
+//     //         current_step_,            // Current time
+//     //         current_step_ + step_size_,       // End time for this step
+//     //         step_size_               // Initial step size (adaptive stepper adjusts it)
+//     //     );
+
+//         // typedef runge_kutta_cash_karp54<object_state> stepper_type;
+//         // typedef default_error_checker<double, array_algebra, default_operations> error_checker_type;
+
+//         // double abs_err = 1e-6;  // Absolute error tolerance
+//         // double rel_err = 1e-3;   // Relative error tolerance
+//         // // double dt = 0.01;        // Start with a smaller time step
+
+
+//         // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper(error_checker_type(abs_err, rel_err));
+
+    
+//         // Perform a single adaptive integration step
+//         // controlled_stepper.try_step(std::ref(*this), state_, current_step_, step_size_);
+//         // controlled_stepper_.try_step(std::ref(*this), state_, current_step_, step_size_);
+
+
+//         // bool success = stepper_.do_step(system, state_, current_step_, step_size_, state_err_);
+//         // if (!success) {
+//         //     std::cerr << "Step failed with the stiff solver." << std::endl;
+//         // }
+
+
+//         // double current_time = current_step_;
+//         // double end_time = current_step_ + step_size_;
+
+//         // integrate_adaptive(
+//         //     controlled_stepper,
+//         //     std::ref(*this),
+//         //     state_,
+//         //     current_time,
+//         //     end_time,
+//         //     step_size_ * 0.1
+//         // );
+
+//         // current_step_ = end_time;
+
+//         object_state state_next = state_;
+//         RK23Step(state_, step_size_, state_next);
+//         current_step_ += step_size_;
+
+//         state_ = state_next;
+
+
+//         // Method 2: Take multiple smaller steps
+//         // int n_substeps = 6;
+//         // double sub_dt = step_size_ / n_substeps;
+        
+//         // for(int i = 0; i < n_substeps; ++i) {
+//         //     AB4Step(state_, sub_dt, state_);
+//         //     current_step_ += sub_dt;
+//         // }
+
+
+//         // // Normalize quaternion after integration
+//         // double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+//         // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+//         // state_.at(6) /= norm;
+//         // state_.at(7) /= norm;
+//         // state_.at(8) /= norm;
+//         // state_.at(9) /= norm;
+//         NormalizeQuaternion(state_);
+
+
+//     // update current step
+//     // current_step_ = current_step_ + step_size_;
+//     //    current_step_ =  
+//     // int sub_steps = 10;  // Adjust as needed
+//     // double sub_step_size = step_size_ / sub_steps;
+    
+//     // for (int i = 0; i < sub_steps; ++i)
+//     // {
+//     //     stepper_.do_step(std::ref(*this), state_, current_step_, sub_step_size);
+//     //     current_step_ += sub_step_size;
+        
+//     //     // Normalize quaternion after each sub-step
+//     //     double qw = state_.at(6), qx = state_.at(7), qy = state_.at(8), qz = state_.at(9);
+//     //     double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+//     //     state_.at(6) /= norm;
+//     //     state_.at(7) /= norm;
+//     //     state_.at(8) /= norm;
+//     //     state_.at(9) /= norm;
+//     // }    
+
+// };
   
 
 
@@ -587,6 +699,12 @@ double RigidBody::timestep() const
     return current_step_;
 }
 
+
+object_state RigidBody::state() const
+{
+
+    return state_;
+}
 
 Eigen::Matrix3d RigidBody::TransVector3d2SkewSymMatrix(Eigen::Vector3d vector)
 {

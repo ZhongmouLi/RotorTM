@@ -53,7 +53,7 @@ TEST_F(rotorTMCableTest, calZDireAttachPoints){
 
     Eigen::Vector3d robot_post{0,0,robot_post_z};
 
-    std::cout<<robot_post.transpose()<<std::endl;
+    // std::cout<<robot_post.transpose()<<std::endl;
 
     // compute cable direction and result is stored in xi_
     ptr_cable->ComputeCableDirection(attachpoint_post,robot_post);
