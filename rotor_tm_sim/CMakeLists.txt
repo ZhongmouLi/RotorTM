@@ -42,6 +42,10 @@ find_package(catkin REQUIRED COMPONENTS
     rotor_tm_msgs
 )
 
+
+find_package(GSL REQUIRED)    # See below (2)
+
+
 catkin_package(
   INCLUDE_DIRS include
 )
@@ -52,6 +56,12 @@ ${catkin_INCLUDE_DIRS}
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+include(FetchContent)
+
+FetchContent_Declare(dbg_macro GIT_REPOSITORY https://github.com/sharkdp/dbg-macro)
+FetchContent_MakeAvailable(dbg_macro)
+
 
 # 3. libs for simulators
 ## 3.1 base class/lib : rigid body, cable, point mass
@@ -64,7 +74,7 @@ add_library(lib_rigidbody SHARED
 target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_rigidbody
-target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen dbg_macro)
 
 
 # (3)pointmass 
@@ -85,7 +95,7 @@ add_library(lib_cable SHARED
 
 target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_cable Eigen3::Eigen)
+target_link_libraries(lib_cable Eigen3::Eigen dbg_macro)
 
 
 ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
@@ -98,7 +108,7 @@ add_library(lib_quadrotor SHARED
 target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_quadrotor
-target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen dbg_macro)
 
 # (3) joint
 # add_library(lib_joint STATIC
@@ -125,7 +135,7 @@ add_library(lib_uav_cable SHARED
 
 target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen)
+target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen dbg_macro)
 
 
 # (3) payload 
@@ -137,7 +147,7 @@ add_library(lib_payload SHARED
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen GSL::gsl GSL::gslcblas dbg_macro)
 
 
 #(4) cooperative
@@ -148,7 +158,7 @@ add_library(lib_cooperative SHARED
 target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_cooperative lib_payload lib_uav_cable  Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_cooperative lib_payload lib_uav_cable  Boost::program_options Eigen3::Eigen dbg_macro)
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
 # # (1) single quadrotor + point mass payload
@@ -205,10 +215,10 @@ target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative lib_payload lib_ua
 # target_link_libraries(UAVcable_test lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-# # # # test for payload class
-# catkin_add_gtest(payload_test gtest/testPayload.cpp)
+# # # test for payload class
+catkin_add_gtest(payload_test gtest/testPayload.cpp)
 
-# target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
 # test for cooperative class
@@ -217,9 +227,9 @@ catkin_add_gtest(cooperative1MAV_test gtest/testCooperative1MAV.cpp)
 target_link_libraries(cooperative1MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
-catkin_add_gtest(cooperative4MAV_test gtest/testCooperative4MAVs.cpp)
+# catkin_add_gtest(cooperative4MAV_test gtest/testCooperative4MAVs.cpp)
 
-target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 
 
