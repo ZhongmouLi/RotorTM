@@ -61,7 +61,7 @@ void Payload::AddJointsLinkedWithUAVCable(const std::vector<std::shared_ptr<Join
 void Payload::ComputeJointKinematics()
 {
 
-    std::cout<<std::string(4, ' ') <<"Enter Payload::ComputeJointKinematics()"<<std::endl;
+    //std::cout<<std::string(4, ' ') <<"Enter Payload::ComputeJointKinematics()"<<std::endl;
     // obtain payload pose: post and attitude
     Eigen::Vector3d payload_position = pose().post;
     Eigen::Quaterniond payload_attitude = pose().att;
@@ -84,7 +84,7 @@ void Payload::ComputeJointKinematics()
     Eigen::Vector3d payload_angular_acc = accs().angular_acc;  
     Eigen::Matrix3d m_skewsym_payload_bodyrate_acc = TransVector3d2SkewSymMatrix(payload_angular_acc);
     
-    // std::cout<<std::string(4, ' ')<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 1"<<std::endl;
+    // //std::cout<<std::string(4, ' ')<<"[----------] Payload: ComputeAttachPointsKinematics fuck inside 1"<<std::endl;
     // compute post, vel and acc of each attach point
 
     // for (auto it = v_ptr_joints_.begin(); it != v_ptr_joints_.end(); ++it) 
@@ -120,39 +120,39 @@ void Payload::ComputeJointKinematics()
         v_ptr_joints_.at(i)->SetAccs(joint_accs);
 
 
-        std::cout<<std::string(4, ' ')<<"joint " << i <<std::endl;
-        std::cout<<std::string(4, ' ') <<"payload_position is "<< payload_position.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation.transpose().reshaped().transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"joint_pose.post is "<< joint_pose.post.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ')<<"joint " << i <<std::endl;
+        //std::cout<<std::string(4, ' ') <<"payload_position is "<< payload_position.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation.transpose().reshaped().transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"joint_pose.post is "<< joint_pose.post.transpose()<<std::endl;
         
         
         
-        // std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
+        // //std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
 
-        std::cout<<std::string(4, ' ') <<"payload_acc is "<< payload_acc.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"payload_angular_acc is "<< payload_angular_acc.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc.transpose().reshaped().transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"payload_acc is "<< payload_acc.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"payload_angular_acc is "<< payload_angular_acc.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc.transpose().reshaped().transpose()<<std::endl;
 
 
         auto term1 = m_payload_rotation * (m_skewsym_payload_bodyrate_acc * joint_post_bodyframe);
-        std::cout<<std::string(4, ' ') <<"term1 is "<< term1.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"term1 is "<< term1.transpose()<<std::endl;
 
         auto term2 = m_payload_rotation * joint_centri_acc;
-        std::cout<<std::string(4, ' ') <<"term2 is "<< term2.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"joint_centri_acc is "<< joint_centri_acc.transpose()<<std::endl;
-        // std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation<<std::endl;
-        // std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc<<std::endl;
-        // std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"term2 is "<< term2.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"joint_centri_acc is "<< joint_centri_acc.transpose()<<std::endl;
+        // //std::cout<<std::string(4, ' ') <<"m_payload_rotation is "<< m_payload_rotation<<std::endl;
+        // //std::cout<<std::string(4, ' ') <<"m_skewsym_payload_bodyrate_acc is "<< m_skewsym_payload_bodyrate_acc<<std::endl;
+        // //std::cout<<std::string(4, ' ') <<"joint_post_bodyframe is "<< joint_post_bodyframe.transpose()<<std::endl;
 
 
 
         
-        std::cout<<std::string(4, ' ') <<"joint_accs.linear_acc is "<< joint_accs.linear_acc.transpose()<<std::endl;
-        std::cout<<std::string(4, ' ') <<"joint_accs.angular_acc is "<< joint_accs.angular_acc.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"joint_accs.linear_acc is "<< joint_accs.linear_acc.transpose()<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"joint_accs.angular_acc is "<< joint_accs.angular_acc.transpose()<<std::endl;
 
-        // std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
-        std::cout<<std::string(4, ' ') <<"Leave Payload::ComputeJointKinematics()"<<std::endl;
+        // //std::cout<<std::string(4, ' ') <<"-------------Problem---------------"<<std::endl;
+        //std::cout<<std::string(4, ' ') <<"Leave Payload::ComputeJointKinematics()"<<std::endl;
 
     }
 
@@ -355,7 +355,7 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     // if (is_recursing) return;  // Prevent recursion
     // is_recursing = true;
     
-    // std::cout<<std::string(4, ' ') << "state of payload" << x.transpose()<<std::endl; 
+    // //std::cout<<std::string(4, ' ') << "state of payload" << x.transpose()<<std::endl; 
     // x =  [x,     y,      z,      dx,     dy,     dz,     phi,    theta,      psi,    p,      q,      r]
     // dxdt = [dx,    dy,     dz,     ddx,    ddy,    ddz,    dphi,   dtheta,     dpsi,   dp,     dq,     dr]
 
@@ -442,8 +442,8 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     state_.at(9) /= norm;
     // NormalizeQuaternion(dxdt, 6);  // Assuming quaternion starts at index 6
 
-    // std::cout<<std::string(4, ' ')<<"fuck payload post" << x.head(3).transpose() <<std::endl;
-    // std::cout<<std::string(4, ' ')<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;
+    // //std::cout<<std::string(4, ' ')<<"fuck payload post" << x.head(3).transpose() <<std::endl;
+    // //std::cout<<std::string(4, ' ')<<"fuck payload acc" <<  dxdt.segment<3>(3).transpose() <<std::endl;f
 
     // is_recursing = false;
 
@@ -454,9 +454,66 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
     Eigen::Vector3d angular_acc(dxdt.at(10), dxdt.at(11), dxdt.at(12));
     SetAngularAcc(angular_acc);
 
-    // std::cout<<"fuck hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"<<std::endl;
-    std::cout<<"    "<< "payload inte is called"<<std::endl;
+    // //std::cout<<"fuck hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"<<std::endl;
+    // //std::cout<<"    "<< "payload inte is called"<<std::endl;
 
+}
+
+int Payload::func(double t, const double y[], double f[], void *params) {
+    Payload* payload = (Payload*)params;  // Cast params to Payload pointer
+
+    // Quaternion calculations
+    Eigen::Quaterniond qn(y[6], y[7], y[8], y[9]);
+    qn.normalize();
+
+    Eigen::Vector3d bodyrate(y[10], y[11], y[12]);
+    
+    // Compute quaternion derivatives
+    auto dqn = payload->ComputeQuaternionDerivative(qn, bodyrate);
+    f[6] = dqn[0];
+    f[7] = dqn[1];
+    f[8] = dqn[2];
+    f[9] = dqn[3];
+
+    // Compute rotational dynamics
+    auto dpqr = payload->ComputeRotDynamics();
+    f[10] = dpqr[0];
+    f[11] = dpqr[1];
+    f[12] = dpqr[2];
+
+
+    // Position derivatives = velocities
+    f[0] = y[3];
+    f[1] = y[4];
+    f[2] = y[5];
+
+    // Compute translational dynamics
+    auto ddx = payload->ComputeTransDynamics();
+    f[3] = ddx[0];
+    f[4] = ddx[1];
+    f[5] = ddx[2];
+
+
+
+    // // Update payload state (note: this might need to be handled differently in GSL context)
+    // double qw = payload->state_.at(6), qx = payload->state_.at(7), 
+    //        qy = payload->state_.at(8), qz = payload->state_.at(9);
+    // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    // payload->state_.at(6) /= norm;
+    // payload->state_.at(7) /= norm;
+    // payload->state_.at(8) /= norm;
+    // payload->state_.at(9) /= norm;
+
+    // Update accelerations
+    Eigen::Vector3d linear_acc(f[3], f[4], f[5]);
+    payload->SetLinearAcc(linear_acc);
+    Eigen::Vector3d angular_acc(f[10], f[11], f[12]);
+    payload->SetAngularAcc(angular_acc);
+
+    // //std::cout << " " << "payload inte is called" << std::endl;
+    // dbg("gnu payloda int is called");
+
+    return GSL_SUCCESS;
 }
 
 
@@ -471,9 +528,14 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
 
     payload_acc = cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
 
+    auto fuck1 = mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc;
+
+    // use std::printf to print fuck1
+    // std::printf("fuck1: %.10f, %.10f, %.10f\n", fuck1[0], fuck1[1], fuck1[2]);
+    // //std::cout cooper_interact_para_.m_ and angular_acc
     // payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * payload_angular_acc)  - Eigen::Vector3d::UnitZ() * gravity_;
     
-    // SetAcc(payload_acc);
+    SetLinearAcc(payload_acc);
 
     return payload_acc;
 }
@@ -487,9 +549,6 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
     // setp 1. compute effective torque for the payload
     // such that 
     Eigen::Vector3d torque_effective{0,0,0};
-
-    // Eigen::Matrix3d payload_interia;
-    // GetInertia(payload_interia);
 
     // Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
 
@@ -509,20 +568,69 @@ Eigen::Vector3d Payload::ComputeRotDynamics()
 
     Eigen::Vector3d bodyrate_acc;
 
-    bodyrate_acc =  interia_effective.colPivHouseholderQr().solve(torque_effective);
-    //  bodyrate_acc =  interia_effective.inverse() * torque_effective;
+    // bodyrate_acc =  interia_effective.colPivHouseholderQr().solve(torque_effective);
+    bodyrate_acc =  interia_effective.llt().solve(torque_effective);
 
-
-    // return bodyrate_acc;
-    // SetBodyrateAcc(bodyrate_acc);
+    
+    SetAngularAcc(bodyrate_acc);
 
     return bodyrate_acc;
 }
 
 
+void Payload::DoOneStepInt()
+{
+    // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+    auto next_state = state_;
+    RK4Step(state_, step_size_, next_state);
+    state_ = next_state;
+    // while(current_time < target_time) {
+    //     // Calculate suitable step size (not larger than remaining time)
+    //     double dt = std::min(step_size_/4, target_time - current_time);
+        
+    //     // Try to take a step with error control
+    //     bool step_accepted = AdaptiveRK23Step(state_, dt, current_time);
+        
+    //     // If step was rejected, dt will be modified inside AdaptiveRK23Step
+    //     if (!step_accepted) {
+    //         continue;  // Try again with new dt
+    //     }
+    // }    
+    // gsl_odeiv2_system sys = {func, nullptr, 13, this};
+    
+    // // double h = step_size_/100.0; 
+    // double h = 1e-6;
+    // gsl_odeiv2_driver* d = gsl_odeiv2_driver_alloc_y_new(
+    //     &sys,
+    //     gsl_odeiv2_step_rkf45,  // or another stepper
+    //     h,
+    //     1e-8,    // abs_err
+    //     1e-6     // rel_err
+    // );
+
+    // double t = current_step_;
+    // std::vector<double> y(state_.begin(), state_.end());
+
+    // int status = gsl_odeiv2_driver_apply(d, &t, current_step_ + step_size_, y.data());
+    
+    // if (status == GSL_SUCCESS) {
+    //      double norm = std::sqrt(y[6]*y[6] + y[7]*y[7] + y[8]*y[8] + y[9]*y[9]);
+    //     y[6] /= norm;
+    //     y[7] /= norm;
+    //     y[8] /= norm;
+    //     y[9] /= norm;
+    //     std::copy(y.begin(), y.end(), state_.begin());
+    //     current_step_ = t;
+    // }
+
+    // gsl_odeiv2_driver_free(d);
+}
 
 
-
+void Payload::SetPayloadStates(const object_state &payload_state)
+{
+    state_ = payload_state;
+}
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)
 {

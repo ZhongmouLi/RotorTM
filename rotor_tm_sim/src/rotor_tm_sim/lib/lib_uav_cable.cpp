@@ -22,7 +22,7 @@ std::shared_ptr<const Joint> UAVCable::ptr_joint()
     // }
     // else 
     // {
-    //     std::cout<< "shared_ptr expired"<<std::endl;
+    //     //std::cout<< "shared_ptr expired"<<std::endl;
     // };
     return ptr_joint_.lock();
 };
@@ -61,15 +61,15 @@ void UAVCable::CheckInelasticCollision()
 
     Eigen::Vector3d vel_robot2attachpoint = ptr_joint()->vels().linear_vel - mav_.vels().linear_vel;
 
-    // std::cout<<"ptr_joint()->vels().linear_vel vel is " << ptr_joint()->vels().linear_vel.transpose()<<std::endl;
+    // //std::cout<<"ptr_joint()->vels().linear_vel vel is " << ptr_joint()->vels().linear_vel.transpose()<<std::endl;
 
-    // std::cout<<"mav_.vels().linear_vel is " << mav_.vels().linear_vel.transpose()<<std::endl;
+    // //std::cout<<"mav_.vels().linear_vel is " << mav_.vels().linear_vel.transpose()<<std::endl;
 
-    // std::cout<<"vel_robot2attachpoint vel is " << vel_robot2attachpoint.transpose()<<std::endl;
+    // //std::cout<<"vel_robot2attachpoint vel is " << vel_robot2attachpoint.transpose()<<std::endl;
 
     vel_robot2attachpoint_projected_xi_direction = cable_.direction().dot(vel_robot2attachpoint);
 
-    // std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
+    // //std::cout<<"relative vel is " << vel_robot2attachpoint_projected_xi_direction<<std::endl;
     
     bool flag_relative_vel = (vel_robot2attachpoint_projected_xi_direction >= 1e-3);
 
@@ -91,8 +91,8 @@ void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, 
     // if (cable_taut_status == false)
     if (inelasticCollisionStauts() == true)
     {
-        std::cout << "inelasticCollisionStauts() is " << inelasticCollisionStauts() << std::endl;
-        std::cout<<"MAV had collision"<<std::endl;
+        //std::cout << "inelasticCollisionStauts() is " << inelasticCollisionStauts() << std::endl;
+        //std::cout<<"MAV had collision"<<std::endl;
 
 
         // 2. calculate drone' vel projected perpendicular to the cable direction
@@ -125,7 +125,7 @@ void UAVCable::UpdateMAVVelCollided(const Eigen::Quaterniond &payload_attitude, 
     }
     else
     {
-        std::cout<<"MAV had no collision"<<std::endl;
+        //std::cout<<"MAV had no collision"<<std::endl;
     }    
     
 }
@@ -162,7 +162,7 @@ Eigen::Vector3d UAVCable::CalVelProjPerpendicularCable()
 void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &payload_bodyrate)
 {
 
-    std::cout << std::string(4, ' ') << "Entre UAVCable::ComputeInteractionWrenches"<<std::endl;
+    //std::cout << std::string(4, ' ') << "Entre UAVCable::ComputeInteractionWrenches"<<std::endl;
 
     cable_.ComputeCableDirection(ptr_joint()->pose().post, mav_.pose().post); //const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post
 
@@ -170,17 +170,17 @@ void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_atti
 
     cable_.CheckTaut(ptr_joint()->pose().post, mav_.pose().post);  
 
-    std::cout << std::string(4, ' ') <<"cable taut is " << cable_.tautStatus() <<std::endl;
+    //std::cout << std::string(4, ' ') <<"cable taut is " << cable_.tautStatus() <<std::endl;
     if (cable_.tautStatus())
     {
         // compute tension force of cable
-        std::cout<<std::string(4, ' ') << "mav_input_wrench_.force  is "<< mav_input_wrench_.force.transpose() <<std::endl;
-        std::cout<<std::string(4, ' ') << "ptr_joint()->accs().linear_acc is "<< ptr_joint()->accs().linear_acc.transpose() <<std::endl;
+        // //std::cout<<std::string(4, ' ') << "mav_input_wrench_.force  is "<< mav_input_wrench_.force.transpose() <<std::endl;
+        // //std::cout<<std::string(4, ' ') << "ptr_joint()->accs().linear_acc is "<< ptr_joint()->accs().linear_acc.transpose() <<std::endl;
         
         cable_.ComputeCableTensionForce(mav_.mass(), mav_input_wrench_.force, ptr_joint()->accs().linear_acc); 
         
-        std::cout<<std::string(4, ' ') << "cable direction "<< cable_.direction().transpose() <<std::endl;
-        std::cout<<std::string(4, ' ')<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
+        // //std::cout<<std::string(4, ' ') << "cable direction "<< cable_.direction().transpose() <<std::endl;
+        // //std::cout<<std::string(4, ' ')<<"tension force is "<< cable_.tensionForce().transpose() <<std::endl;
 
         // compute net wrench applied to mav
         ComputeNetWrenchApplied2MAV();
@@ -190,7 +190,7 @@ void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_atti
         // mav_attach_point_force_ = ComputeAttachPointForce(cable_direction, cable_bodyrate, attach_point_post_bf, payload_attitude, payload_bodyrate);
         mav_attach_point_wrench_.force = ComputeNetForceApplied2AttachPoint(payload_attitude, payload_bodyrate);
 
-        // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
+        // //std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque begin" << std::endl;
         // compute torque applied by MAV to payload at attach point    
         // mav_attach_point_torque_ = ComputeAttachPointTorque(attach_point_post_bf, payload_attitude, mav_attach_point_force_);
         mav_attach_point_wrench_.torque = ComputeNetTorqueApplied2AttachPoint(payload_attitude, mav_attach_point_wrench_.force);
@@ -202,8 +202,8 @@ void UAVCable::ComputeInteractionWrenches(const Eigen::Quaterniond &payload_atti
     }
 
 
-   std::cout << std::string(4, ' ') << "Leave UAVCable::ComputeInteractionWrenches"<<std::endl;
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque end" << std::endl;
+   //std::cout << std::string(4, ' ') << "Leave UAVCable::ComputeInteractionWrenches"<<std::endl;
+    // //std::cout<<"[----------] UAVCable::ComputeAttachPointWrenches ComputeAttachPointTorque end" << std::endl;
 }
 
 
@@ -226,8 +226,8 @@ Eigen::Vector3d UAVCable::ComputeNetForceApplied2AttachPoint(const Eigen::Quater
     // Eigen::Vector3d mav_thrust_force{0,0,0};
     // mav_thrust_force = mav_.pose().att.toRotationMatrix() * ( Eigen::Vector3d::UnitZ() *  mav_thrust_input_);
     
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
-    // std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
+    // //std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_input_ is " << mav_thrust_input_ << std::endl;
+    // //std::cout<<"[----------] UAVCable::ComputeAttachPointForce mav_thrust_force is " << mav_thrust_force.transpose() << std::endl;
 
     // obtain cable direction
     // mav_thrust_force_along_cable= cable_direction  * cable_direction.transpose() * mav_thrust_force;
@@ -351,7 +351,7 @@ Eigen::Matrix3d UAVCable::m_mass_matrix() const
 // void UAVCable::ComputeNetWrenchApplied2MAV(const Eigen::Vector3d &attach_point_acc)
 void UAVCable::ComputeNetWrenchApplied2MAV()
 {
-    std::cout <<std::string(4, ' ')<< "Entre UAVCable::ComputeNetWrenchApplied2MAV"<<std::endl;
+    //std::cout <<std::string(4, ' ')<< "Entre UAVCable::ComputeNetWrenchApplied2MAV"<<std::endl;
     // 1. call dynamic simulation based on status of cable' taut
     // define mav_net_input_wrench as the net input wrench for drone apart from gravity
 
@@ -367,11 +367,11 @@ void UAVCable::ComputeNetWrenchApplied2MAV()
 
         };
 
-    std::cout <<std::string(4, ' ')<< "mav_input_wrench_.force is " << mav_input_wrench_.force.transpose()<<std::endl;
+    //std::cout <<std::string(4, ' ')<< "mav_input_wrench_.force is " << mav_input_wrench_.force.transpose()<<std::endl;
 
     mav_.InputWrench(mav_net_input_wrench);
 
-    std::cout <<std::string(4, ' ')<< "Leave UAVCable::ComputeNetWrenchApplied2MAV"<<std::endl;
+    //std::cout <<std::string(4, ' ')<< "Leave UAVCable::ComputeNetWrenchApplied2MAV"<<std::endl;
 
 }
 

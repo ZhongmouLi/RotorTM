@@ -182,17 +182,20 @@ int main(int argc, char** argv)
     mav_inertia(0,0)= 0.000601;
     mav_inertia(1,1)= 0.000589;
     mav_inertia(2,2)= 0.001076; 
+    // inertia: {Ixx: 0.000601, Ixy: 0.0, Ixz: 0.0, Iyx: 0.0, Iyy: 0.000589, Iyz: 0.0, Izx: 0.0, Izy: 0.0, Izz: 0.001076}    
 
     MassProperty mav_mass_property = {mav_mass, mav_inertia};
 
     // payload
     // load_params/fedex_box_payload.yaml
     // 1. set payload param
-    double payload_mass = 0.250;
+    const double payload_mass = 0.250;
     Eigen::Matrix3d payload_inertia = Eigen::Matrix3d::Zero(3,3);    
     payload_inertia(0,0)= 0.000601;
     payload_inertia(1,1)= 0.000589;
     payload_inertia(2,2)= 0.01076; 
+
+    // inertia: {Ixx: 0.000601, Ixy: 0.0, Ixz: 0.0, Iyx: 0.0, Iyy: 0.000589, Iyz: 0.0, Izx: 0.0, Izy: 0.0, Izz: 0.01076}
 
     MassProperty payload_mass_property = {payload_mass, payload_inertia};
     // 2. set cable length
@@ -316,15 +319,16 @@ int main(int argc, char** argv)
         std::chrono::duration<double> duration = end - start;
 
         // Output the time cost in seconds
-        std::cout << "Time cost of one iteration " << duration.count() << " seconds" << std::endl;
+        ROS_DEBUG_STREAM("Time cost of one iteration " << duration.count() << " seconds");
 
      
         // setp 5. Publish simulation results to topics
         // setp 5.1 assigen drone state infor (position, vel, attitude, bodyrate) to odom_msg
+        auto current_time = ros::Time::now();
         for (size_t i = 0; i < 4; i++)
         {
             const UAVCable& uavcable = *v_ptr_uavcables[i];
-            v_mavs_odoms.at(i).header.stamp = ros::Time::now();
+            v_mavs_odoms.at(i).header.stamp = current_time;
             v_mavs_odoms.at(i).pose.pose.position = EigenToPointMsg(uavcable.mav_.pose().post);
             v_mavs_odoms.at(i).pose.pose.orientation = EigenQuadnToGeomQuadn(uavcable.mav_.pose().att);
             v_mavs_odoms.at(i).twist.twist.linear = EigenToVector3Msg(uavcable.mav_.vels().linear_vel);
@@ -342,7 +346,7 @@ int main(int argc, char** argv)
         }
         
         // payload
-        payload_odom_msg.header.stamp = ros::Time::now();
+        payload_odom_msg.header.stamp = current_time;
 
         payload_odom_msg.pose.pose.position = EigenToPointMsg(ptr_payload->pose().post);
         // ROS_INFO_STREAM("payload post "<< payload_state.position.transpose());

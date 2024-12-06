@@ -179,8 +179,11 @@ void rotorTMQuadrotorPointMass::doOneStepint()
 
     if(cable_norm_vel>1e-3 && !cable_is_slack_)
     {
-        std::cout<<"colission happens"<<std::endl;
-        std::cout<<"cable_norm_vel is "<< cable_norm_vel << "cable_is_slack_ is " << cable_is_slack_ << std::endl;
+        // std::cout<<"colission happens"<<std::endl;
+        dbg("colission happens");
+        dbg(cable_norm_vel);
+        dbg(cable_is_slack_);
+        // std::cout<<"cable_norm_vel is "<< cable_norm_vel << "cable_is_slack_ is " << cable_is_slack_ << std::endl;
 
         std::pair<Eigen::Vector3d, Eigen::Vector3d> vels_collision = updateVel4CableCollision(mav_position, payload_position, mav_vel, payload_vel);
 
@@ -188,9 +191,13 @@ void rotorTMQuadrotorPointMass::doOneStepint()
         pm_payload->setVel(vels_collision.second);
 
 
-        std::cout<<"drone vel changes from "<< mav_vel.transpose() <<" to " << vels_collision.first.transpose() << std::endl;
+        // std::cout<<"drone vel changes from "<< mav_vel.transpose() <<" to " << vels_collision.first.transpose() << std::endl;
+        dbg(mav_vel.transpose());
+        dbg(vels_collision.first.transpose());
 
-        std::cout<<"payload vel changes from "<< payload_vel.transpose() <<" to " << vels_collision.second.transpose() << std::endl;
+        // std::cout<<"payload vel changes from "<< payload_vel.transpose() <<" to " << vels_collision.second.transpose() << std::endl;
+        dbg(payload_vel.transpose());
+        dbg(vels_collision.second.transpose());
 
         // update vels in ros loop
         mav_vel = vels_collision.first;
