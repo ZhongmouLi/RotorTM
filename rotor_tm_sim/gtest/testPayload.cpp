@@ -607,40 +607,48 @@ TEST_F(rotorTMPayloadTest, checkTransRotDynamicsCase2){
 
     auto payload_angular_acc = ptr_payload->ComputeRotDynamics();
 
-    // std::printf("payload_angular_acc: %.10f, %.10f, %.10f\n", payload_angular_acc[0], payload_angular_acc[1], payload_angular_acc[2]);
+
 
     ptr_payload->SetAngularAcc(payload_angular_acc);
     auto payload_acc = ptr_payload->ComputeTransDynamics();
 
+    std::printf("payload_angular_acc: %.20f, %.20f, %.20f\n", payload_angular_acc[0], payload_angular_acc[1], payload_angular_acc[2]);
+
+
+    std::printf("payload_acc: %.20f, %.20f, %.20f\n", payload_acc[0], payload_acc[1], payload_acc[2]);
+
     
     // std::cout<<"payload_acc: "<<payload_acc.transpose()<<std::endl;
     
-// pl_acc [ 4.36127361e-02 -2.35743782e-02 -1.47000610e-05]
-// pl_angularacc [-0.03773087 -0.1579497  -0.03644387]
+    dbg(payload_angular_acc);
+    dbg(payload_acc);
     ASSERT_FLOAT_EQ(payload_angular_acc[0], //
-       -0.037386122996028
+       -0.037386122996028094
         ); 
+    // -0.03738612299602832312
 
     ASSERT_FLOAT_EQ(payload_angular_acc[1], //
-        -0.157984189667433  
+        -0.157984189667433
         );
+    //  -0.15798418966743302261, 
 
     ASSERT_FLOAT_EQ(payload_angular_acc[2], //
-       -0.036617819456008
+        -0.036617819456007714
         ); 
+    //  -0.03661781945600777605
 
     ASSERT_FLOAT_EQ(payload_acc[0], //
-       0.04442904011
+        0.04442904011000038
         ); 
-
+    //  0.04442904010999863124, 
     ASSERT_FLOAT_EQ(payload_acc[1], //
-         -0.023490292499408
+        -0.02349029249940795
         );
-
+    // -0.02349029249940797967, 
     ASSERT_FLOAT_EQ(payload_acc[2], //
-       0.010015413620453
+        0.010015413620452662
         ); 
-        
+    //  0.01001541362045088590    
 }
 
 

@@ -833,7 +833,7 @@ TEST_F(rotorTMCooperative4MAV, checkVerticalConstAccRandomPost){
 
         // std::cout<< "fuck point cooperative test 3"<<std::endl;
         const double dt = 0.01;
-        const double num_steps = 10;
+        const double num_steps = 100000;
         for(double t=dt ; t<=num_steps*dt ; t+= dt)
         {
             std::cout<<"-----------------" << t << "-----------------" <<std::endl;
