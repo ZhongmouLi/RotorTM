@@ -9,6 +9,7 @@
 class Cable
 {
     friend class UAVCable; // Declare UAVCable as a friend of Cable
+    friend class rotorTMCableTest;
 
     private:
 
@@ -25,6 +26,8 @@ class Cable
         // direction Z up
         Eigen::Vector3d tension_force_;
 
+        double tension_;
+
         // body rate
         Eigen::Vector3d body_rate_;
 
@@ -37,7 +40,9 @@ class Cable
         // threshold for zero
         const double k_threshold = 1e-3;
 
-        
+    public:
+
+        void SetDirection(const Eigen::Vector3d &xi);    
 
     public:
 
@@ -74,6 +79,8 @@ class Cable
 
         // obtain cable direction
         inline Eigen::Vector3d direction() const {return xi_;};
+
+        inline double tension() const {return tension_;};
 
         // inline void GetCableDirection(Eigen::Vector3d &xi) {xi= xi_;};
 

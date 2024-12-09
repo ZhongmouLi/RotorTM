@@ -1,4 +1,5 @@
 #include "rotor_tm_sim/base/lib_cable.hpp"
+#include <iostream>
 
 
 
@@ -7,6 +8,10 @@ Cable::Cable(const double &length):length_(length)
 
 };
 
+void Cable::SetDirection(const Eigen::Vector3d &xi)
+{
+    xi_ = xi;
+};
 
 void Cable::ComputeCableDirection(const Eigen::Vector3d &attachpoint_post, const Eigen::Vector3d &robot_post)
 {
@@ -98,17 +103,44 @@ void Cable::ComputeCableTensionForce(const double &mav_mass, const Eigen::Vector
     // 1. compute tension
     if (taut_ == true)
     {
-        double tension =0;
+        // double tension =0;
+        // tension = self.uav_params[uav_idx].mass*cable_len*np.sum(cbl_omg**2) - \
+        //                 np.matmul(xi, qd_u - self.uav_params[uav_idx].mass * self.attach_accel[uav_idx,:])
+        //       tension_vector[:,uav_idx] = tension * xi
+        tension_ = mav_mass * length_ *  body_rate_.squaredNorm() - xi_.dot(mav_thrust_force - mav_mass * attach_point_acc);
 
-        // Eigen::Vector3d body_rate_square = (body_rate_.array() * body_rate_.array()).matrix();
-        tension = mav_mass * length_ *  body_rate_.squaredNorm() - xi_.dot(mav_thrust_force - mav_mass * attach_point_acc);
-
+      
         // 2. comupute tension force
-        tension_force_ = tension * xi_;
+        tension_force_ = tension_ * xi_;
 
-        // std::cout<<std::string(8, ' ')<<"tension is "<< tension << std::endl;
+        // std::cout << std::scientific << std::setprecision(20);
+        // std::cout<< "mav_mass is "<< mav_mass << std::endl;
+        // std::cout<< "length_ is "<< length_ << std::endl;
+        // std::cout << " body_rate_.squaredNorm(): " <<  body_rate_.squaredNorm() << std::endl;
+        // std::cout << "mav_thrust_force: " << mav_thrust_force.transpose() << std::endl;       
+        // std::cout << "attach_point_acc: " << attach_point_acc.transpose() << std::endl;
+        // std::cout << "xi_: " << xi_.transpose() << std::endl;
+        // correct
+        // mav_mass is 2.50000000000000000000e-01
+        // length_ is 5.00000000000000000000e-01
+        // body_rate_.squaredNorm(): 4.45057385184420950530e-01
+        // mav_thrust_force: 2.42918119593411557799e-01 1.54301568306383835028e-01 3.06756500072247906274e+00
+        // attach_point_acc: 1.83630674805819893436e+00 3.60526111173580021685e-01 9.56372385915080158725e+00
+        // xi_: -1.51739359394178235929e-01 -5.19497254434936953094e-02 -9.87054402166866351465e-01
 
-        // std::cout<<std::string(8, ' ')<< "tension force is " << tension_force_.transpose() << std::endl;
+
+// uav 0's qd_u is  [2.4291811959341156e-1 0.15430156830638384 3.067565000722479  ]
+
+        // wrong one
+        // mav_mass is 2.50000000000000000000e-01
+        // length_ is 5.00000000000000000000e-01
+        // body_rate_.squaredNorm(): 4.45057385184420950530e-01
+        // mav_thrust_force: 2.42918146976459220499e-01 1.54301563801073182702e-01 3.06756499878065813647e+00
+        // attach_point_acc: 1.83630674805819893436e+00 3.60526111173580021685e-01 9.56372385915080158725e+00
+        // xi_: -1.51739359394178235929e-01 -5.19497254434936953094e-02 -9.87054402166866351465e-01
+
+
+
     }
     else
     {
@@ -127,6 +159,25 @@ void Cable::ComputeCableBodyrate(const Eigen::Vector3d &robot_vel, const Eigen::
 
     // 
     body_rate_ = xi_.cross(relative_vel_unit);
+
+    // std::cout << std::scientific << std::setprecision(20);
+    // std::cout<< "attachpoint_vel is "<< attachpoint_vel.transpose() << std::endl;
+    // std::cout<< "robot_vel is "<< robot_vel.transpose() << std::endl;
+    // std::cout << "relative_vel_unit: " << relative_vel_unit.transpose() << std::endl;
+    // std::cout << "xi_: " << xi_.transpose() << std::endl;
+    // std::cout << "body_rate_: " << body_rate_.transpose() << std::endl;
+
+// relative_vel_unit:  1.22030604771391798513e-01 -6.55694343972218929295e-01  1.52031421334690719505e-02
+// xi_: -1.51739359394178235929e-01 -5.19497254434936953094e-02 -9.87054402166866351465e-01
+// body_rate_: -6.47995787753406271570e-01 -1.18143930590576040629e-01  1.05834096126307744545e-01
+
+// fuck wrong
+// attachpoint_vel is  1.10202110000000005896e-01 -5.13619009999999986960e-01 -6.80346299999999987174e-02
+// robot_vel is  4.91868099999999974781e-02 -1.85771829999999998906e-01 -7.56362000000000006539e-02
+// relative_vel_unit:  1.22030600000000016836e-01 -6.55694360000000031619e-01  1.52031400000000038730e-02
+// xi_: -1.51739359394178235929e-01 -5.19497254434936953094e-02 -9.87054402166866351465e-01
+// body_rate_: -6.47995803462865005429e-01 -1.18143926204684016068e-01  1.05834098310480489991e-01
+
 
 }
 
