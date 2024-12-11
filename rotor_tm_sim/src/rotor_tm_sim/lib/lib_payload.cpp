@@ -114,7 +114,7 @@ void Payload::ComputeJointKinematics()
         //
         //  self.attach_accel = self.pl_accel + np.array([0,0,self.pl_params.grav]) + np.matmul(pl_rot, np.matmul(utilslib.vec2asym(self.pl_ang_accel), self.rho_vec_list)).T + np.matmul(pl_rot, attach_centrifugal_accel).T
 
-        joint_accs.linear_acc = payload_acc + (Eigen::Vector3d::UnitZ() * gravity_) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * joint_post_bodyframe)) + (m_payload_rotation * joint_centri_acc);      
+        joint_accs.linear_acc = payload_acc + (Eigen::Vector3d::UnitZ() * Utils::gravity) + (m_payload_rotation * (m_skewsym_payload_bodyrate_acc * joint_post_bodyframe)) + (m_payload_rotation * joint_centri_acc);      
           
         joint_accs.angular_acc = payload_angular_acc;
         v_ptr_joints_.at(i)->SetAccs(joint_accs);
@@ -459,62 +459,62 @@ void Payload::operator() (const object_state &x , object_state &dxdt, const doub
 
 }
 
-int Payload::func(double t, const double y[], double f[], void *params) {
-    Payload* payload = (Payload*)params;  // Cast params to Payload pointer
+// int Payload::func(double t, const double y[], double f[], void *params) {
+//     Payload* payload = (Payload*)params;  // Cast params to Payload pointer
 
-    // Quaternion calculations
-    Eigen::Quaterniond qn(y[6], y[7], y[8], y[9]);
-    qn.normalize();
+//     // Quaternion calculations
+//     Eigen::Quaterniond qn(y[6], y[7], y[8], y[9]);
+//     qn.normalize();
 
-    Eigen::Vector3d bodyrate(y[10], y[11], y[12]);
+//     Eigen::Vector3d bodyrate(y[10], y[11], y[12]);
     
-    // Compute quaternion derivatives
-    auto dqn = payload->ComputeQuaternionDerivative(qn, bodyrate);
-    f[6] = dqn[0];
-    f[7] = dqn[1];
-    f[8] = dqn[2];
-    f[9] = dqn[3];
+//     // Compute quaternion derivatives
+//     auto dqn = payload->ComputeQuaternionDerivative(qn, bodyrate);
+//     f[6] = dqn[0];
+//     f[7] = dqn[1];
+//     f[8] = dqn[2];
+//     f[9] = dqn[3];
 
-    // Compute rotational dynamics
-    auto dpqr = payload->ComputeRotDynamics();
-    f[10] = dpqr[0];
-    f[11] = dpqr[1];
-    f[12] = dpqr[2];
-
-
-    // Position derivatives = velocities
-    f[0] = y[3];
-    f[1] = y[4];
-    f[2] = y[5];
-
-    // Compute translational dynamics
-    auto ddx = payload->ComputeTransDynamics();
-    f[3] = ddx[0];
-    f[4] = ddx[1];
-    f[5] = ddx[2];
+//     // Compute rotational dynamics
+//     auto dpqr = payload->ComputeRotDynamics();
+//     f[10] = dpqr[0];
+//     f[11] = dpqr[1];
+//     f[12] = dpqr[2];
 
 
+//     // Position derivatives = velocities
+//     f[0] = y[3];
+//     f[1] = y[4];
+//     f[2] = y[5];
 
-    // // Update payload state (note: this might need to be handled differently in GSL context)
-    // double qw = payload->state_.at(6), qx = payload->state_.at(7), 
-    //        qy = payload->state_.at(8), qz = payload->state_.at(9);
-    // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
-    // payload->state_.at(6) /= norm;
-    // payload->state_.at(7) /= norm;
-    // payload->state_.at(8) /= norm;
-    // payload->state_.at(9) /= norm;
+//     // Compute translational dynamics
+//     auto ddx = payload->ComputeTransDynamics();
+//     f[3] = ddx[0];
+//     f[4] = ddx[1];
+//     f[5] = ddx[2];
 
-    // Update accelerations
-    Eigen::Vector3d linear_acc(f[3], f[4], f[5]);
-    payload->SetLinearAcc(linear_acc);
-    Eigen::Vector3d angular_acc(f[10], f[11], f[12]);
-    payload->SetAngularAcc(angular_acc);
 
-    // //std::cout << " " << "payload inte is called" << std::endl;
-    // dbg("gnu payloda int is called");
 
-    return GSL_SUCCESS;
-}
+//     // // Update payload state (note: this might need to be handled differently in GSL context)
+//     // double qw = payload->state_.at(6), qx = payload->state_.at(7), 
+//     //        qy = payload->state_.at(8), qz = payload->state_.at(9);
+//     // double norm = std::sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+//     // payload->state_.at(6) /= norm;
+//     // payload->state_.at(7) /= norm;
+//     // payload->state_.at(8) /= norm;
+//     // payload->state_.at(9) /= norm;
+
+//     // Update accelerations
+//     Eigen::Vector3d linear_acc(f[3], f[4], f[5]);
+//     payload->SetLinearAcc(linear_acc);
+//     Eigen::Vector3d angular_acc(f[10], f[11], f[12]);
+//     payload->SetAngularAcc(angular_acc);
+
+//     // //std::cout << " " << "payload inte is called" << std::endl;
+//     // dbg("gnu payloda int is called");
+
+//     return GSL_SUCCESS;
+// }
 
 
 
@@ -524,16 +524,25 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
     Eigen::Vector3d payload_acc(0,0,0);
     
 
-    // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+    // payload_acc = mass_matrix.householderQr().solve(drones_net_forces + m_D * payload_angular_acc) - Eigen::Vector3d::UnitZ() * Utils::gravity;
 
-    payload_acc = cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * gravity_;
+    // payload_acc = cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc) - Eigen::Vector3d::UnitZ() * Utils::gravity;
+    // Pre-compute right-hand side term
+    auto rhs = (mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc).eval();
 
-    auto fuck1 = mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc;
+    // Use LDLT solver for better stability with symmetric matrices
+    // Pre-compute mass matrix solution
+    auto solved = cooper_interact_para_.m_mass_matrix.ldlt().solve(rhs).eval();
+
+    // Compute final acceleration
+    payload_acc = solved - Eigen::Vector3d::UnitZ() * Utils::gravity;
+
+    // auto fuck1 = mavs_net_wrench_.force + cooper_interact_para_.m_D * accs().angular_acc;
 
     // use std::printf to print fuck1
     // std::printf("fuck1: %.10f, %.10f, %.10f\n", fuck1[0], fuck1[1], fuck1[2]);
     // //std::cout cooper_interact_para_.m_ and angular_acc
-    // payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * payload_angular_acc)  - Eigen::Vector3d::UnitZ() * gravity_;
+    // payload_acc = cooper_interact_para_.m_mass_matrix.inverse() * (mavs_net_wrench_.force + cooper_interact_para_.m_D * payload_angular_acc)  - Eigen::Vector3d::UnitZ() * Utils::gravity;
     
     SetLinearAcc(payload_acc);
 
@@ -546,44 +555,130 @@ Eigen::Vector3d Payload::ComputeTransDynamics()
 Eigen::Vector3d Payload::ComputeRotDynamics()
 {
 
+    // python 
+    // effective_M = M - np.matmul(C, np.matmul(invML, F)) - np.cross(omega, np.matmul(self.pl_params.I, omega))
+    // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
+    //   omgLdot = np.linalg.solve(effective_inertia,effective_M)
+
     // setp 1. compute effective torque for the payload
     // such that 
-    Eigen::Vector3d torque_effective{0,0,0};
+    // Eigen::Vector3d torque_effective{0,0,0};
 
-    // Eigen::Matrix3d inv_m_mass_matrix = cooper_interact_para_.m_mass_matrix.inverse();
+    // 
+    // torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve( mavs_net_wrench_.force) - Utils::TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
+    
+    //
+    // auto force_term = cooper_interact_para_.m_mass_matrix.ldlt().solve(mavs_net_wrench_.force).eval();
 
-    // torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * inv_m_mass_matrix *  mavs_net_wrench_.force - TransVector3d2SkewSymMatrix(payload_bodyrate) * inertia() * payload_bodyrate;
-    torque_effective = mavs_net_wrench_.torque - cooper_interact_para_.m_C * cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve(  mavs_net_wrench_.force) - TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate;
+    // // 2. Compute the coupling term
+    // auto coupling_term = (cooper_interact_para_.m_C * force_term).eval();
+
+    auto force_term = cooper_interact_para_.m_mass_matrix.ldlt().solve(mavs_net_wrench_.force).eval();
+    auto force_coupling = (cooper_interact_para_.m_C * force_term).eval();
+
+    // 3. Compute gyroscopic term
+    // auto skew_matrix = Utils::TransVector3d2SkewSymMatrix(vels().bodyrate).eval();
+    // auto inertia_term = (inertia() * vels().bodyrate).eval();
+    // auto gyro_term = (skew_matrix * inertia_term).eval();
+
+    // // 4. Combine all terms
+    // torque_effective = mavs_net_wrench_.torque - coupling_term - gyro_term;
+    auto inertia_term = (inertia() * vels().bodyrate).eval();
+    auto gyro_term = vels().bodyrate.cross(inertia_term);
+
+    Eigen::Vector3d torque_effective = mavs_net_wrench_.torque - force_coupling - gyro_term;
+
 
     // step 2. compute effective inertia
-    Eigen::Matrix3d interia_effective;
+    // Eigen::Matrix3d interia_effective;
 
     // effective_inertia = self.pl_params.I + np.matmul(C, np.matmul(invML, D)) - E
     
     // interia_effective = inertia() + cooper_interact_para_.m_C * (inv_m_mass_matrix * cooper_interact_para_.m_D) - cooper_interact_para_.m_E;
-    interia_effective = inertia() + cooper_interact_para_.m_C * (cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve( cooper_interact_para_.m_D)) - cooper_interact_para_.m_E;
 
+    // interia_effective = inertia() + cooper_interact_para_.m_C * (cooper_interact_para_.m_mass_matrix.colPivHouseholderQr().solve( cooper_interact_para_.m_D)) - cooper_interact_para_.m_E;
+    
+    // auto mass_term = cooper_interact_para_.m_mass_matrix.ldlt().solve(cooper_interact_para_.m_D).eval();
+
+    // // 2. Compute the coupling term
+    // auto coupling_term = (cooper_interact_para_.m_C * mass_term).eval();
+
+    // // 3. Combine all terms to get effective inertia
+    // interia_effective = inertia() + coupling_term - cooper_interact_para_.m_E;
+
+    auto mass_term = cooper_interact_para_.m_mass_matrix.ldlt().solve(cooper_interact_para_.m_D).eval();
+    auto inertia_coupling = (cooper_interact_para_.m_C * mass_term).eval();
+    
+    Eigen::Matrix3d interia_effective = inertia() + inertia_coupling - cooper_interact_para_.m_E;    
 
     // step 3 compute bodyrate acc
 
-    Eigen::Vector3d bodyrate_acc;
+    // Eigen::Vector3d bodyrate_acc;
 
     // bodyrate_acc =  interia_effective.colPivHouseholderQr().solve(torque_effective);
-    bodyrate_acc =  interia_effective.llt().solve(torque_effective);
+    // bodyrate_acc =  interia_effective.ldlt().solve(torque_effective);
+    Eigen::Vector3d bodyrate_acc = interia_effective.ldlt().solve(torque_effective);
 
     
     SetAngularAcc(bodyrate_acc);
 
     return bodyrate_acc;
+
+    
+    // // SetAngularAcc(bodyrate_acc);
+
+    // // return bodyrate_acc;
+    // // Step 1: Compute effective torque
+    // Eigen::Vector3d torque_effective = Eigen::Vector3d::Zero();
+
+    // // Pre-compute solution for force term
+    // auto force_solution = cooper_interact_para_.m_mass_matrix.ldlt().solve(mavs_net_wrench_.force).eval();
+
+    // // Compute gyroscopic term
+    // auto gyro_term = (Utils::TransVector3d2SkewSymMatrix(vels().bodyrate) * inertia() * vels().bodyrate).eval();
+
+    // // Combine terms
+    // torque_effective = mavs_net_wrench_.torque - 
+    //                 cooper_interact_para_.m_C * force_solution - 
+    //                 gyro_term;
+
+    // // Step 2: Compute effective inertia
+    // // Pre-compute solution for damping term
+    // auto damping_solution = cooper_interact_para_.m_mass_matrix.ldlt().solve(cooper_interact_para_.m_D).eval();
+
+    // Eigen::Matrix3d interia_effective = inertia() + 
+    //                                 cooper_interact_para_.m_C * damping_solution - 
+    //                                 cooper_interact_para_.m_E;
+
+    // // Step 3: Compute bodyrate acceleration
+    // // Use LDLT instead of LLT for better stability with symmetric matrices
+    // Eigen::Vector3d bodyrate_acc = interia_effective.ldlt().solve(torque_effective).eval();
+
+    // // Add threshold for small accelerations
+    // const double acc_threshold = 1e-6;
+    // if (bodyrate_acc.norm() < acc_threshold) {
+    //     bodyrate_acc.setZero();
+    // }
+
+    // // Check for numerical issues
+    // if (!bodyrate_acc.allFinite()) {
+    //     // ROS_WARN("Non-finite bodyrate acceleration computed!");
+    //     bodyrate_acc.setZero();
+    // }
+
+    SetAngularAcc(bodyrate_acc);
+    return bodyrate_acc;    
 }
 
 
 void Payload::DoOneStepInt()
 {
     // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
-    auto next_state = state_;
-    RK4Step(state_, step_size_, next_state);
-    state_ = next_state;
+
+    integrate_const(stepper_, std::ref(*this), state_, current_step_, current_step_ + step_size_, step_size_);
+    // auto next_state = state_;
+    // RK4Step(state_, step_size_, next_state);
+    // state_ = next_state;
     // while(current_time < target_time) {
     //     // Calculate suitable step size (not larger than remaining time)
     //     double dt = std::min(step_size_/4, target_time - current_time);

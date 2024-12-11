@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <random>
 #include "rotor_tm_sim/lib_payload.hpp"
-#include "rotor_tm_sim/lib_uav_cable.hpp"
 
 
 double RandomGenerate(const double &minValue, const double &maxValue);
@@ -495,24 +494,24 @@ TEST_F(rotorTMPayloadTest, checkTransRotDynamics){
     
 // pl_acc [ 4.36127361e-02 -2.35743782e-02 -1.47000610e-05]
 // pl_angularacc [-0.03773087 -0.1579497  -0.03644387]
-    EXPECT_FLOAT_EQ(payload_angular_acc[0], //
+    EXPECT_DOUBLE_EQ(payload_angular_acc[0], //
        -0.037730865525696
         ); 
 
-    EXPECT_FLOAT_EQ(payload_angular_acc[1], //
+    EXPECT_DOUBLE_EQ(payload_angular_acc[1], //
        -0.157949661187575
         ); 
 
-    EXPECT_FLOAT_EQ(payload_angular_acc[2], //
+    EXPECT_DOUBLE_EQ(payload_angular_acc[2], //
         -0.036443916622249
         );   
 
 
-    EXPECT_FLOAT_EQ(payload_acc[0], //
+    EXPECT_DOUBLE_EQ(payload_acc[0], //
         0.043612733868192    
         );
 
-    EXPECT_FLOAT_EQ(payload_acc[1], //
+    EXPECT_DOUBLE_EQ(payload_acc[1], //
         -0.02357439290819
         ); 
 
@@ -612,40 +611,40 @@ TEST_F(rotorTMPayloadTest, checkTransRotDynamicsCase2){
     ptr_payload->SetAngularAcc(payload_angular_acc);
     auto payload_acc = ptr_payload->ComputeTransDynamics();
 
-    std::printf("payload_angular_acc: %.20f, %.20f, %.20f\n", payload_angular_acc[0], payload_angular_acc[1], payload_angular_acc[2]);
+    // std::printf("payload_angular_acc: %.20f, %.20f, %.20f\n", payload_angular_acc[0], payload_angular_acc[1], payload_angular_acc[2]);
 
 
-    std::printf("payload_acc: %.20f, %.20f, %.20f\n", payload_acc[0], payload_acc[1], payload_acc[2]);
+    // std::printf("payload_acc: %.20f, %.20f, %.20f\n", payload_acc[0], payload_acc[1], payload_acc[2]);
 
     
     // std::cout<<"payload_acc: "<<payload_acc.transpose()<<std::endl;
     
-    dbg(payload_angular_acc);
-    dbg(payload_acc);
-    ASSERT_FLOAT_EQ(payload_angular_acc[0], //
+    // dbg(payload_angular_acc);
+    // dbg(payload_acc);
+    EXPECT_DOUBLE_EQ(payload_angular_acc[0], //
        -0.037386122996028094
         ); 
     // -0.03738612299602832312
 
-    ASSERT_FLOAT_EQ(payload_angular_acc[1], //
+    EXPECT_DOUBLE_EQ(payload_angular_acc[1], //
         -0.157984189667433
         );
     //  -0.15798418966743302261, 
 
-    ASSERT_FLOAT_EQ(payload_angular_acc[2], //
+    EXPECT_DOUBLE_EQ(payload_angular_acc[2], //
         -0.036617819456007714
         ); 
     //  -0.03661781945600777605
 
-    ASSERT_FLOAT_EQ(payload_acc[0], //
+    EXPECT_DOUBLE_EQ(payload_acc[0], //
         0.04442904011000038
         ); 
     //  0.04442904010999863124, 
-    ASSERT_FLOAT_EQ(payload_acc[1], //
+    EXPECT_DOUBLE_EQ(payload_acc[1], //
         -0.02349029249940795
         );
     // -0.02349029249940797967, 
-    ASSERT_FLOAT_EQ(payload_acc[2], //
+    EXPECT_DOUBLE_EQ(payload_acc[2], //
         0.010015413620452662
         ); 
     //  0.01001541362045088590    

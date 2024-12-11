@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <memory>
+#include <stdio.h>
 #include "rotor_tm_sim/base/lib_rigidbody.hpp"
 #include "rotor_tm_sim/lib_joint.hpp"
 #include "rotor_tm_sim/lib_uav_cable.hpp"
@@ -54,7 +55,16 @@ class Payload: public RigidBody{
 
     //    Eigen::Matrix3d m_mass_matrix_;
 
+    static int func(double t, const double y[], double f[], void *params);
 
+
+    // this defines the following memeber methods as public in google test such that they can be called and tested
+    // they are still priviate in the other cases
+    #ifdef UNIT_TEST
+    public:
+    #else
+    private:
+    #endif
 
     CooperIntertPara cooper_interact_para_;
 
@@ -93,6 +103,10 @@ class Payload: public RigidBody{
 
     public:
 
+    virtual ~Payload() = default;
+
+    void DoOneStepInt() override;
+
 
     Payload(const MassProperty &mass_property, const double &step_size);
 
@@ -117,14 +131,20 @@ class Payload: public RigidBody{
 
     void InputDronesNetWrenches(const Wrench &mavs_net_wrench);
 
+    Wrench mavs_net_wrench() const {return mavs_net_wrench_;};
+
+    CooperIntertPara cooper_interact_para() const {return cooper_interact_para_;};
+
 
     void InputPayloadInteractPara(const CooperIntertPara &cooper_interact_para);
 
 
+    void SetPayloadStates(const object_state &payload_state);
+
 
     void DoPayloadOneStepInt();
 
-    void operator() (const object_state &x , object_state &dxdt, const double time) override;
+    void operator()(const object_state& x, object_state& dxdt, double time) override;  // Declaration
 
 
     Eigen::Vector3d jointPosttAt(size_t t) const {auto joint_post = v_ptr_joints_.at(t)->pose().post; return joint_post;};
