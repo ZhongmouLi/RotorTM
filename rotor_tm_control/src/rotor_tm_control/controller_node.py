@@ -144,12 +144,12 @@ class controller_node:
             FM_message.header.stamp = rospy.get_rostime()
             if self.pl_params.payload_type == 'Rigid Body':
                 FM_message.thrust = F_list[uav_id]
-                # FM_message.moments.x = M_list[uav_id][0]
-                # FM_message.moments.y = M_list[uav_id][1]
-                # FM_message.moments.z = M_list[uav_id][2]
-                FM_message.moments.x = 0
-                FM_message.moments.y = 0
-                FM_message.moments.z = 0          
+                FM_message.moments.x = M_list[uav_id][0]
+                FM_message.moments.y = M_list[uav_id][1]
+                FM_message.moments.z = M_list[uav_id][2]
+                # FM_message.moments.x = 0
+                # FM_message.moments.y = 0
+                # FM_message.moments.z = 0          
                 return FM_message
             elif self.pl_params.payload_type == 'Point Mass':
                 FM_message.thrust = F_list[0,0]
@@ -429,11 +429,6 @@ class controller_node:
         elif self.pl_params.mechanism_type == 'Cable':
             if self.pl_params.payload_type == 'Rigid Body':
                 mu, att_acc, F_list, M_list, quat_list, rot_list = self.controller.cooperative_suspended_payload_controller(self.pl, self.qd, self.pl_params, self.quad_params, self.node_id)
-                print("=====================================")
-                print("FUCKKKKKKKK node_id is ", self.node_id)
-                print("FUCKKKKKKKK Flist is ", F_list)
-                print("FUCKKKKKKKK Mlist is ",M_list)
-                print("=====================================")
                 cen_pl_command = CenPL_Command()
                 cen_pl_command.header.stamp = rospy.get_rostime()
                 cen_pl_command.header.frame_id = "simulator" 

@@ -10,7 +10,8 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 test_data
-
+.history
+.lh
 # Prerequisites
 *.d
 

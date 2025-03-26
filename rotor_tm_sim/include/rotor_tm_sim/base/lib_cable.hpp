@@ -5,7 +5,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <vector>
-#include <dbg.h>
+// #include <dbg.h>
 class Cable
 {
     friend class UAVCable; // Declare UAVCable as a friend of Cable

@@ -36,10 +36,10 @@ public:
           constants_data_() {
 
         // Print test data addresses
-        std::cout<<"input_file_path_"<<input_file_path_<<std::endl;
-        std::cout<<"output_file_path_"<<output_file_path_<<std::endl;
-        std::cout<<"param_file_path_"<<param_file_path_<<std::endl;
-        std::cout<<"constants_file_path_"<<constants_file_path_<<std::endl;
+        // std::cout<<"input_file_path_"<<input_file_path_<<std::endl;
+        // std::cout<<"output_file_path_"<<output_file_path_<<std::endl;
+        // std::cout<<"param_file_path_"<<param_file_path_<<std::endl;
+        // std::cout<<"constants_file_path_"<<constants_file_path_<<std::endl;
 
         // Load constants once
         readConstants(constants_data_.mass, constants_data_.grav, constants_data_.I, constants_data_.invI);

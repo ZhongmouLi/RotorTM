@@ -21,11 +21,11 @@ rotorTMUAVCableTest(){
     // Eigen::Matrix3d m_inertia = Eigen::Matrix3d::Identity(3,3);
 
     // MassProperty mav_mass_property(1, Eigen::Matrix3d::Identity(3,3));
-    MassProperty mav_mass_property = {1, Eigen::Matrix3d::Identity()};
-    double cable_length =1;
+    MassProperty mav_mass_property = {0.25, Eigen::Matrix3d::Identity()};
+    double cable_length =0.5;
     double step_size = 0.01;
 
-    ptr_joint = std::make_shared<Joint>(Eigen::Vector3d::Zero());
+    ptr_joint = std::make_shared<Joint>(Eigen::Vector3d(0,0,0));
 
     ptr_UAVCable = std::make_shared<UAVCable>(mav_mass_property, cable_length, ptr_joint, step_size);
 }
@@ -552,7 +552,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering){
         // acc = (19.6 - 2*9.8)/2 = 0
         // take payload a an object
         // -t - 1 * 9.8 = 0 ===> -t = 9.8N
-        const double mav_thrust = 9.8*2;
+        const double mav_thrust =  ptr_UAVCable->mav_.mass()  * 9.8*2;
         // std::cout<<"[----------] mav_thrust is " << mav_thrust<<std::endl;
         
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
@@ -659,7 +659,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalStaticHovering100Steps){
         // acc = (19.6 - 2*9.8)/2 = 0
         // take payload a an object
         // -t - 1 * 9.8 = 0 ===> -t = 9.8N
-        const double mav_thrust = 9.8*2;
+        const double mav_thrust =  ptr_UAVCable->mav_.mass()  * 9.8*2;
         // std::cout<<"[----------] mav_thrust is " << mav_thrust<<std::endl;
         
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
@@ -771,7 +771,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAcc){
         // acc = (29.4 - 2*9.8)/2 = 4.9
         // take payload as an object
         // -t - 1 * 9.8 = 4.9 ===> -t = 14.7N
-        const double mav_thrust = 9.8*3;        
+        const double mav_thrust =  ptr_UAVCable->mav_.mass()  * 9.8*3;        
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
 
         // payload's "linear acc" is 9.8+4.9
@@ -868,7 +868,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccHundSteps){
         // acc = (29.4 - 2*9.8)/2 = 4.9
         // take payload a an object
         // -t - 1 * 9.8 = 4.9 ===> -t = 14.7N
-        const double mav_thrust = 9.8*3;
+        const double mav_thrust =  ptr_UAVCable->mav_.mass()  * 9.8*3;
         // std::cout<<"[----------] mav_thrust is " << mav_thrust<<std::endl;
         
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());
@@ -967,7 +967,7 @@ TEST_F(rotorTMUAVCableTest, checkVerticalConstAccThousandSteps){
         // acc = (29.4 - 2*9.8)/2 = 4.9
         // take payload a an object
         // -t - 1 * 9.8 = 4.9 ===> -t = 14.7N
-        const double mav_thrust = 9.8*3;
+        const double mav_thrust =  ptr_UAVCable->mav_.mass()  * 9.8*3;
         // std::cout<<"[----------] mav_thrust is " << mav_thrust<<std::endl;
         
         ptr_UAVCable->InputControllerInput(mav_thrust,Eigen::Vector3d::Zero());

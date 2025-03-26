@@ -11,6 +11,7 @@
 
 #include "rotor_tm_sim/base/lib_cable.hpp"
 #include "rotor_tm_sim/base/lib_base.hpp"
+#include "rotor_tm_sim/base/lib_utils.hpp"
 #include "rotor_tm_sim/lib_quadrotor.hpp"
 // #include "rotor_tm_sim/lib_joint.hpp"
 
@@ -18,6 +19,8 @@
 class Joint;
 
 class UAVCable{
+
+    friend class rotorTMUAVCableTest; // Declare rotorTMUAVCableTest as a friend of UAVCable
 
     public:
         // uav instances
@@ -28,6 +31,7 @@ class UAVCable{
 
         //
         // std::weak_ptr<const Payload> ptr_payload_;
+        std::shared_ptr<const Joint> ptr_joint();
 
     private:
 
@@ -72,7 +76,9 @@ class UAVCable{
         // Eigen::Vector3d ComputeAttachPointTorque(const Eigen::Vector3d &attach_point_post_bf, const Eigen::Quaterniond &payload_attitude, Eigen::Vector3d &attach_point_force);
         Eigen::Vector3d ComputeNetTorqueApplied2AttachPoint(const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_force);
         
-        std::shared_ptr<const Joint> ptr_joint();
+        // std::shared_ptr<const Joint> ptr_joint();
+
+        Eigen::Vector3d mav_thrust_force_along_cable_;
 
         UAVCable() = delete ;
         
@@ -84,6 +90,7 @@ class UAVCable{
 
     UAVCable(const MassProperty &mav_mass_property, const double & cable_length, const std::shared_ptr<const Joint> &ptr_attach_point, const double &step_size);  
     
+
     // call one step dynamic simulation
     virtual void DoOneStepInt() final;
 
@@ -129,6 +136,9 @@ class UAVCable{
     // // obtain attach point torque
     // void GetAttachPointTorque(Eigen::Vector3d &mav_attach_point_torque){ mav_attach_point_torque = mav_attach_point_torque_;};
     inline Wrench attach_point_wrench() const {return mav_attach_point_wrench_;};
+
+    // obtain mav thrust force along cable
+    inline Eigen::Vector3d mav_thrust_force_along_cable() const {return mav_thrust_force_along_cable_;};
 
     // obtain m_D_i
     // void GetMatrixMDiMCiMEi(Eigen::Matrix3d &m_C_i, Eigen::Matrix3d &m_D_i, Eigen::Matrix3d &m_E_i) const;

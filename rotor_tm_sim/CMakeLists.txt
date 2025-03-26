@@ -7,8 +7,23 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -O3")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fno-fast-math")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fno-fast-math -ffp-contract=off -fexceptions")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fno-fast-math -mfpmath=sse -msse2")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fno-unsafe-math-optimizations")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fno-fast-math -march=native -mtune=native -fno-unsafe-math-optimizations")
 # set (CMAKE_CXX_FLAGS "-g")
-
+# message("Default CXX flags: ${CMAKE_CXX_FLAGS}")
+# message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
+# message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+# message("RelWithDebInfo flags: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+# message("MinSizeRel flags: ${CMAKE_CXX_FLAGS_MINSIZEREL}")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")  # Use -O2 instead of -O3
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -fno-fast-math -ffp-contract=off")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fno-fast-math -ffp-contract=off -fno-unsafe-math-optimizations")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fno-unsafe-math-optimizations -fno-finite-math-only")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fno-fast-math -ffp-contract=off -fno-unsafe-math-optimizations")
 enable_language(CXX)
 enable_language(C)
 
@@ -43,7 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 
-find_package(GSL REQUIRED)    # See below (2)
+# find_package(GSL REQUIRED)    # See below (2)
 
 
 catkin_package(
@@ -53,17 +68,37 @@ catkin_package(
 include_directories(
 include
 ${catkin_INCLUDE_DIRS}
+gtest
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+# include_directories(${CMAKE_SOURCE_DIR}/include
+#             ${CMAKE_SOURCE_DIR}/gtest)
 
-include(FetchContent)
+# include(FetchContent)
 
-FetchContent_Declare(dbg_macro GIT_REPOSITORY https://github.com/sharkdp/dbg-macro)
-FetchContent_MakeAvailable(dbg_macro)
+# FetchContent_Declare( GIT_REPOSITORY https://github.com/sharkdp/dbg-macro)
+# FetchContent_MakeAvailable()
 
 
 # 3. libs for simulators
+
+
+add_library(shared_logger STATIC
+    src/rotor_tm_sim/lib/base/lib_logger.cpp
+    include/rotor_tm_sim/base/lib_logger.hpp
+)
+target_compile_options(shared_logger PRIVATE -std=c++17 -Wall -Wextra)
+# target_include_directories(shared_logger PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib)
+
+
+
+
+add_library(math_utils src/rotor_tm_sim/lib/base/lib_utils.cpp)
+target_compile_options(math_utils PRIVATE -std=c++17 -Wall -Wextra)
+
+# link libs needed for building lib_rigidbody
+target_link_libraries(math_utils Eigen3::Eigen)
+
 ## 3.1 base class/lib : rigid body, cable, point mass
 ## (1) rigid body
 add_library(lib_rigidbody SHARED
@@ -74,7 +109,7 @@ add_library(lib_rigidbody SHARED
 target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_rigidbody
-target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen dbg_macro)
+target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
 
 
 # (3)pointmass 
@@ -95,7 +130,7 @@ add_library(lib_cable SHARED
 
 target_compile_options(lib_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_cable Eigen3::Eigen dbg_macro)
+target_link_libraries(lib_cable Eigen3::Eigen )
 
 
 ## 3.2 devired class/lib : payload, quadrotor, quadrotor + cable
@@ -108,7 +143,7 @@ add_library(lib_quadrotor SHARED
 target_compile_options(lib_quadrotor PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_quadrotor
-target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen dbg_macro)
+target_link_libraries(lib_quadrotor Boost::program_options Eigen3::Eigen )
 
 # (3) joint
 # add_library(lib_joint STATIC
@@ -135,7 +170,7 @@ add_library(lib_uav_cable SHARED
 
 target_compile_options(lib_uav_cable PRIVATE -std=c++17 -Wall -Wextra)
 
-target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen dbg_macro)
+target_link_libraries(lib_uav_cable lib_cable lib_quadrotor lib_rigidbody Eigen3::Eigen  math_utils)
 
 
 # (3) payload 
@@ -147,7 +182,7 @@ add_library(lib_payload SHARED
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload lib_rigidbody lib_uav_cable Boost::program_options Eigen3::Eigen GSL::gsl GSL::gslcblas dbg_macro)
+target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen )
 
 
 #(4) cooperative
@@ -158,7 +193,7 @@ add_library(lib_cooperative SHARED
 target_compile_options(lib_cooperative PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_cooperative lib_payload lib_uav_cable  Boost::program_options Eigen3::Eigen dbg_macro)
+target_link_libraries(lib_cooperative Eigen3::Eigen )
 
 # ## 3.3 simulation class/lib : single quadrotor + point mass; 
 # # (1) single quadrotor + point mass payload
@@ -193,43 +228,57 @@ target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative lib_payload lib_ua
 ###########
 ## Test ##
 ###########
+# file(COPY ${CMAKE_SOURCE_DIR}/gtest/test_data/
+#      DESTINATION ${CMAKE_BINARY_DIR}/test_data)
 
-# test for rigid body class
+# # test for rigid body class
 # catkin_add_gtest(rigidbody_test gtest/testRigidBodyClass.cpp)
 
-# target_link_libraries(rigidbody_test lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(rigidbody_test lib_rigidbody Eigen3::Eigen)
 
-# # # # test for quadrotor class
+# # # # # test for quadrotor class
 # catkin_add_gtest(quadrotor_test gtest/testQuadrotor.cpp)
 
-# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(quadrotor_test lib_quadrotor lib_rigidbody Eigen3::Eigen)
 
 # # # test for cable class
-# # catkin_add_gtest(cable_test gtest/testCable.cpp)
+# catkin_add_gtest(cable_test gtest/testCable.cpp)
 
-# # target_link_libraries(cable_test lib_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(cable_test lib_cable)
 
 # # test for UAVcable class
 # catkin_add_gtest(UAVcable_test gtest/testUAVCable.cpp)
 
-# target_link_libraries(UAVcable_test lib_uav_cable ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(UAVcable_test lib_uav_cable)
+
+# catkin_add_gtest(UAVcable_test2 gtest/testUAVCable2.cpp)
+
+# target_link_libraries(UAVcable_test2 lib_uav_cable)
 
 
 # # # test for payload class
-catkin_add_gtest(payload_test gtest/testPayload.cpp)
-
-target_link_libraries(payload_test lib_payload lib_rigidbody lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# catkin_add_gtest(payload_test gtest/testPayload.cpp)
 
 
-# test for cooperative class
-catkin_add_gtest(cooperative1MAV_test gtest/testCooperative1MAV.cpp)
+# target_link_libraries(payload_test lib_payload)
+# Add compile definitions for file paths
+# Define a test_data directory as a prefix for test files
+add_compile_definitions(TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test_data/")
 
-target_link_libraries(cooperative1MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+catkin_add_gtest(payload_test_with_data gtest/testPayloadWithData.cpp)
+
+target_link_libraries(payload_test_with_data lib_payload math_utils)
+
+
+# # # test for cooperative class
+# catkin_add_gtest(cooperative1MAV_test gtest/testCooperative1MAV.cpp)
+
+# target_link_libraries(cooperative1MAV_test lib_cooperative lib_payload lib_uav_cable  Eigen3::Eigen)
 
 
 # catkin_add_gtest(cooperative4MAV_test gtest/testCooperative4MAVs.cpp)
 
-# target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable  ${catkin_LIBRARIES} Eigen3::Eigen Boost::program_options)
+# target_link_libraries(cooperative4MAV_test lib_cooperative lib_payload lib_uav_cable Eigen3::Eigen )
 
 
 

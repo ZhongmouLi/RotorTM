@@ -252,6 +252,7 @@ class controller:
         # Desired acceleration This equation drives the errors of trajectory to zero.
         acceleration_des = ql["acc_des"] + np.matmul(pl_params.Kp, ep) + np.matmul(pl_params.Kd, ed)
         F = m*g*e3  + m*acceleration_des
+        print(m)
 
         ## Attitude Control
         # Errors of anlges and angular velocities
@@ -269,10 +270,16 @@ class controller:
             diag_rot = LA.block_diag(diag_rot, Rot)
 
         mu = diag_rot @ pl_params.pseudo_inv_P @ np.append(Rot.T @ F, M, axis=0) # F and M are desreid force and moment to the payload
+        
         # mu cable forces
         print("--------------------------controller node  \n")
         print("mu is ", mu)
         # print("controller des net torque", M)
+        print("des f", F)
+        print("des m", M)
+        # print("P", pl_params.P)
+        print("P*mu", pl_params.P@mu)
+
 
         for i in range(1, nquad+1):
             if (0>mu[3*i-1, 0]):

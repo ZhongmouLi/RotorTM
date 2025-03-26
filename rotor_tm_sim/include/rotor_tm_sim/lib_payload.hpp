@@ -73,6 +73,11 @@ class Payload: public RigidBody{
 
     Eigen::VectorXd ComputeVectorbi(const Quadrotor &mav, const Cable &cable, const std::shared_ptr<Joint> &ptr_joint);
 
+
+    Eigen::Vector3d ComputeTransDynamicsFromState(const object_state &x, const Eigen::Vector3d &angular_acc) const;
+    
+    Eigen::Vector3d ComputeRotDynamicsFromState(const object_state &x) const;
+
         // // ComputeMatrixJi is a function for updating vels after collision
         // // compute matrix Ji in Eq46
         // Eigen::MatrixXd ComputeMatrixJi(const Eigen::Vector3d &cable_direction, const Eigen::Quaterniond &payload_attitude, const Eigen::Vector3d &attach_point_body_frame);
@@ -85,14 +90,14 @@ class Payload: public RigidBody{
         // translational dynamic model
         // Eigen::Vector3d ComputeTransDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Matrix3d &mass_matrix, const Eigen::Matrix3d &m_D,  const Eigen::Vector3d &payload_bodyrate_acc);
         // Eigen::Vector3d ComputeTransDynamics();
-        Eigen::Vector3d ComputeTransDynamics();
+        Eigen::Vector3d ComputeTransDynamics() const;
 
 
         // rotational dynamic model
         // Eigen::Vector3d ComputeRotDynamics(const Eigen::Vector3d &drones_net_forces, const Eigen::Vector3d &drones_net_torques, const Eigen::Matrix3d &m_mass_matrix, const Eigen::Vector3d &payload_bodyrate, const Eigen::Matrix3d &m_C, const Eigen::Matrix3d &m_D, const Eigen::Matrix3d &m_E);
 
         // Eigen::Vector3d ComputeRotDynamics();
-        Eigen::Vector3d ComputeRotDynamics();
+        Eigen::Vector3d ComputeRotDynamics() const;
         
 
         Eigen::Matrix3d matirxBodyrate2EulerRate(const double &phi, const double &theta);
@@ -128,7 +133,7 @@ class Payload: public RigidBody{
     // void UpdateVelCollided(const std::vector<std::shared_ptr<UAVCable>> v_drone_cable_ptr);
     void UpdateVelCollided();
 
-
+    void ComputeDynamics();
     void InputDronesNetWrenches(const Wrench &mavs_net_wrench);
 
     Wrench mavs_net_wrench() const {return mavs_net_wrench_;};

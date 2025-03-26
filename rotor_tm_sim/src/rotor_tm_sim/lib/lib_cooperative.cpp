@@ -360,7 +360,7 @@ void Cooperative::InputControllerInput4MAVs(const std::vector<double> v_mavs_thr
         };
 
         // compute intial accleration with total mass and total force
-        Eigen::Vector3d total_acc = total_force * Eigen::Vector3d(0, 0, 1) /total_mass - ptr_payload_->gravity_ * Eigen::Vector3d(0, 0, 1);
+        Eigen::Vector3d total_acc = total_force * Eigen::Vector3d(0, 0, 1) /total_mass - Utils::gravity * Eigen::Vector3d(0, 0, 1);
 
         //  //std::cout<<std::string(2, ' ')<<"total_mass is "<<total_mass<<std::endl;
         //  //std::cout<<std::string(2, ' ')<<"total_force is "<<total_force<<std::endl;

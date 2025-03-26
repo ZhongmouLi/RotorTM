@@ -8,9 +8,11 @@
 #include <cmath>
 #include <vector>
 #include <array>
+#include <cstdio>
 #include <algorithm>  // For std::fill
 
 #include "rotor_tm_sim/base/lib_base.hpp"
+#include "rotor_tm_sim/base/lib_utils.hpp"
 
 using namespace boost::numeric::odeint;
 
@@ -81,11 +83,17 @@ class RigidBody
         RigidBody();
 
         // solver ruge_kutta
-        // runge_kutta4<object_state> stepper_;      
+        runge_kutta4<object_state> stepper_;      
+    
+        // typedef controlled_runge_kutta<runge_kutta_cash_karp54<object_state>> stepper_type;
+        // stepper_type stepper_;
 
         // typedef rosenbrock4<object_state> stepper_type;
         // typedef default_error_checker<double, array_algebra, default_operations> error_checker_type;
 
+        void RK23Step(const object_state& current_state, const double dt, object_state& next_state);
+
+        bool AdaptiveRK23Step(object_state& state, double& dt, double& current_time);
 
         // controlled_runge_kutta<stepper_type, error_checker_type> controlled_stepper_; 
         void RK4Step(const object_state& current_state, const double dt, object_state& next_state);
@@ -124,7 +132,7 @@ class RigidBody
 
         // call one step integration
         // make it virtual and final forbids itself to be overloaded in derived classes
-        virtual void DoOneStepInt() final;
+        virtual void DoOneStepInt();
 
         // integration for one step
         // Declare the function call operator to use odeint
@@ -155,7 +163,9 @@ class RigidBody
 
         // void GetBodyRateAcc(Eigen::Vector3d &object_bodyrate_acc) const;
 
-        void GetState(object_state &state) const;
+        object_state state() const;
+
+        Eigen::VectorXd stateEigen() const;
 
         // void GetCurrentTimeStep(double &current_time);
 
@@ -174,7 +184,9 @@ class RigidBody
         void SetPost(const Eigen::Vector3d &object_post);
 
         // set initial attitude in Euler Angles
-        void SetInitialAttitude(const double &phi, const double &theta, const double &psi);   
+        void SetInitialAttitude(const double &phi, const double &theta, const double &psi);  
+
+        void SetAttitude(const Eigen::Quaterniond &qa); 
 
         // set vel in the world frame
         void SetLinearVel(const Eigen::Vector3d &object_vel);
@@ -199,7 +211,7 @@ class RigidBody
 
 
         // TODO:ZLi move physical and mathematical funcs and consts to another file
-        const double gravity_ = 9.8;    
+        // const double gravity_ = 9.8;    
 
         // transfer a vector to tis skew sym matrix
         Eigen::Matrix3d TransVector3d2SkewSymMatrix(Eigen::Vector3d vector); 
@@ -208,7 +220,7 @@ class RigidBody
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
 
-        virtual ~RigidBody(){};
+        virtual ~RigidBody() = default;
 
 
 };

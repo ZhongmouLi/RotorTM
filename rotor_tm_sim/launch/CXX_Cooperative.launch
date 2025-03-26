@@ -16,10 +16,6 @@
 <node pkg="rotor_tm" type="rotorTM_CXX_Cooperative" name="rotorTM_CXX_Cooperative" output="screen">
     <remap from="reference/fm_cmd" to="/fm_cmd"/> 
     <remap from="outputs/odom" to="/odom"/>
-    <param name="drone_mass" value="1" />
-    <param name="drone_Ixx" value="0.01" />
-    <param name="drone_Iyy" value="0.01" />
-    <param name="drone_Izz" value="0.02" />
     <param name="ros_console_output_level" value="debug" />
    </node>
 

@@ -838,7 +838,7 @@ class simulation_base():
           self.pl_ang_accel = np.zeros(3)
           self.attach_accel = np.zeros(3)
           self.sim_start = True
-      
+              
       # convert payload state
       pl_state = s[0:self.pl_dim_num]
       pl_pos = pl_state[0:3]
@@ -909,6 +909,15 @@ class simulation_base():
               E = E + Ek
               ML = ML + self.uav_params[uav_idx].mass * xixiT
       
+      print("input u", self.uav_F)
+      print("system", s)
+      print("output ML", ML)
+      print("output pl_net_F", pl_net_F)
+      print("output pl_net_M", pl_net_M)
+      print("output C", C)  
+      print("output D", D)  
+      print("output E", E)  
+
       invML = linalg.inv(ML)
 
       ## Dynamics of Payload

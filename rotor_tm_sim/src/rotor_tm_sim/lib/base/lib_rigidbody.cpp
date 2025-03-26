@@ -1,4 +1,5 @@
 #include "rotor_tm_sim/base/lib_rigidbody.hpp"
+#include <boost/numeric/odeint/integrate/integrate_const.hpp>
 
 
 
@@ -40,7 +41,19 @@ void RigidBody::SetStatesZeros()
     // std::cout<<std::setw(16)<<"[----------] RigidBody: SetStatesZeros is called" << std::endl;
 };
 
+void RigidBody::SetAttitude(const Eigen::Quaterniond &qa)
+{
 
+    // Eigen::Quaterniond qn(x.at(6), x.at(7), x.at(8), x.at(9));
+    auto qa_local = qa;
+
+    qa_local.normalize();
+
+    state_.at(6) = qa_local.w();
+    state_.at(7) = qa_local.x();
+    state_.at(8) = qa_local.y();
+    state_.at(9) = qa_local.z();
+};
 
 
 void RigidBody::InputWrench(const Wrench &input_wrench)
@@ -54,7 +67,7 @@ void RigidBody::InputWrench(const Wrench &input_wrench)
     // std::cout<<std::string(8, ' ')<<"mav acc is " << object_acc.transpose()<<std::endl;
     // std::cout<<std::string(8, ' ')<<"mav net input force is " << input_wrench_.force.transpose()<<std::endl;
     // std::cout<<std::string(8, ' ')<<"mav net input torque is " << input_wrench_.torque.transpose()<<std::endl;
-    // // accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    // // accs_.linear_acc = TransDynac(input_wrench_.force, mass_property_.mass, Utils::gravity);
 
     // // obtain bodyrate from state
     // // Eigen::Vector3d bodyrate = state_.tail(3);
@@ -89,7 +102,7 @@ Eigen::Vector3d RigidBody::TransDynac()
 {   
     Eigen::Vector3d acc = Eigen::Vector3d::Zero();
 
-    acc = (input_wrench_.force-mass_property_.mass*gravity_*Eigen::Vector3d::UnitZ())/mass_property_.mass;
+    acc = (input_wrench_.force-mass_property_.mass*Utils::gravity*Eigen::Vector3d::UnitZ())/mass_property_.mass;
 
     return acc;
 }
@@ -122,7 +135,7 @@ void RigidBody::operator() (const object_state &x , object_state &dxdt, const do
     dxdt.at(2) = x.at(5);
 
     // [ddx ddy ddz] = (F-mg)/m
-    // dxdt.segment<3>(3) = TransDynac(input_wrench_.force, mass_property_.mass, gravity_);
+    // dxdt.segment<3>(3) = TransDynac(input_wrench_.force, mass_property_.mass, Utils::gravity);
     auto ddx = TransDynac();
     dxdt.at(3) = ddx[0];
     dxdt.at(4) = ddx[1];
@@ -340,23 +353,26 @@ bool RigidBody::checkEquilibrium(const object_state& state)  {
 
 void RigidBody::DoOneStepInt()
 {
-    double target_time = current_step_ + step_size_;  // Time we want to reach
-    double current_time = current_step_;
+    // this->stepper_.do_step(std::ref(*this), state_, current_step_, step_size_);
+    integrate_const(stepper_, std::ref(*this), state_, current_step_, current_step_ + step_size_, step_size_);
+
+    // double target_time = current_step_ + step_size_;  // Time we want to reach
+    // double current_time = current_step_;
     
-    while(current_time < target_time) {
-        // Calculate suitable step size (not larger than remaining time)
-        double dt = std::min(step_size_/10.0, target_time - current_time);
+    // while(current_time < target_time) {
+    //     // Calculate suitable step size (not larger than remaining time)
+    //     double dt = std::min(step_size_/4, target_time - current_time);
         
-        // Try to take a step with error control
-        bool step_accepted = AdaptiveRK23Step(state_, dt, current_time);
+    //     // Try to take a step with error control
+    //     bool step_accepted = AdaptiveRK23Step(state_, dt, current_time);
         
-        // If step was rejected, dt will be modified inside AdaptiveRK23Step
-        if (!step_accepted) {
-            continue;  // Try again with new dt
-        }
-    }
+    //     // If step was rejected, dt will be modified inside AdaptiveRK23Step
+    //     if (!step_accepted) {
+    //         continue;  // Try again with new dt
+    //     }
+    // }
     
-    current_step_ = target_time;
+    // current_step_ = target_time;
 }
 
 bool RigidBody::AdaptiveRK23Step(object_state& state, double& dt, double& current_time)
@@ -704,6 +720,19 @@ object_state RigidBody::state() const
 {
 
     return state_;
+}
+
+Eigen::VectorXd RigidBody::stateEigen() const
+{
+
+    // write C++ code to convert std::array with a size of 13 to Eigen::VectorXd
+    Eigen::VectorXd state_vec(13);
+    for (int i = 0; i < 13; i++)
+    {
+        state_vec(i) = state_[i];
+    }
+
+    return state_vec;
 }
 
 Eigen::Matrix3d RigidBody::TransVector3d2SkewSymMatrix(Eigen::Vector3d vector)

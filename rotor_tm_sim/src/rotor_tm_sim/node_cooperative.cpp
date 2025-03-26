@@ -54,6 +54,7 @@ std::vector<Eigen::Vector3d> v_mavs_torques(4, Eigen::Vector3d::Zero());
 // callback function to take input wrench for mav0
 void fmCmdCallback0(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 {
+     if (!msg) return;
     // std::lock_guard<std::mutex> lock(mavs_mutex);
     // thrust = vector3MsgToEigen(msg->rlink_thrust);
     // thrust = static_cast<double>(msg->thrust);
@@ -76,7 +77,7 @@ void fmCmdCallback0(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 // callback function to take input wrench for mav1
 void fmCmdCallback1(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 {
-    
+     if (!msg) return;
     //  std::lock_guard<std::mutex> lock(mavs_mutex);
     // thrust = vector3MsgToEigen(msg->rlink_thrust);
     // thrust = static_cast<double>(msg->thrust);
@@ -98,6 +99,7 @@ void fmCmdCallback1(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 // callback function to take input wrench for mav2
 void fmCmdCallback2(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 {
+     if (!msg) return;
     //  std::lock_guard<std::mutex> lock(mavs_mutex);
     // thrust = vector3MsgToEigen(msg->rlink_thrust);
     // thrust = static_cast<double>(msg->thrust);
@@ -117,6 +119,7 @@ void fmCmdCallback2(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 // callback function to take input wrench for mav3
 void fmCmdCallback3(const rotor_tm_msgs::FMCommand::ConstPtr& msg)
 {
+     if (!msg) return;
     //  std::lock_guard<std::mutex> lock(mavs_mutex);
     // thrust = vector3MsgToEigen(msg->rlink_thrust);
     // thrust = static_cast<double>(msg->thrust);
