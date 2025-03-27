@@ -10,7 +10,8 @@
 #include <array>
 #include <cstdio>
 #include <algorithm>  // For std::fill
-
+#include "spdlog/spdlog.h"
+#include "rotor_tm_sim/base/lib_logger.hpp"
 #include "rotor_tm_sim/base/lib_base.hpp"
 #include "rotor_tm_sim/base/lib_utils.hpp"
 
@@ -123,7 +124,7 @@ class RigidBody
 
         controlled_stepper_type controlled_stepper;  // Stepper as class member
         double current_step_ = 0;
-        
+
     public:
 
         // constructor
@@ -220,8 +221,32 @@ class RigidBody
         inline double deg2rad(double deg) {return deg * M_PI / 180.0;};
 
 
-        virtual ~RigidBody() = default;
+        ~RigidBody();
 
 
+        protected:  // Change from private to protected
+
+        std::unique_ptr<MyLogger> ptr_logger; // Use unique_ptr to avoid memory leak
+
+        bool logging_enabled = false;
+
+        public:
+        
+        // Add a method to enable logging when needed
+        virtual void enable_logging(const std::string& log_file);
+        
+        // Check if logging is enabled
+        bool has_logging() const;
+        
+
+        // void write_log_info(const std::string& message) const;
+        
+        // void write_log_debug(const std::string& message) const;
+        
+        // void write_log_warn(const std::string& message) const;
+        
+        // void write_log_error(const std::string& message) const;
+
+        std::shared_ptr<spdlog::logger> get_spdlog_logger() const;
 };
 #endif

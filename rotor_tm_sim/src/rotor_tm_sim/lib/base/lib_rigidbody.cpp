@@ -1,5 +1,6 @@
 #include "rotor_tm_sim/base/lib_rigidbody.hpp"
 #include <boost/numeric/odeint/integrate/integrate_const.hpp>
+#include <cstddef>
 
 
 
@@ -13,8 +14,7 @@
 
 
 RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size): mass_property_(mass_property),step_size_(step_size), controlled_stepper(
-              error_checker_type(1.0e-6, 1.0e-3)  // absolute and relative tolerances
-             )
+              error_checker_type(1.0e-6, 1.0e-3)), ptr_logger(nullptr)  // absolute and relative tolerances
 {
 
     // set stable states
@@ -30,6 +30,9 @@ RigidBody::RigidBody(const MassProperty &mass_property, const double &step_size)
     
 };
 
+
+RigidBody::~RigidBody(){
+}
 
 void RigidBody::SetStatesZeros()
 {
@@ -848,3 +851,41 @@ Eigen::Vector3d RigidBody::ArrayToEigen(const std::array<double, 3>& arr)
     return vec;
 }
 
+
+
+
+void RigidBody::enable_logging(const std::string& log_file) {
+    // Create a new MyLogger object and assign it to the unique_ptr
+    ptr_logger = std::make_unique<MyLogger>("RigidBody", log_file);
+    get_spdlog_logger()->info("RigidBody logging enabled");
+    logging_enabled = true;
+}
+
+bool RigidBody::has_logging() const {
+    return ptr_logger != nullptr;
+}
+
+// void RigidBody::write_log_info(const std::string& message) const {
+//     ptr_logger->info(message);
+// }
+
+// void RigidBody::write_log_debug(const std::string& message) const {
+//     ptr_logger->debug(message);
+// }
+
+// void RigidBody::write_log_warn(const std::string& message) const {
+//     ptr_logger->warn(message);
+// }
+
+// void RigidBody::write_log_error(const std::string& message) const {
+//     ptr_logger->error(message);
+// }
+
+std::shared_ptr<spdlog::logger> RigidBody::get_spdlog_logger() const {
+    if ( has_logging() )
+    {    return ptr_logger->get_logger(); }
+    else
+    {
+        return nullptr;
+    };
+}

@@ -839,3 +839,11 @@ void Payload::DoOneStepInt()
     // Update current step
     current_step_ += step_size_;
 }
+
+
+
+void Payload::enable_logging(const std::string& log_file) {
+    // Create a new logger with the child class name but pointing to the provided file
+    ptr_logger = std::make_unique<MyLogger>("Payload", log_file);
+    get_spdlog_logger()->info("Payload logging enabled");
+}

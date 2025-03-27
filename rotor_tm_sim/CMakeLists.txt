@@ -83,7 +83,7 @@ gtest
 # 3. libs for simulators
 
 
-add_library(shared_logger STATIC
+add_library(shared_logger SHARED
     src/rotor_tm_sim/lib/base/lib_logger.cpp
     include/rotor_tm_sim/base/lib_logger.hpp
 )
@@ -109,7 +109,7 @@ add_library(lib_rigidbody SHARED
 target_compile_options(lib_rigidbody PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_rigidbody
-target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen)
+target_link_libraries(lib_rigidbody Boost::program_options Eigen3::Eigen shared_logger)
 
 
 # (3)pointmass 
@@ -182,7 +182,7 @@ add_library(lib_payload SHARED
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen )
+target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen shared_logger)
 
 
 #(4) cooperative

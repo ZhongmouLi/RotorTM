@@ -9,9 +9,12 @@
 #include <vector>
 #include <memory>
 #include <stdio.h>
+#include <spdlog/spdlog.h>
 #include "rotor_tm_sim/base/lib_rigidbody.hpp"
 #include "rotor_tm_sim/lib_joint.hpp"
 #include "rotor_tm_sim/lib_uav_cable.hpp"
+#include "rotor_tm_sim/base/lib_logger.hpp"
+
 // #include "rotor_tm_sim/lib_rigidbody.hpp"
 
 using namespace boost::numeric::odeint;
@@ -36,6 +39,7 @@ struct CooperIntertPara{
 
 
 class Payload: public RigidBody{
+    
 
     private:
 
@@ -156,6 +160,10 @@ class Payload: public RigidBody{
 
 
     void SetJointInitPostBasedOnPayload();
+
+
+
+    void enable_logging(const std::string& log_file) override;
 };
 
 #endif
