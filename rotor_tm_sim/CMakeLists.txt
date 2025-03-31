@@ -182,7 +182,7 @@ add_library(lib_payload SHARED
 target_compile_options(lib_payload PRIVATE -std=c++17 -Wall -Wextra)
 
 # link libs needed for building lib_payload
-target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen shared_logger)
+target_link_libraries(lib_payload lib_rigidbody Boost::program_options Eigen3::Eigen shared_logger math_utils)
 
 
 #(4) cooperative

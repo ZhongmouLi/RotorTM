@@ -233,7 +233,7 @@ class RigidBody
         public:
         
         // Add a method to enable logging when needed
-        virtual void enable_logging(const std::string& log_file);
+        virtual void EnableLogging(const std::string& log_file);
         
         // Check if logging is enabled
         bool has_logging() const;

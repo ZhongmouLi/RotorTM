@@ -854,7 +854,7 @@ Eigen::Vector3d RigidBody::ArrayToEigen(const std::array<double, 3>& arr)
 
 
 
-void RigidBody::enable_logging(const std::string& log_file) {
+void RigidBody::EnableLogging(const std::string& log_file) {
     // Create a new MyLogger object and assign it to the unique_ptr
     ptr_logger = std::make_unique<MyLogger>("RigidBody", log_file);
     get_spdlog_logger()->info("RigidBody logging enabled");

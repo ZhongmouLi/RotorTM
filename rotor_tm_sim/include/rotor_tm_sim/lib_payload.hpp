@@ -11,9 +11,10 @@
 #include <stdio.h>
 #include <spdlog/spdlog.h>
 #include "rotor_tm_sim/base/lib_rigidbody.hpp"
+#include "rotor_tm_sim/base/lib_logger.hpp"
 #include "rotor_tm_sim/lib_joint.hpp"
 #include "rotor_tm_sim/lib_uav_cable.hpp"
-#include "rotor_tm_sim/base/lib_logger.hpp"
+#include "rotor_tm_sim/base/lib_utils.hpp"
 
 // #include "rotor_tm_sim/lib_rigidbody.hpp"
 
@@ -64,11 +65,7 @@ class Payload: public RigidBody{
 
     // this defines the following memeber methods as public in google test such that they can be called and tested
     // they are still priviate in the other cases
-    #ifdef UNIT_TEST
-    public:
-    #else
-    private:
-    #endif
+    int num_iteration = 1;
 
     CooperIntertPara cooper_interact_para_;
 
@@ -163,7 +160,7 @@ class Payload: public RigidBody{
 
 
 
-    void enable_logging(const std::string& log_file) override;
+    void EnableLogging(const std::string& log_file) override;
 };
 
 #endif

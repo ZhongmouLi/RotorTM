@@ -337,12 +337,21 @@ void Payload::SetInitialAccBodyRateAcc(const Eigen::Vector3d &payload_initial_ac
 void Payload::InputDronesNetWrenches(const Wrench &mavs_net_wrench)
 {
     mavs_net_wrench_ = mavs_net_wrench;
+
+    get_spdlog_logger()->info("Cxx_input_force = {}", Utils::EigenMatrixToString(this->mavs_net_wrench().force, 17));
+    get_spdlog_logger()->info("Cxx_input_torque = {}", Utils::EigenMatrixToString(this->mavs_net_wrench().torque, 17));
 }
 
 void Payload::InputPayloadInteractPara(const CooperIntertPara &cooper_interact_para)
 {
 
     cooper_interact_para_ = cooper_interact_para;
+
+    get_spdlog_logger()->info("Cxx_inertia = {}", Utils::EigenMatrixToString(this->inertia(), 17));
+    get_spdlog_logger()->info("Cxx_m_C = {}", Utils::EigenMatrixToString(this->cooper_interact_para().m_C, 17));
+    get_spdlog_logger()->info("Cxx_m_D = {}", Utils::EigenMatrixToString(this->cooper_interact_para().m_D, 17));
+    get_spdlog_logger()->info("Cxx_m_E = {}", Utils::EigenMatrixToString(this->cooper_interact_para().m_E, 17));
+    get_spdlog_logger()->info("Cxx_m_mass_matrix = {}", Utils::EigenMatrixToString(this->cooper_interact_para().m_mass_matrix, 17));  
 };
 
 
@@ -663,6 +672,8 @@ void Payload::InputPayloadInteractPara(const CooperIntertPara &cooper_interact_p
 void Payload::SetPayloadStates(const object_state &payload_state)
 {
     state_ = payload_state;
+
+    get_spdlog_logger()->info("Cxx_current_state = {}", Utils::arrayToString(this->state(), 17));
 }
 
 Eigen::Matrix3d Payload::matirxBodyrate2EulerRate(const double &phi, const double &theta)
@@ -717,16 +728,25 @@ void Payload::operator() (const object_state &x, object_state &dxdt, const doubl
     dxdt.at(9) = dqn[3];
     
     // Debug output (optional)
-    std::cout << std::scientific << std::setprecision(15);
-    std::cout << "dxdt: ";
-    for (size_t i = 0; i < 13; ++i) {
-        std::cout << dxdt[i];
-        if (i < 12) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << std::endl;
-    std::cout << std::defaultfloat;
+    // std::cout << std::scientific << std::setprecision(15);
+    // std::cout << "dxdt: ";
+    // for (size_t i = 0; i < 13; ++i) {
+    //     std::cout << dxdt[i];
+    //     if (i < 12) {
+    //         std::cout << ", ";
+    //     }
+    // }
+    if (num_iteration > 4)
+    {
+        num_iteration = 1;
+    };
+
+    get_spdlog_logger()->info("Cxx_differenate_current_state_{} = {}", num_iteration, Utils::arrayToString(dxdt, 17));
+    num_iteration ++;
+
+    
+    // std::cout << std::endl;
+    // std::cout << std::defaultfloat;
 }
 
 // New function that computes translational dynamics from state vector
@@ -811,6 +831,14 @@ void Payload::ComputeDynamics()
     
     auto linear_acc = ComputeTransDynamics();
     SetLinearAcc(linear_acc);
+
+    // Log the current state for debugging
+    get_spdlog_logger()->info("Cxx_linear_acc = {}", Utils::EigenVectorToString(this->accs().linear_acc, 17));
+    get_spdlog_logger()->info("Cxx_angular_acc = {}", Utils::EigenVectorToString(this->accs().angular_acc, 17)); 
+    
+    get_spdlog_logger()->info("Cxx_mass = {}", this->mass());
+    get_spdlog_logger()->info("Cxx_gravity = {}", Utils::gravity);
+
 }
 
 // Modified integration function
@@ -830,7 +858,7 @@ void Payload::DoOneStepInt()
     };
     
     // Print step size for debugging
-    std::cout << "step size is " << step_size_ << std::endl;
+    // std::cout << "step size is " << step_size_ << std::endl;
     
     // Perform integration
     integrate_const(stepper_, std::ref(*this), state_, current_step_, 
@@ -838,11 +866,12 @@ void Payload::DoOneStepInt()
     
     // Update current step
     current_step_ += step_size_;
+    get_spdlog_logger()->info("Cxx_state_next = {}", Utils::arrayToString(this->state(), 17));
 }
 
 
 
-void Payload::enable_logging(const std::string& log_file) {
+void Payload::EnableLogging(const std::string& log_file) {
     // Create a new logger with the child class name but pointing to the provided file
     ptr_logger = std::make_unique<MyLogger>("Payload", log_file);
     get_spdlog_logger()->info("Payload logging enabled");
