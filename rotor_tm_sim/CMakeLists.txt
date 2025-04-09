@@ -265,9 +265,13 @@ target_link_libraries(rotorTM_CXX_Cooperative lib_cooperative lib_payload lib_ua
 # Define a test_data directory as a prefix for test files
 add_compile_definitions(TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test_data/")
 
-catkin_add_gtest(payload_test_with_data gtest/testPayloadWithData.cpp)
+# catkin_add_gtest(payload_test_with_data gtest/testPayloadWithData.cpp)
 
-target_link_libraries(payload_test_with_data lib_payload math_utils)
+# target_link_libraries(payload_test_with_data lib_payload math_utils)
+
+
+add_executable(test_payload test_case/test_payload.cpp)
+target_link_libraries(test_payload lib_payload math_utils)
 
 
 # # # test for cooperative class

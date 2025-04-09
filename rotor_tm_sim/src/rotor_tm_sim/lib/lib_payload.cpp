@@ -710,17 +710,20 @@ void Payload::operator() (const object_state &x, object_state &dxdt, const doubl
     
     // Calculate rotational dynamics directly from state
     Eigen::Vector3d angular_acc = ComputeRotDynamicsFromState(x);
+    // Eigen::Vector3d angular_acc = ComputeRotDynamics();
     dxdt.at(10) = angular_acc[0];
     dxdt.at(11) = angular_acc[1];
     dxdt.at(12) = angular_acc[2];
     
     // Calculate translational dynamics directly from state
     Eigen::Vector3d linear_acc = ComputeTransDynamicsFromState(x, angular_acc);
+    // Eigen::Vector3d linear_acc = ComputeTransDynamics();
     dxdt.at(3) = linear_acc[0];
     dxdt.at(4) = linear_acc[1];
     dxdt.at(5) = linear_acc[2];
     
     // Calculate quaternion derivative
+    // auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
     auto dqn = ComputeQuaternionDerivative(qn, bodyrate);
     dxdt.at(6) = dqn[0];
     dxdt.at(7) = dqn[1];
@@ -741,6 +744,7 @@ void Payload::operator() (const object_state &x, object_state &dxdt, const doubl
         num_iteration = 1;
     };
 
+    int fuck =1;
     get_spdlog_logger()->info("Cxx_differenate_current_state_{} = {}", num_iteration, Utils::arrayToString(dxdt, 17));
     num_iteration ++;
 

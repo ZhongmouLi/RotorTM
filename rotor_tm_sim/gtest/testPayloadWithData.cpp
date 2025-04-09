@@ -73,7 +73,7 @@ TEST_F(rotorTMPayloadTestWithData, checkDynamicsIntWithPythonData) {
   const int index = 100;
 
   // create log file
-  std::string log_file = std::string(TEST_DATA_DIR) + std::to_string(index) + "-3-result.txt";
+  std::string log_file = std::string(TEST_DATA_DIR) + std::to_string(index) + "-2-result.txt";
   ptr_payload->EnableLogging(log_file);
 
   // Read test case data
